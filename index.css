@@ -1,0 +1,139 @@
+:root {
+    --custom-black-color-100: #000000;
+    --custom-white-color-100: #FFFFFF;
+    --custom-gray-color-100: #0D0D0D;
+    --custom-gray-color-200: #121212;
+    --custom-gray-color-300: #212121;
+    --custom-gray-color-400: #2B2B2B;
+    --custom-green-color-100: #2ECC71;
+    --custom-green-color-200: #27AE60;
+    --custom-purple-color-100: #C2B3FF;
+    --custom-purple-color-200: #A794FF;
+    --custom-purple-color-300: #A685FF;
+    --custom-purple-color-400: #9277FF;
+    --custom-purple-color-500: #6A4FFF;
+    --custom-purple-color-600: #684ACC;
+    --custom-purple-color-700: #5438AA;
+    --custom-purple-color-800: #3F2888;
+}
+
+body {
+    background-color: var(--custom-black-color-100);
+    color: var(--custom-white-color-100);
+    font-family: "Montserrat", serif;
+    font-style: normal;
+    font-weight: normal;
+}
+
+.main-container {
+    width: 100%;
+    height: 98vh;
+    display: flex;
+    flex-direction: row;
+}
+
+.left-column {
+    width: 250px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid var(--custom-gray-color-300);
+}
+
+.right-column {
+    width: calc(100% - 250px);
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-container {
+    height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.authentication-container {
+    width: 300px;
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.authentication-button {
+    width: 145px;
+    height: 50px;
+    color: var(--custom-white-color-100);
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
+    border-radius: 25px;
+    background-color: var(--custom-purple-color-200);
+    cursor: pointer;
+}
+
+.modal-container {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    align-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    width: 500px;
+    height: 600px;
+    align-items: center;
+    justify-self: center;
+    align-self: center;
+    background-color: var(--custom-purple-color-500);
+}
+
+.sign-up-form {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+label {
+    margin-left: 3px;
+}
+
+input {
+    height: 50px;
+    border-radius: 10px;
+    border: none;
+    background-color: var(--custom-purple-color-100);
+}
+
+h1 {
+    font-size: 32px;
+}
+
+h2 {
+    font-size: 18px;
+}
+
+h3 {
+    font-size: 28px;
+    text-align: center;
+}
+
+header {
+    width: 100%;
+    height: 75px;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+    padding: 0 20px;
+    border-bottom: 2px solid var(--custom-gray-color-300);
+    align-items: center;
+}
