@@ -19,24 +19,36 @@
     <title>Tags</title>
 </head>
 <body class="body-container">
+<div id="toastContainer"></div>
      <div class="main-container">
          <div class="add-tag-container">
-             <form class="add-tag-form" >
+             <h1>Add New Tag Form</h1>
+             <form id="addTagForm" class="add-tag-form" method="POST" enctype="multipart/form-data">
                  <div class="input-container">
-                     <label for="tag-name">Enter a tag name:</label>
-                     <input type="text" id="tag-name" placeholder="Enter a tag name">
+                     <label for="tagName">Enter a tag name:</label>
+                     <input type="text" name="tagName" id="tagName" placeholder="Enter a tag name">
                  </div>
                  <div class="photo-input-container">
                      <label class="text-label">Add Tag Cover:</label>
-                     <label class="photo-label" for="tag-file">
+                     <label class="photo-label" for="tagFile">
                          <i class="bi bi-cloud-arrow-up-fill"></i>
                      </label>
-                     <input class="photo-input" type="file" id="tag-file" placeholder="Enter a tag name">
+                     <input class="photo-input" type="file" name="tagFile" id="tagFile" placeholder="Enter a tag name">
                  </div>
-                 
-                 <img class="tag-cover-display" src="">
+
+                 <div class="added-photo-container" >
+                     <img id="previewImage" class="tag-cover-display" src="" alt="Tag Cover Display">
+                 </div>
+
+                 <div class="buttons-container">
+                     <button id="cancel" type="button" class="submit-button">Cancel</button>
+                     <button disabled id="addNewTagSubmitButton" type="submit" class="submit-button">Add Photo</button>
+                 </div>
              </form>
          </div>
      </div>
+
+    <script src="tags.js"></script>
+    <script src="../../index.js"></script>
 </body>
 </html>

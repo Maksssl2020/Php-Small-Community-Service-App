@@ -61,17 +61,24 @@ if ($role == 'admin') {
         <div class="right-column">
             <header>
                 <h2>Browse Topics</h2>
-                <?php if(!$isSignedIn): ?>
                 <div class="authentication-container">
-                    <button type="button" id="signUpButton" class="authentication-button">
-                        Sign Up
-                    </button>
-                    <button type="button" id="signInButton" class="authentication-button">
-                        Sign In
-                    </button>
+                    <?php if(!$isSignedIn): ?>
+                        <button type="button" id="signUpButton" class="authentication-button">
+                            Sign Up
+                        </button>
+                        <button type="button" id="signInButton" class="authentication-button">
+                            Sign In
+                        </button>
+                    <?php else: ?>
+
+                        <button style="margin-left: auto" type="button" id="logoutButton" class="authentication-button">
+                            Logout
+                        </button>
+
+                    <?php endif; ?>
                 </div>
 
-                <?php endif; ?>
+
             </header>
             <div></div>
         </div>
@@ -126,5 +133,6 @@ if ($role == 'admin') {
     </div>
 
     <script src="start.js"></script>
+    <script src="../../index.js"></script>
 </body>
 </html>
