@@ -14,8 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (is_input_empty($nickname, $password)) {
             $errors[] = "Fill in all fields!";
         }
-        if (is_nickname_wrong($pdo, $nickname) && is_password_wrong($pdo, $nickname, $password)) {
+        if (is_nickname_wrong($pdo, $nickname) || is_password_wrong($pdo, $nickname, $password)) {
             $errors[] = "Invalid credentials!";
+        }
+
+        if ($errors) {
+            echo json_encode(['success' => false, 'errors' => $errors]);
+            exit;
         }
 
         require_once('../db/config_session.php');

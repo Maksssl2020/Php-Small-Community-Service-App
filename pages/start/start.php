@@ -49,7 +49,7 @@ if ($role == 'admin') {
                     <?php endif; ?>
                     <?php if($isSignedIn && $isAdmin): ?>
                         <li>
-                            <a href="../tags/tags.php">
+                            <a href="../tags/tags-form.php">
                                 <i class="bi bi-bookmark-plus-fill"></i>
                                 <p>Add topic</p>
                             </a>
@@ -70,17 +70,14 @@ if ($role == 'admin') {
                             Sign In
                         </button>
                     <?php else: ?>
-
                         <button style="margin-left: auto" type="button" id="logoutButton" class="authentication-button">
                             Logout
                         </button>
-
                     <?php endif; ?>
                 </div>
-
-
             </header>
-            <div></div>
+            <div id="mainTags" class="main-tags-container">
+            </div>
         </div>
     </div>
 

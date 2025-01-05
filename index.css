@@ -6,8 +6,7 @@
     --custom-gray-color-300: #212121;
     --custom-gray-color-400: #2B2B2B;
     --custom-gray-color-500: #ACACAC;
-    --custom-green-color-100: #2ECC71;
-    --custom-green-color-200: #27AE60;
+
     --custom-purple-color-25: #E9E1FF;
     --custom-purple-color-50: #D6CBFF;
     --custom-purple-color-100: #C2B3FF;
@@ -18,7 +17,20 @@
     --custom-purple-color-600: #684ACC;
     --custom-purple-color-700: #5438AA;
     --custom-purple-color-800: #3F2888;
+
     --custom-red-color-100: #ff4d4f;
+    --custom-blue-color-100: #4F9DFF;
+    --custom-blue-color-200: #3A7CCC;
+    --custom-green-color-100: #4CAF50;
+    --custom-green-color-200: #388E3C;
+    --custom-red-color-200: #E57373;
+    --custom-red-color-300: #D32F2F;
+    --custom-yellow-color-100: #FFEB3B;
+    --custom-yellow-color-200: #FBC02D;
+    --custom-pink-color-100: #FFC0CB;
+    --custom-pink-color-200: #FF8A80;
+    --custom-teal-color-100: #64FFDA;
+    --custom-teal-color-200: #26A69A;
 }
 
 .body-container {
@@ -198,6 +210,39 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.searchbar {
+    width: 250px;
+    height: 45px;
+    display: flex;
+    gap: 1rem;
+    border: 2px solid transparent;
+    background-color: var(--custom-gray-color-200);
+    color: var(--custom-gray-color-500);
+    border-radius: 20px;
+    padding: 0 10px;
+    align-items: center;
+
+    i {
+        font-size: 20px;
+    }
+
+    &:focus-within  {
+        border-color: var(--custom-pink-color-200);
+    }
+}
+
+.searchbar-input {
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    outline: none;
+    color: var(--custom-white-color-100);
+    font-size: 16px;
 }
 
 h1 {

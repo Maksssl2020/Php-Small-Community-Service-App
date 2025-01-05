@@ -29,3 +29,11 @@ function is_password_wrong(object $pdo, string $nickname, string $password): boo
 function get_user_data(object $pdo, string $nickname): array {
     return get_user($pdo, $nickname);
 }
+
+function is_user_not_signed_in(string $nickname): bool {
+    if ($_SESSION['user_nickname'] !== $nickname) {
+        return true;
+    } else {
+        return false;
+    }
+}

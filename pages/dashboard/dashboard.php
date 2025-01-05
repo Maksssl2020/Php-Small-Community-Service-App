@@ -44,13 +44,35 @@
                            <p>Topics</p>
                        </a>
                     </li>
+                    <li class="topicsItem">
+                        <a href="">
+                            <i class="bi bi-stickies-fill"></i>
+                            <p>My posts</p>
+                        </a>
+                    </li>
                 </ul>
+
+                <button class="create-post-button">
+                    <i class="bi bi-pencil-fill"></i>
+                    Create
+                </button>
             </div>
         </div>
         <div class="dashboard-container">
-            <header></header>
+            <header class="dashboard-header">
+                <button class="header-button">For you</button>
+                <button class="header-button">Your tags</button>
+                <button class="header-options-button">
+                    <i class="bi bi-sliders"></i>
+                </button>
+            </header>
         </div>
-        <div class="right-column"></div>
+        <div class="right-column">
+            <div class="searchbar">
+                <i class="bi bi-search"></i>
+                <input class="searchbar-input" type="text" placeholder="Search on Flickit"/>
+            </div>
+        </div>
     </div>
 
     <script src="dashboard.js"></script>

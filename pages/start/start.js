@@ -2,13 +2,74 @@ const signUpModal = document.getElementById('signUpModal');
 const signInModal = document.getElementById('signInModal');
 const signUpButton = document.getElementById('signUpButton');
 const signInButton = document.getElementById('signInButton');
+const logoutButton = document.getElementById('logoutButton');
+const mainTagsContainer = document.getElementById('mainTags');
 
-signUpButton.onclick = () => {
-    signUpModal.style.display = 'block';
+document.addEventListener('DOMContentLoaded', () => {
+    fetchMainTags();
+})
+
+if (signUpButton) {
+    signUpButton.onclick = () => {
+        signUpModal.style.display = 'block';
+    }
 }
 
-signInButton.onclick = () => {
-    signInModal.style.display = 'block';
+if (signInButton) {
+    signInButton.onclick = () => {
+        signInModal.style.display = 'block';
+    }
+}
+
+if (logoutButton) {
+    logoutButton.addEventListener('click', () => {
+        fetch('../../utils/sign-in/logout.php', {
+            method: 'POST'
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    window.location.reload();
+                } else {
+                    showToast('Logout failed. Please try again.', 'error');
+                }
+            }).catch(err => {
+            console.log(err);
+            showToast('Something went wrong. Please try again.', 'error');
+        });
+    })
+}
+
+function fetchMainTags() {
+    fetch('../../utils/start/get_main_tags.php', {
+        method: 'GET'
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                data.data.forEach(mainTag => {
+                    const mainTagDiv = document.createElement('div');
+                    mainTagDiv.className = 'main-tag-card';
+
+                    const tagImg = document.createElement('img');
+                    tagImg.src = mainTag.imageUrl;
+                    tagImg.alt = mainTag.name;
+
+                    const tagP = document.createElement('p');
+                    tagP.textContent = mainTag.name;
+
+                    mainTagDiv.appendChild(tagImg);
+                    mainTagDiv.appendChild(tagP);
+
+                    mainTagsContainer.appendChild(mainTagDiv);
+                })
+            } else {
+                console.log("Failed to fetch main tags. Please try again.");
+            }
+        }).catch(err => {
+            console.log(err);
+    })
 }
 
 window.onclick = (event) => {
@@ -43,6 +104,8 @@ signInForm.addEventListener('submit', (event) => {
                 signInModal.style.display = 'none';
                 signInForm.reset();
             }, 1000)
+
+            window.location = "../dashboard/dashboard.php";
         } else {
             data.errors.forEach((error) => showToast(error));
         }
@@ -63,11 +126,11 @@ function validateSignInForm() {
     signInSubmitButton.disabled = !(isNicknameValid && isPasswordValid);
 }
 
-signInNicknameInput.addEventListener('blur', () => {
+signInNicknameInput.addEventListener('change', () => {
     validateFormInput(signInNicknameInput, signInNicknameInput.value.trim().length > 0);
     validateSignInForm();
 });
-signInPasswordInput.addEventListener('blur', () => {
+signInPasswordInput.addEventListener('change', () => {
     validateFormInput(signInPasswordInput, signInPasswordInput.value.trim().length >= 8);
     validateSignInForm();
 });

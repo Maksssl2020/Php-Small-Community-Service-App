@@ -2,14 +2,14 @@
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tagName = $_POST['tagName'];
-    $tagFile = $_FILES['tagFile'];
-
-    error_log($tagName);
+    $isMainTag = $_POST['isMainTag'];
+    $subTag = $_POST['subTag'] ?? null;
+    $tagCoverUrl = $_POST['tagCoverUrl'];
 
     try {
         require_once('../db/dbh.php');
-        require_once('add_new_tag_model.php');
-        require_once('add_new_tag_controller.php');
+        require_once('tags_model.php');
+        require_once('tags_controller.php');
 
         $errors = [];
 
@@ -17,8 +17,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $errors[] = "Tag name cannot be empty!";
         }
 
-        if (is_tag_file_empty($tagFile)) {
-            $errors[] = "Tag file cannot be empty!";
+        if (!$isMainTag && is_sub_tag_empty($subTag)) {
+            $errors[] = "Sub-tag cannot be empty!";
+        }
+
+        if (is_tag_cover_url_empty($tagCoverUrl)) {
+            $errors[] = "Tag cover URL cannot be empty!";
         }
 
         if (is_tag_name_exists($pdo, $tagName)) {
@@ -32,11 +36,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         }
 
+        if ($isMainTag) {
+            create_tag_without_sub_tag($pdo, $tagName, $tagCoverUrl);
+        } else {
+            create_tag_with_sub_tag($pdo, $tagName, $tagCoverUrl, $subTag);
+        }
 
-
-        $fileContent = file_get_contents($tagFile['tmp_name']);
-        error_log("COŚ1");
-        create_tag($pdo, $tagName, $fileContent);
+        error_log("COŚ2");
 
         $pdo = null;
         $statement = null;
