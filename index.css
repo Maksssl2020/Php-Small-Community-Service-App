@@ -6,6 +6,8 @@
     --custom-gray-color-300: #212121;
     --custom-gray-color-400: #2B2B2B;
     --custom-gray-color-500: #ACACAC;
+    --custom-gray-color-600: #222222;
+    --custom-gray-color-700: #7A7A7A;
 
     --custom-purple-color-25: #E9E1FF;
     --custom-purple-color-50: #D6CBFF;
@@ -18,11 +20,11 @@
     --custom-purple-color-700: #5438AA;
     --custom-purple-color-800: #3F2888;
 
-    --custom-red-color-100: #ff4d4f;
     --custom-blue-color-100: #4F9DFF;
     --custom-blue-color-200: #3A7CCC;
     --custom-green-color-100: #4CAF50;
     --custom-green-color-200: #388E3C;
+    --custom-red-color-100: #ff4d4f;
     --custom-red-color-200: #E57373;
     --custom-red-color-300: #D32F2F;
     --custom-yellow-color-100: #FFEB3B;
@@ -92,6 +94,7 @@
     height: 100%;
     align-content: center;
     background-color: rgba(0, 0, 0, 0.6);
+    font-family: "Montserrat", serif;
 }
 
 .modal-content {
@@ -105,6 +108,7 @@
     align-self: center;
     border-radius: 10px;
     background-color: var(--custom-purple-color-400);
+    font-family: "Montserrat", serif;
 }
 
 .input-container {

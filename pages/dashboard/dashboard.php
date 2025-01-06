@@ -1,6 +1,6 @@
 <?php
-
-
+    session_start();
+    $userNickname = htmlspecialchars($_SESSION['user_nickname']);
 ?>
 <!doctype html>
 <html lang="en">
@@ -52,7 +52,7 @@
                     </li>
                 </ul>
 
-                <button class="create-post-button">
+                <button id="createPostButton" class="create-post-button">
                     <i class="bi bi-pencil-fill"></i>
                     Create
                 </button>
@@ -72,6 +72,64 @@
                 <i class="bi bi-search"></i>
                 <input class="searchbar-input" type="text" placeholder="Search on Flickit"/>
             </div>
+        </div>
+    </div>
+
+    <div id="postOptionsContainer" class="modal-container">
+        <div class="post-options-container">
+            <div id="addTextButton" class="post-option-card">
+                <div class="post-option-icon-container" style="background-color: var(--custom-red-color-300)">
+                    <i class="bi bi-alphabet-uppercase"></i>
+                </div>
+                <p class="post-option-text">Text</p>
+            </div>
+            <div class="post-option-card">
+                <div class="post-option-icon-container" style="background-color: var(--custom-yellow-color-200)">
+                    <i class="bi bi-camera2"></i>
+                </div>
+                <p class="post-option-text">Photo</p>
+            </div>
+            <div class="post-option-card">
+                <div class="post-option-icon-container" style="background-color: var(--custom-green-color-100)">
+                    <i class="bi bi-quote"></i>
+                </div>
+                <p class="post-option-text">Quote</p>
+            </div>
+            <div class="post-option-card">
+                <div class="post-option-icon-container" style="background-color: var(--custom-blue-color-100)">
+                    <i class="bi bi-link-45deg"></i>
+                </div>
+                <p class="post-option-text">Link</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="addTextModal" class="modal-container">
+        <div class="modal-content">
+            <header class="add-post-modal-header">
+                <p id="userNickname">
+                    <?php
+                        echo $userNickname;
+                    ?>
+                </p>
+            </header>
+            <div class="add-post-modal-main">
+                <input class="text-post-title-input" placeholder="Title"/>
+                <textarea class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+                <div class="add-tag-container">
+                    <label >Select tags or create new one:</label>
+                    <div class="add-tags-options-container">
+                        <select id="tagSelect" class="tag-select"></select>
+                        <input id="tagInput" class="tag-input" type="text" placeholder="..."/>
+                    </div>
+                </div>
+                <div id="addedTagsContainer" class="chosen-tags-container">
+                </div>
+            </div>
+            <footer class="add-post-modal-footer">
+                <button class="add-post-button">Close</button>
+                <button disabled class="add-post-button" style="margin-left: auto">Public now</button>
+            </footer>
         </div>
     </div>
 
