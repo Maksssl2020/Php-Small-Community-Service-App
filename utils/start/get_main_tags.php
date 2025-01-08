@@ -5,9 +5,7 @@ try {
     require_once('start_model.php');
     require_once('start_Controller.php');
 
-
     $fetchedTags = fetch_main_tags($pdo);
-
 
     echo json_encode(['success' => true, 'data' => $fetchedTags], JSON_PRETTY_PRINT);
     exit;

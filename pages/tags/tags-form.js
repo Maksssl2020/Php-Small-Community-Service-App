@@ -60,7 +60,6 @@ function validateTagForm() {
     addNewTagSubmitButton.disabled = !(isTagNameValid && isTagFileValid);
 }
 
-
 addTagForm.addEventListener('submit', (event) => {
     event.preventDefault();
 

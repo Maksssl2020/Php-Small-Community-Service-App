@@ -40,7 +40,7 @@ function create_subtag(object $pdo, string $tag_name, string $tag_file, string $
     set_subtag($pdo, $tag_name, $tag_file, $tag_cover_url);
 }
 
-function create_user_tag(object $pdo, string $tag_name) {
+function create_user_tag(object $pdo, string $tag_name): void {
     set_user_tag($pdo, $tag_name);
 }
 
@@ -50,4 +50,12 @@ function get_main_tags_names(object $pdo): array {
 
 function get_all_tags_names(object $pdo): array {
     return get_all_tags($pdo);
+}
+
+function get_tag_id_by_tag_name(PDO $pdo, string $tag_name): ?int {
+    return find_tag_by_tag_name($pdo, $tag_name);
+}
+
+function get_post_tags_by_post_id(PDO $pdo, int $postId): array {
+    return find_post_tags_by_post_id($pdo, $postId);
 }

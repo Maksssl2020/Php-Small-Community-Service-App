@@ -18,6 +18,7 @@
     <title>Dashboard</title>
 </head>
 <body class="body-container">
+<div id="toastContainer"></div>
     <div class="main-container">
         <div class="left-column">
             <div class="left-sidebar">
@@ -45,7 +46,7 @@
                        </a>
                     </li>
                     <li class="topicsItem">
-                        <a href="">
+                        <a id="myPostsTopicItem">
                             <i class="bi bi-stickies-fill"></i>
                             <p>My posts</p>
                         </a>
@@ -66,6 +67,8 @@
                     <i class="bi bi-sliders"></i>
                 </button>
             </header>
+            <div class="dashboard-content-container" id="dashboardContentContainer">
+            </div>
         </div>
         <div class="right-column">
             <div class="searchbar">
@@ -113,9 +116,9 @@
                     ?>
                 </p>
             </header>
-            <div class="add-post-modal-main">
-                <input class="text-post-title-input" placeholder="Title"/>
-                <textarea class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+            <form id="addTextPostForm" class="add-post-modal-main">
+                <input id="textPostTitle" name="postTitle" class="text-post-title-input" placeholder="Title"/>
+                <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
                 <div class="add-tag-container">
                     <label >Select tags or create new one:</label>
                     <div class="add-tags-options-container">
@@ -125,14 +128,15 @@
                 </div>
                 <div id="addedTagsContainer" class="chosen-tags-container">
                 </div>
-            </div>
+            </form>
             <footer class="add-post-modal-footer">
-                <button class="add-post-button">Close</button>
-                <button disabled class="add-post-button" style="margin-left: auto">Public now</button>
+                <button type="button" id="addTextModalCloseButton" class="add-post-button">Close</button>
+                <button type="submit" disabled id="addTextPostButton" class="add-post-button" style="margin-left: auto; background: var(--custom-pink-color-200); color: var(--custom-white-color-100)">Public now</button>
             </footer>
         </div>
     </div>
 
     <script src="dashboard.js"></script>
+    <script src="../../index.js"></script>
 </body>
 </html>
