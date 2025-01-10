@@ -17,3 +17,26 @@ function showToast(message, type = 'error') {
         toast.remove();
     }, 4000)
 }
+
+async function fetchUserData(userId) {
+    const formData = new FormData();
+    formData.append('userId', userId);
+
+    return await fetch('/utils/users/get_user_data.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(data.data);
+                return data.data;
+            } else {
+                return null;
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            return null;
+        });
+}

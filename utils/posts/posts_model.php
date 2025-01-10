@@ -11,6 +11,25 @@ function set_text_post(object $pdo, int $user_id, string $title, string $content
     return $pdo->lastInsertId();
 }
 
+function set_image_post(object $pdo, int $userId, ?string $content ): int {
+    $query = "INSERT INTO `flickit-db`.posts (userId, type, content) VALUES (:userId, 'image' , :content)";
+    $statement = $pdo->prepare($query);
+    $statement->bindParam(':userId', $userId);
+    $statement->bindParam(':content', $content);
+    $statement->execute();
+
+    return $pdo->lastInsertId();
+}
+
+function set_post_images(object $pdo, int $postId, array $imagesLinks): void {
+    $query = "INSERT INTO `flickit-db`.post_images (postId, imageUrl) VALUES (?, ?)";
+    $statement = $pdo->prepare($query);
+
+    foreach ($imagesLinks as $imageLink) {
+        $statement->execute([$postId, $imageLink]);
+    }
+}
+
 function set_post_tags(object $pdo, int $post_id, array $tags): void {
     require_once('../tags/get_tag_id.php');
 
@@ -115,6 +134,8 @@ function get_posts_images(PDO $pdo, array $post_ids): array {
         return [];
     }
 
+    error_log("KDKD");
+
     $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
     $query = "SELECT * FROM `flickit-db`.post_images WHERE postId IN ($placeholders)";
 
@@ -124,7 +145,7 @@ function get_posts_images(PDO $pdo, array $post_ids): array {
 
     $imagesByPostId = [];
     foreach ($results as $row) {
-        $imageObject = new PostImage($row['id'], $row['postId'], $row['linkUrl'], $row['createdAt']);
+        $imageObject = new PostImage($row['id'], $row['postId'], $row['imageUrl'], DateTime::createFromFormat('Y-m-d H:i:s', $row['createdAt']));
         $imagesByPostId[$row['postId']][] = $imageObject;
     }
 

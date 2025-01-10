@@ -38,6 +38,6 @@ class DashboardPost implements JsonSerializable {
     }
 
     public function __toString(): string {
-        return $this->postTitle.' - '.$this->postContent.' - '.$this->postLinkUrl.' - '.$this->createdAt->format('Y-m-d H:i:s').' - '.implode($this->tags).' - '.implode(',', $this->images);
+        return $this->postTitle.' - '.$this->postContent.' - '.$this->postLinkUrl.' - '.$this->createdAt->format('Y-m-d H:i:s').' - '.implode($this->tags).' - ';
     }
 }

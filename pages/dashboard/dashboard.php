@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <title>Dashboard</title>
 </head>
-<body class="body-container">
+<body class="body-container" id="dashboardBody">
 <div id="toastContainer"></div>
     <div class="main-container">
         <div class="left-column">
@@ -80,13 +80,13 @@
 
     <div id="postOptionsContainer" class="modal-container">
         <div class="post-options-container">
-            <div id="addTextButton" class="post-option-card">
+            <div id="addTextPostButton" class="post-option-card">
                 <div class="post-option-icon-container" style="background-color: var(--custom-red-color-300)">
                     <i class="bi bi-alphabet-uppercase"></i>
                 </div>
                 <p class="post-option-text">Text</p>
             </div>
-            <div class="post-option-card">
+            <div id="addImagePostButton" class="post-option-card">
                 <div class="post-option-icon-container" style="background-color: var(--custom-yellow-color-200)">
                     <i class="bi bi-camera2"></i>
                 </div>
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    <div id="addTextModal" class="modal-container">
+    <div id="addNewPostModal" class="modal-container">
         <div class="modal-content">
             <header class="add-post-modal-header">
                 <p id="userNickname">
@@ -116,9 +116,8 @@
                     ?>
                 </p>
             </header>
-            <form id="addTextPostForm" class="add-post-modal-main">
-                <input id="textPostTitle" name="postTitle" class="text-post-title-input" placeholder="Title"/>
-                <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+            <form class="add-post-modal-main" id="addPostModalFormContainer"></form>
+            <div class="add-post-modal-tags-options" >
                 <div class="add-tag-container">
                     <label >Select tags or create new one:</label>
                     <div class="add-tags-options-container">
@@ -128,15 +127,16 @@
                 </div>
                 <div id="addedTagsContainer" class="chosen-tags-container">
                 </div>
-            </form>
+            </div>
             <footer class="add-post-modal-footer">
                 <button type="button" id="addTextModalCloseButton" class="add-post-button">Close</button>
-                <button type="submit" disabled id="addTextPostButton" class="add-post-button" style="margin-left: auto; background: var(--custom-pink-color-200); color: var(--custom-white-color-100)">Public now</button>
+                <button type="submit" disabled id="addNewPostButton" class="add-post-button" style="margin-left: auto; background: var(--custom-pink-color-200); color: var(--custom-white-color-100)">Public now</button>
             </footer>
         </div>
     </div>
 
     <script src="dashboard.js"></script>
+    <script src="dashboardAddNewPosts.js"></script>
     <script src="../../index.js"></script>
 </body>
 </html>

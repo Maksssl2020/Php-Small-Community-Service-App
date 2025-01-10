@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $type = $_POST['postType'];
     $title = $_POST['postTitle'] ?? null;
     $content = $_POST['postContent'] ?? null;
-    $linkUrl = $_POST['postLink'] ?? null;
+    $imagesLinks = json_decode($_POST['postImagesLinks'] ?? '[]', true);;
     $tags = json_decode($_POST['postTags'] ?? '[]', true);
 
     try {
@@ -21,10 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = 'You must be logged in!';
         }
 
-        $errors = is_post_invalid_depends_on_type($type, $title, $content, $linkUrl);
+        $errors = is_post_invalid_depends_on_type($type, $title, $content, $imagesLinks);
 
         $pdo->beginTransaction();
-        create_post_depends_on_type($pdo, $userId, $type, $title, $content, $linkUrl, $tags);
+        create_post_depends_on_type($pdo, $userId, $type, $title, $content, $imagesLinks, $tags);
         $pdo->commit();
 
         if ($errors) {

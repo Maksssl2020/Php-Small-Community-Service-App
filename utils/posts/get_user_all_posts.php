@@ -19,7 +19,6 @@ try {
     require_once('posts_model.php');
     require_once('posts_controller.php');
 
-    // Debugowanie połączenia z bazą
     if (!$pdo) {
         echo json_encode(['success' => false, 'message' => 'Database connection failed']);
         exit;
@@ -40,7 +39,6 @@ try {
 
     $foundUserPosts = get_all_user_posts($pdo, $userId);
 
-    // Testowa odpowiedź JSON
     echo json_encode(['success' => true, 'data' => $foundUserPosts], JSON_PRETTY_PRINT);
     exit;
 
