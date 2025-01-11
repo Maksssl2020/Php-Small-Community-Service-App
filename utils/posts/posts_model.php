@@ -11,10 +11,11 @@ function set_text_post(object $pdo, int $user_id, string $title, string $content
     return $pdo->lastInsertId();
 }
 
-function set_image_post(object $pdo, int $userId, ?string $content ): int {
-    $query = "INSERT INTO `flickit-db`.posts (userId, type, content) VALUES (:userId, 'image' , :content)";
+function set_post(object $pdo, int $userId, string $postType, ?string $content) {
+    $query = "INSERT INTO `flickit-db`.posts (userId, type, content) VALUES (:userId, :postType , :content)";
     $statement = $pdo->prepare($query);
     $statement->bindParam(':userId', $userId);
+    $statement->bindParam(':postType', $postType);
     $statement->bindParam(':content', $content);
     $statement->execute();
 
@@ -27,6 +28,15 @@ function set_post_images(object $pdo, int $postId, array $imagesLinks): void {
 
     foreach ($imagesLinks as $imageLink) {
         $statement->execute([$postId, $imageLink]);
+    }
+}
+
+function set_post_links(object $pdo, int $postId, array $sitesLinks): void {
+    $query = "INSERT INTO `flickit-db`.post_links (postId, link) VALUES (?, ?)";
+    $statement = $pdo->prepare($query);
+
+    foreach ($sitesLinks as $siteLink) {
+        $statement->execute([$postId, $siteLink]);
     }
 }
 
@@ -67,6 +77,7 @@ function fetch_user_posts(PDO $pdo, int $user_id): array {
     $postIds = array_column($posts, 'id');
     $allTags = get_posts_tags($pdo, $postIds);
     $allImages = get_posts_images($pdo, $postIds);
+    $allLinks = get_post_links($pdo, $postIds);
 
     $dashboardPosts = [];
 
@@ -76,6 +87,7 @@ function fetch_user_posts(PDO $pdo, int $user_id): array {
 
         $foundTags = $allTags[$postId] ?? [];
         $foundPostImages = ($postType === 'image') ? ($allImages[$postId] ?? []) : [];;
+        $foundPostLinks = ($postType === 'link') ? ($allLinks[$postId] ?? []) : [];
 
         $dashboardPost = new DashboardPost(
             $postId,
@@ -83,7 +95,7 @@ function fetch_user_posts(PDO $pdo, int $user_id): array {
             $postType,
             $post['title'],
             $post['content'],
-            $post['linkUrl'],
+            $foundPostLinks,
             DateTime::createFromFormat('Y-m-d H:i:s', $post['createdAt']),
             $foundTags,
             $foundPostImages
@@ -134,8 +146,6 @@ function get_posts_images(PDO $pdo, array $post_ids): array {
         return [];
     }
 
-    error_log("KDKD");
-
     $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
     $query = "SELECT * FROM `flickit-db`.post_images WHERE postId IN ($placeholders)";
 
@@ -150,4 +160,25 @@ function get_posts_images(PDO $pdo, array $post_ids): array {
     }
 
     return $imagesByPostId;
+}
+
+function get_post_links(PDO $pdo, array $post_ids): array {
+    if (empty($post_ids)) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
+    $query = "SELECT * FROM `flickit-db`.post_links WHERE postId IN ($placeholders)";
+
+    $statement = $pdo->prepare($query);
+    $statement->execute($post_ids);
+    $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+    $linksByPostId = [];
+
+    foreach ($results as $row) {
+        $linksByPostId[$row['postId']][] = $row['link'];
+    }
+
+    return $linksByPostId;
 }

@@ -1,18 +1,30 @@
 const addTextPostButton = document.getElementById("addTextPostButton");
 const addImagePostButton = document.getElementById("addImagePostButton");
 const addNewPostModal = document.getElementById("addNewPostModal");
-const addTextModalCloseButton = document.getElementById("addTextModalCloseButton");
+const addNewPostModalCloseButton = document.getElementById("addNewPostModalCloseButton");
 
 const addPostModalFormContainer = document.getElementById("addPostModalFormContainer");
 
+const selectLabel = document.getElementById("selectLabel");
+const selectOptionsContainer = document.getElementById("selectOptionsContainer");
+const selectOptions = document.getElementById("selectOptions");
+const tagsFilter = document.getElementById("tagsFilter");
 const addedTagsContainer = document.getElementById("addedTagsContainer");
-const tagInput = document.getElementById("tagInput");
-const tagSelect = document.getElementById("tagSelect");
+
 let availableTags = [];
 
 
 const addNewPostButton = document.getElementById("addNewPostButton");
-const addTextPostForm = document.getElementById("addTextPostForm");
+const addQuotePostButton = document.getElementById("addQuotePostButton");
+const addLinkPostButton = document.getElementById("addLinkPostButton");
+
+selectLabel.onclick = () => {
+    if (selectOptionsContainer.style.display === "none") {
+        selectOptionsContainer.style.display = "flex";
+    } else {
+        selectOptionsContainer.style.display = "none";
+    }
+}
 
 addTextPostButton.onclick = () => {
     postOptionsModal.style.display = "none";
@@ -38,12 +50,56 @@ addImagePostButton.onclick = () => {
     }
 }
 
-if (addTextModalCloseButton) {
-    addTextModalCloseButton.onclick = () => {
+addQuotePostButton.onclick = () => {
+    postOptionsModal.style.display = "none";
+    addNewPostModal.style.display = "block";
+
+    generateAddQuotePostModal();
+    fetchAllTags();
+
+    addNewPostButton.onclick = (e) => {
+        addNewQuotePost(e);
+    }
+}
+
+addLinkPostButton.onclick = () => {
+    postOptionsModal.style.display = "none";
+    addNewPostModal.style.display = "block";
+
+    generateAddLinkPostModal();
+    fetchAllTags();
+
+    addNewPostButton.onclick = (e) => {
+        addNewLinkPost(e);
+    }
+}
+
+if (addNewPostModalCloseButton) {
+    addNewPostModalCloseButton.onclick = () => {
         addNewPostModal.style.display = "none";
         addPostModalFormContainer.innerHTML = '';
     }
 }
+tagsFilter.addEventListener('keyup', (e) => {
+    const filterValue = e.target.value.toLowerCase();
+    const filteredTags = availableTags.filter(tag => tag.name.toLowerCase().includes(filterValue));
+
+    populateTagSelect(filteredTags.slice(0, 8));
+    focus();
+})
+
+tagsFilter.addEventListener('keypress', (e) => {
+    const inputValue = e.target.value.trim();
+
+    if (e.key === "Enter" && availableTags.every(tag => tag.name.toLowerCase() !== inputValue.toLowerCase()) ) {
+        e.preventDefault();
+
+       if (inputValue) {
+           addNewUserTag(inputValue);
+           tagsFilter.value = '';
+       }
+    }
+})
 
 function generateAddTextPostModal() {
     const addTextPostForm = `
@@ -69,7 +125,7 @@ function generateAddImagePostModal() {
     const addImagePostForm = `
               <ul id="addedLinksList" class="added-links-list"></ul>
               <div class="add-photo-url-container">
-                <input id="photoLinkInput" type="url" placeholder="Enter photo URL and press ENTER :)"/>
+                <input autocomplete="off" id="photoLinkInput" type="url" placeholder="Enter photo URL and press ENTER :)"/>
                 <label>You could add max 5 links of photos!</label>
               </div>
               <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
@@ -93,6 +149,77 @@ function generateAddImagePostModal() {
     })
 
     observer.observe(addedLinksList, {childList: true});
+}
+
+function generateAddQuotePostModal() {
+    const addQuotePostForm = `
+        <textarea id="quoteTextarea" name="postContent" class="post-quote-textarea" spellcheck="false" placeholder="Something that someone once told someone..."></textarea>
+    `
+
+    addPostModalFormContainer.innerHTML += addQuotePostForm;
+
+    const quoteTextarea = document.getElementById("quoteTextarea");
+    quoteTextarea.addEventListener("input", autoResize);
+    autoResize.call(quoteTextarea);
+
+    quoteTextarea.addEventListener('change', () => {
+        validateQuotePostForm();
+    })
+}
+
+function generateAddLinkPostModal() {
+    const addLinkPostForm = `
+              <ul id="addedLinksList" class="added-links-list"></ul>
+              <div class="add-photo-url-container">
+                <input autocomplete="off" id="siteLinkInput" type="url" placeholder="Enter site URL and press ENTER :)"/>
+                <label>You could add max 5 links of sites!</label>
+              </div>
+              <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+    `
+
+    addPostModalFormContainer.innerHTML += addLinkPostForm;
+
+    const linkInput = document.getElementById("siteLinkInput");
+    const addedLinksList = document.getElementById("addedLinksList");
+
+    linkInput.addEventListener("keypress", async (event) => {
+        let url = event.target.value.trim();
+        if (event.key === "Enter" && url !== '') {
+            event.preventDefault();
+            await addSiteUrlToTheList(url, addedLinksList)
+            linkInput.value = "";
+        }
+    })
+
+    const observer = new MutationObserver(() => {
+        validateLinkPostForm();
+    })
+
+    observer.observe(addedLinksList, {childList: true});
+}
+
+async function addSiteUrlToTheList(url, addedLinksList) {
+    if (addedLinksList.children.length > 5) {
+        showToast("You can only add up to 5 sites links!", 'error')
+        return;
+    }
+
+    const siteData = await fetchSiteData(url);
+    await createSiteViewCard(url, siteData, addedLinksList);
+}
+
+async function createSiteViewCard(url, data, container) {
+    const listItem = await createSiteCard(url, data);
+
+    const deleteIcon = document.createElement('i');
+    deleteIcon.classList.add('bi');
+    deleteIcon.classList.add('bi-x');
+    deleteIcon.classList.add('post-item-delete-icon');
+    deleteIcon.addEventListener('click', () => {
+        container.removeChild(listItem);
+    })
+
+    container.appendChild(listItem);
 }
 
 function addPhotoUrlToTheList(url, addedLinksList) {
@@ -129,11 +256,13 @@ function fetchAllTags() {
         .then(data => {
             if (data.success) {
                 availableTags = [];
+
                 data.data.forEach((tag) => {
                     availableTags.push(tag);
                 })
 
-                populateTagSelect();
+                const popularTags = availableTags.slice(0, 8);
+                populateTagSelect(popularTags);
             } else {
                 console.log("Error: No tags found.");
             }
@@ -141,24 +270,30 @@ function fetchAllTags() {
         .catch(err => console.log(err));
 }
 
-function populateTagSelect() {
-    tagSelect.innerHTML = "";
-    availableTags.forEach(tag => {
-        const option = document.createElement("option");
-        option.value = tag.name;
-        option.textContent = tag.name;
+function populateTagSelect(tags) {
+    selectOptions.innerHTML = "";
 
-        tagSelect.appendChild(option);
+    tags.forEach(tag => {
+        const selectOptionDiv = document.createElement("div");
+        selectOptionDiv.classList.add("select-option");
+
+        const selectOptionInput = document.createElement("input");
+        selectOptionInput.type = 'radio';
+        selectOptionInput.id = tag.name;
+        selectOptionInput.name = tag.name;
+
+        const selectOptionLabel = document.createElement("label");
+        selectOptionLabel.for = tag.name;
+        selectOptionLabel.innerText = tag.name;
+
+        selectOptionDiv.addEventListener('click', () => {
+            addTag(tag.name);
+        })
+
+        selectOptionDiv.append(selectOptionInput, selectOptionLabel);
+        selectOptions.appendChild(selectOptionDiv);
     });
 }
-
-tagSelect.addEventListener("change", () => {
-    const selectedTag = tagSelect.value;
-    if (selectedTag) {
-        addTag(selectedTag);
-        tagSelect.selectedIndex = -1;
-    }
-})
 
 function addTag(tagName) {
     const tagCardDiv = document.createElement("div");
@@ -181,14 +316,15 @@ function addTag(tagName) {
     addedTagsContainer.appendChild(tagCardDiv);
     chosenTags.push(tagName);
     availableTags = availableTags.filter((tag) => tag.name !== tagName);
-    populateTagSelect();
+    const remainingTags = availableTags.slice(0, 8);
+    populateTagSelect(remainingTags);
 }
 
 function removeTag(tagName, tagElement) {
     addedTagsContainer.removeChild(tagElement);
     availableTags.push({name: tagName});
     chosenTags = chosenTags.filter((tag) => tag.name !== tagName);
-    populateTagSelect();
+    populateTagSelect(availableTags.slice(0, 8));
 }
 
 function addNewUserTag(tagName) {
@@ -214,22 +350,28 @@ function addNewUserTag(tagName) {
 function validateTextPostForm() {
     const isTextPostTitleValid = document.getElementById("textPostTitle").value.length > 0;
     const isTextPostContentValid = document.getElementById("textPostContent").value.length > 0;
-
     addNewPostButton.disabled = !(isTextPostTitleValid && isTextPostContentValid);
 }
 
 function validateImagePostForm() {
     const isImageListValid = document.getElementById("addedLinksList").children.length > 0;
-
-    console.log(isImageListValid);
-
     addNewPostButton.disabled = !isImageListValid;
+}
+
+function validateQuotePostForm() {
+    const isQuoteTextareaValid = document.getElementById("quoteTextarea").value.length > 0;
+    addNewPostButton.disabled = !isQuoteTextareaValid;
+}
+
+function validateLinkPostForm() {
+    const isLinkListValid = document.getElementById("addedLinksList").children.length > 0;
+    addNewPostButton.disabled = !isLinkListValid;
 }
 
 function addNewTextPost(event) {
     event.preventDefault();
 
-    const formData = new FormData(addTextPostForm);
+    const formData = new FormData(addPostModalFormContainer);
     formData.append('postType', 'text');
     formData.append('postTags', JSON.stringify(chosenTags));
 
@@ -241,10 +383,7 @@ function addNewTextPost(event) {
         .then(data => {
             if (data.success) {
                 showToast(data.message, "success");
-                addTextPostForm.reset();
-                chosenTags = [];
-                addedTagsContainer.innerHTML = "";
-                fetchAllTags();
+                resetFormData();
             } else {
                 showToast("Failed to add a new post!", "error");
             }
@@ -258,7 +397,7 @@ function addNewImagePost(event) {
     const addedLinksList = document.getElementById("addedLinksList");
     const imageLinks = Array.from(addedLinksList.children).map(item => item.id);
 
-    const formData = new FormData();
+    const formData = new FormData(addPostModalFormContainer);
     formData.append('postType', 'image');
     formData.append('postTags', JSON.stringify(chosenTags));
     formData.append('postImagesLinks', JSON.stringify(imageLinks));
@@ -270,12 +409,68 @@ function addNewImagePost(event) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast('SUCCESSFULL!', "success");
+                showToast(data.message, "success");
+                addedLinksList.innerHTML = "";
+                resetFormData();
             } else {
                 showToast("Failed to add a new post!", "error");
             }
         })
         .catch(err => console.log(err));
+}
+
+function addNewQuotePost(event) {
+    event.preventDefault();
+
+    const formData = new FormData(addPostModalFormContainer);
+    formData.append('postType', 'quote');
+    formData.append('postTags', JSON.stringify(chosenTags));
+
+    fetch('../../utils/posts/add_new_post.php', {
+        method: 'POST',
+        body: formData,
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+                resetFormData();
+            }
+        })
+        .catch(err => console.log(err));
+}
+
+function addNewLinkPost(event) {
+    event.preventDefault();
+
+    const addedLinksList = document.getElementById("addedLinksList");
+    const links = Array.from(addedLinksList.children).map(item => item.id);
+
+    const formData = new FormData(addPostModalFormContainer);
+    formData.append('postType', 'link');
+    formData.append('postTags', JSON.stringify(chosenTags));
+    formData.append('postLinks', JSON.stringify(links));
+
+    fetch('../../utils/posts/add_new_post.php', {
+        method: 'POST',
+        body: formData,
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+                addedLinksList.innerHTML = "";
+                resetFormData();
+            }
+        })
+        .catch(err => console.log(err));
+}
+
+function resetFormData() {
+    addPostModalFormContainer.reset();
+    chosenTags = [];
+    addedTagsContainer.innerHTML = "";
+    fetchAllTags();
 }
 
 window.onclick = (event) => {

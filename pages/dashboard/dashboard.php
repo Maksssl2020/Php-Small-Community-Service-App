@@ -33,22 +33,28 @@
                             <p>Dashboard</p>
                         </a>
                     </li>
-                    <li class="discoverItem">
+                    <li >
                         <a>
                             <i class="bi bi-compass-fill"></i>
                             <p>Discover</p>
                         </a>
                     </li>
-                    <li class="topicsItem">
+                    <li >
                        <a href="../start/start.php">
                            <i class="bi bi-bookmarks-fill"></i>
                            <p>Topics</p>
                        </a>
                     </li>
-                    <li class="topicsItem">
+                    <li >
                         <a id="myPostsTopicItem">
                             <i class="bi bi-stickies-fill"></i>
                             <p>My posts</p>
+                        </a>
+                    </li>
+                    <li >
+                        <a href="../account/account.php">
+                            <i class="bi bi-person-fill-gear"></i>
+                            <p>Account</p>
                         </a>
                     </li>
                 </ul>
@@ -92,13 +98,13 @@
                 </div>
                 <p class="post-option-text">Photo</p>
             </div>
-            <div class="post-option-card">
+            <div id="addQuotePostButton" class="post-option-card">
                 <div class="post-option-icon-container" style="background-color: var(--custom-green-color-100)">
                     <i class="bi bi-quote"></i>
                 </div>
                 <p class="post-option-text">Quote</p>
             </div>
-            <div class="post-option-card">
+            <div id="addLinkPostButton" class="post-option-card">
                 <div class="post-option-icon-container" style="background-color: var(--custom-blue-color-100)">
                     <i class="bi bi-link-45deg"></i>
                 </div>
@@ -121,15 +127,25 @@
                 <div class="add-tag-container">
                     <label >Select tags or create new one:</label>
                     <div class="add-tags-options-container">
-                        <select id="tagSelect" class="tag-select"></select>
-                        <input id="tagInput" class="tag-input" type="text" placeholder="..."/>
+                        <div class="select-search-box-container">
+                            <div id="selectLabel" class="select-label-container">
+                                <label>Select tags</label>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                            <div id="selectOptionsContainer" class="select-options-container">
+                                <input id="tagsFilter" type="text" placeholder="Filter tags..."/>
+                                <div id="selectOptions" class="options-list-container">
+
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div id="addedTagsContainer" class="chosen-tags-container">
                 </div>
             </div>
             <footer class="add-post-modal-footer">
-                <button type="button" id="addTextModalCloseButton" class="add-post-button">Close</button>
+                <button type="button" id="addNewPostModalCloseButton" class="add-post-button">Close</button>
                 <button type="submit" disabled id="addNewPostButton" class="add-post-button" style="margin-left: auto; background: var(--custom-pink-color-200); color: var(--custom-white-color-100)">Public now</button>
             </footer>
         </div>

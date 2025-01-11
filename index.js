@@ -40,3 +40,34 @@ async function fetchUserData(userId) {
             return null;
         });
 }
+
+function autoResize() {
+    this.style.height = "auto";
+    this.style.height = `${this.scrollHeight}px`;
+}
+
+async function fetchSiteData(url) {
+    return await fetch('/utils/ogp/get_ogp_from_link.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `url=${encodeURIComponent(url)}`
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                return data.data;
+            } else {
+                data.errors.forEach(error => {
+                    showToast(error, 'error');
+                })
+
+                return null;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            return null;
+        });
+}

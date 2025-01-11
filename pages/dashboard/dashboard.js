@@ -1,7 +1,6 @@
 const createPostButton = document.getElementById("createPostButton");
 const postOptionsModal = document.getElementById("postOptionsContainer");
 
-
 const dashboardContentContainer = document.getElementById("dashboardContentContainer");
 const myPostsSelector = document.getElementById("myPostsTopicItem");
 
@@ -13,14 +12,6 @@ createPostButton.onclick = () => {
     postOptionsModal.style.display = "block";
 }
 
-
-tagInput.addEventListener('keypress', (e) => {
-    if (e.key === "Enter" && tagInput.value.trim() !== "") {
-        addNewUserTag(tagInput.value.trim());
-        tagInput.value = "";
-    }
-})
-
 if (myPostsSelector) {
     myPostsSelector.onclick = async () => {
         console.log('CLICKED!')
@@ -28,16 +19,10 @@ if (myPostsSelector) {
     }
 }
 
-
 postTextAreas.forEach((textArea) => {
     textArea.addEventListener("input", autoResize);
     autoResize.call(textArea);
 })
-
-function autoResize() {
-    this.style.height = "auto";
-    this.style.height = `${this.scrollHeight}px`;
-}
 
 async function fetchUserPosts() {
     fetch("../../utils/posts/get_user_all_posts.php")
@@ -56,9 +41,7 @@ async function fetchUserPosts() {
 
 async function populateDashboardContentWithUserPosts(userPosts) {
     for (const post of userPosts) {
-        console.log(post);
-
-        const {id, images, postContent, postTitle, postLinkUrl, postType, tags, userId, createdAt} = post;
+        const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = post;
         const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
 
         let userAvatar = '';
@@ -104,6 +87,30 @@ async function populateDashboardContentWithUserPosts(userPosts) {
                 <textarea class="post-text" spellcheck="false" readonly>${postContent ?? ''}</textarea>
                 <div class="post-tags">${postTags}</div>
             </div>`;
+        } else if (postType === 'quote') {
+            postContentDiv = `
+            <div class="post-content">
+                <textarea class="post-text" spellcheck="false" readonly>${postContent}</textarea>
+                <div class="post-tags">${postTags}</div>
+            </div>
+            `
+        } else if (postType === 'link') {
+            const linksContainer = document.createElement('ul');
+            linksContainer.classList.add('post-links-container');
+
+            for (const link of postSitesLinks) {
+                let siteData = await fetchSiteData(link);
+                const card = await createSiteCard(link, siteData, linksContainer)
+                linksContainer.append(card);
+            }
+
+            postContentDiv = `
+            <div class="post-content">
+                ${linksContainer.outerHTML}
+                <textarea class="post-text" spellcheck="false" readonly>${postContent ?? ''}</textarea>
+                <div class="post-tags">${postTags}</div>
+            </div>
+            `
         }
 
         const postLikes = await fetchPostAmountOfLikes(id);
@@ -124,6 +131,50 @@ async function populateDashboardContentWithUserPosts(userPosts) {
         postDiv.innerHTML = postHeader + postContentDiv + postFooter;
         dashboardContentContainer.appendChild(postDiv);
     }
+}
+
+async function createSiteCard(url, siteData) {
+    const listItem = document.createElement('li');
+    listItem.classList.add('link-item-container');
+
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'site-preview';
+
+    const itemLink = document.createElement('a');
+    itemLink.href = url;
+    itemLink.target = '_blank';
+
+    itemDiv.appendChild(itemLink);
+
+    if (siteData.image) {
+        const img = document.createElement('img');
+        img.src = siteData.image;
+        img.alt = 'Preview Image';
+        img.classList.add('site-preview-image');
+
+        itemDiv.appendChild(img);
+    }
+
+    const siteInfoDiv = document.createElement('div');
+    siteInfoDiv.classList.add('site-preview-info');
+
+    if (siteData.title) {
+        const titleH3 = document.createElement('h3');
+        titleH3.textContent = siteData.title;
+        siteInfoDiv.appendChild(titleH3);
+    }
+
+    if (siteData.description) {
+        const descriptionP = document.createElement('P');
+        descriptionP.textContent = siteData.description;
+        siteInfoDiv.appendChild(descriptionP);
+    }
+
+    itemDiv.appendChild(siteInfoDiv);
+    listItem.appendChild(itemDiv);
+    listItem.id = url;
+
+    return listItem;
 }
 
 async function fetchPostAmountOfLikes(postId) {
