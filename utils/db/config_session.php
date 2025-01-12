@@ -3,52 +3,41 @@
 ini_set('session.use_only_cookies', 1);
 ini_set('session.use_strict_mode', 1);
 
-session_set_cookie_params([
-    'lifetime' => 1800,
-    'domain' => 'localhost',
-    'path' => '/',
-    'secure' => true,
-    'httponly' => true,
-]);
-
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if (isset($_SESSION["user_id"])) {
-    if (!isset($_SESSION["last_regeneration"])) {
-        regenerate_session_id_logged_in();
-    } else {
-        $interval = 60 * 30;
-
-        if (time() - $_SESSION["last_regeneration"] >= $interval) {
-            regenerate_session_id_logged_in();
-        }
-    }
+    manage_session(true);
 } else {
+    manage_session(false);
+}
+
+function manage_session(bool $isLoggedIn):void {
     if (!isset($_SESSION["last_regeneration"])) {
-        regenerate_session_id();
+        regenerate_session_id($isLoggedIn);
     } else {
         $interval = 60 * 30;
 
         if (time() - $_SESSION["last_regeneration"] >= $interval) {
-            regenerate_session_id();
+            regenerate_session_id($isLoggedIn);
         }
     }
 }
 
-function regenerate_session_id_logged_in(): void {
-    session_write_close();
-
-    $userId = $_SESSION["user_id"];
-    $newSessionId = session_create_id();
-    $sessionId = $newSessionId . "_" . $userId;
-
-    session_id($sessionId);
-    session_start();
+function regenerate_session_id(bool $isLoggedIn): void {
+    if ($isLoggedIn) {
+        $userId = $_SESSION["user_id"];
+        $newSessionId = session_create_id("user_{$userId}_");
+        session_id($newSessionId);
+    } else {
+        session_regenerate_id(true);
+    }
 
     $_SESSION["last_regeneration"] = time();
+    set_session_lifetime();
 }
 
-function regenerate_session_id(): void {
-    session_regenerate_id(true);
-    $_SESSION["last_regeneration"] = time();
+function set_session_lifetime(): void {
+    setcookie(session_name(), session_id(), time() + (1800), "/");
 }

@@ -27,7 +27,7 @@
 
                 <ul>
                     <li id="dashboardItem">
-                        <a>
+                        <a href="../dashboard/dashboard.php">
                             <i class="bi bi-house-door-fill"></i>
                             <p>Dashboard</p>
                         </a>
@@ -44,7 +44,7 @@
                             <p>Topics</p>
                         </a>
                     </li>
-                    <li >
+                    <li>
                         <a id="myPostsTopicItem">
                             <i class="bi bi-stickies-fill"></i>
                             <p>My posts</p>
@@ -67,15 +67,65 @@
 
                 <div class="account-options-container">
                     <div class="image-option-container">
-                        <label></label>
-                        <img/>
+                        <label>Avatar</label>
+                        <button id="uploadAvatarButton" class="upload-avatar-button">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                        </button>
+                        <div>
+                            <img id="userAvatar" src="" alt=""/>
+                        </div>
                     </div>
                     <div class="text-option-container">
-                        <label>E-mail</label>
-                        <label id="emailDisplayLabel"></label>
-                        <i></i>
+                        <label for="userNickname">Nickname</label>
+                        <input class="change-text-data-input" id="userNickname" type="text" readonly/>
+                        <i id="changeUserNicknameIcon" class="bi bi-pencil-fill"></i>
+                    </div>
+                    <div class="text-option-container">
+                        <label for="userEmail">E-mail</label>
+                        <input class="change-text-data-input" id="userEmail" type="email" readonly/>
+                        <i id="changeUserEmailIcon" class="bi bi-pencil-fill"></i>
+                    </div>
+                    <div class="text-option-container">
+                        <label for="userPassword">Password</label>
+                        <input class="change-text-data-input" type="password" id="userPassword" readonly/>
+                        <i class="bi bi-pencil-fill"></i>
+                    </div>
+                    <div class="user-info-container">
+                        <label class="info-label">Created At</label>
+                        <label id="createdAtDataLabel" class="created-at-label">Password</label>
+                        <label id="createdAtPeriodLabel" class="period-label">Password</label>
                     </div>
                 </div>
+
+                <div id="updateAccountButtons" class="update-account-buttons">
+                    <button id="cancelUpdateButton" class="cancel-update-button">Cancel</button>
+                    <button class="submit-update-button">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadAvatarModal" class="modal-container">
+        <div class="modal-content">
+            <div class="avatar-inputs-container">
+                <div class="upload-avatar-as-image">
+                    <label class="modal-info-label">Add avatar image</label>
+                    <label for="avatarFileInput" class="modal-image-placeholder">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                    </label>
+                    <input id="avatarFileInput" type="file"/>
+                </div>
+                <div class="upload-avatar-as-url">
+                    <label for="avatarUrlInput" class="modal-info-label">Add avatar url</label>
+                    <input id="avatarUrlInput" type="url"/>
+                </div>
+            </div>
+            <div class="modal-image-preview">
+                <img id="avatarPreviewDisplay" src="" alt="user-avatar"/>
+            </div>
+            <div class="modal-buttons-container">
+                <button id="modalCloseButton" class="modal-submit-button">Cancel</button>
+                <button id="modalSubmitButton" disabled class="modal-submit-button">Add</button>
             </div>
         </div>
     </div>

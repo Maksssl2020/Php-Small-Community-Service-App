@@ -71,3 +71,11 @@ async function fetchSiteData(url) {
             return null;
         });
 }
+
+function calcPeriodFromDate(date) {
+    const today = new Date();
+    const enteredDate = new Date(date);
+    const differenceInMilliseconds = today - enteredDate;
+
+    return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+}

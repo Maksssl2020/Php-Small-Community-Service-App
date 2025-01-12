@@ -3,7 +3,7 @@
 }
 
 .account-content-container {
-    width: 40%;
+    width: 45%;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -41,4 +41,284 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+.image-option-container {
+    width: 100%;
+    height: 150px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--custom-gray-color-800);
+    align-items: center;
+    padding: 10px 15px;
+    box-sizing: border-box;
+
+    label {
+        font-weight: bold;
+        grid-column: 1;
+        font-size: 18px;
+    }
+
+    div {
+        background: transparent;
+        height: 130px;
+        width: 130px;
+        grid-column: 4;
+        border: 1px solid var(--custom-gray-color-800);
+        border-radius: 5px;
+        justify-self: right;
+        box-sizing: border-box;
+    }
+
+    img {
+        height: 130px;
+        width: 130px;
+        object-fit: cover;
+        border-radius: 5px;
+        outline: none;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.upload-avatar-button {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: 2px solid var(--custom-gray-color-800);
+    border-radius: 10px;
+    font-size: 44px;
+    color: var(--custom-white-color-100);
+    grid-column: 3;
+
+    &:hover {
+        cursor: pointer;
+        background: var(--custom-gray-color-700);
+        border-color: var(--custom-gray-color-700);
+    }
+}
+
+.text-option-container {
+    width: 100%;
+    height: 50px;
+    padding: 0 10px 15px 15px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--custom-gray-color-800);
+    align-items: center;
+
+    label {
+        grid-column: 1;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    i {
+        grid-column: 4;
+        display: flex;
+        font-size: 20px;
+        justify-content: right;
+        color: var(--custom-gray-color-800);
+
+        &:hover  {
+            cursor: pointer;
+        }
+    }
+}
+
+.change-text-data-input {
+    height: 35px;
+    border: 2px solid var(--custom-gray-color-800);
+    padding: 0 10px;
+    border-radius: 5px;
+    grid-column: 2 / 4;
+    background: transparent;
+    outline: none;
+    color: var(--custom-white-color-100);
+    font-size: 16px;
+}
+
+.change-text-data-input:read-only {
+    border-color: transparent;
+}
+
+.user-info-container {
+    width: 100%;
+    height: 50px;
+    padding: 0 10px 15px 15px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--custom-gray-color-800);
+    align-items: center;
+}
+
+.info-label {
+    grid-column: 1;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.created-at-label {
+    grid-column: 2/4;
+    font-size: 18px;
+}
+
+.period-label {
+    grid-column: 4;
+    font-size: 18px;
+}
+
+.modal-content {
+    width: 650px !important;
+    padding: 10px !important;
+    gap: 1rem !important;
+    background-color: var(--custom-gray-color-600) !important;
+}
+
+.avatar-inputs-container {
+    display: flex;
+    width: 100%;
+    height: auto;
+    gap: 1rem;
+}
+
+.upload-avatar-as-image {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+
+    input {
+        visibility: hidden;
+    }
+}
+
+.modal-info-label {
+    color: var(--custom-white-color-100);
+    font-size: 18px;
+    margin-left: 3px;
+}
+
+.modal-image-placeholder {
+    width: 100%;
+    height: 85px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    color: var(--custom-white-color-100);
+    border: 2px solid var(--custom-gray-color-1000);
+    border-radius: 10px;
+    box-sizing: border-box;
+
+    &:hover {
+        cursor: pointer;
+        background: var(--custom-gray-color-800);
+        border-color: var(--custom-gray-color-800);
+    }
+}
+
+.upload-avatar-as-url {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+
+    input {
+        width: 100%;
+        height: 85px;
+        outline: none;
+        border: none;
+        border-radius: 10px;
+        background: var(--custom-gray-color-1000);
+        padding: 0 10px;
+        color: var(--custom-white-color-100);
+        box-sizing: border-box;
+    }
+}
+
+.modal-image-preview {
+    width: 100%;
+    height: 500px;
+    border: 2px solid var(--custom-gray-color-1000);
+    box-sizing: border-box;
+    border-radius: 10px;
+
+    img {
+        display: none;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+}
+
+.modal-buttons-container {
+    display: flex;
+    width: 100%;
+    height: auto;
+    gap: 1rem;
+}
+
+.modal-submit-button {
+    width: 100%;
+    height: 50px;
+    background: transparent;
+    border: 2px solid var(--custom-gray-color-1000);
+    color: var(--custom-white-color-100);
+    text-transform: uppercase;
+    border-radius: 10px;
+    font-size: 22px;
+
+    &:hover {
+        cursor: pointer;
+        background-color: var(--custom-gray-color-1000);
+    }
+
+    &:disabled {
+        cursor: auto;
+        color: var(--custom-gray-color-1000);
+        background: var(--custom-gray-color-600);
+    }
+}
+
+.update-account-buttons {
+    display: none;
+    width: auto;
+    height: 50px;
+    margin-left: auto;
+    margin-top: auto;
+    gap: 1rem;
+
+    button {
+        width: auto;
+        height: 50px;
+        padding: 0 25px;
+        border-radius: 10px;
+        color: var(--custom-white-color-100);
+        font-size: 20px;
+        text-transform: uppercase;
+    }
+
+    button:hover {
+        cursor: pointer;
+    }
+
+    box-sizing: border-box;
+}
+
+.submit-update-button {
+    background: var(--custom-pink-color-200);
+    border:  2px solid var(--custom-white-color-100);
+}
+
+.cancel-update-button {
+    background: transparent;
+    border: 2px solid var(--custom-gray-color-800);
 }
