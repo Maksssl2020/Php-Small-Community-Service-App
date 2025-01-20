@@ -1,9 +1,9 @@
 .left-column {
-    width: 30%;
+    width: 25%;
 }
 
 .account-content-container {
-    width: 45%;
+    width: 50%;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -222,6 +222,12 @@
         background: var(--custom-gray-color-800);
         border-color: var(--custom-gray-color-800);
     }
+}
+
+.dragover {
+    cursor: pointer;
+    background: var(--custom-gray-color-800);
+    border-color: var(--custom-gray-color-800);
 }
 
 .upload-avatar-as-url {

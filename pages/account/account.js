@@ -15,6 +15,7 @@ const changeUserNicknameIcon = document.getElementById('changeUserNicknameIcon')
 const changeUserEmailIcon = document.getElementById('changeUserEmailIcon');
 const updateAccountButtons = document.getElementById('updateAccountButtons');
 const cancelUpdateButton = document.getElementById('cancelUpdateButton');
+const avatarFileDropArea = document.getElementById('avatarFileDropArea');
 
 let initialUserData = {};
 
@@ -62,10 +63,12 @@ async function populatePageWithUserData(userData) {
 
     createdAtPeriodLabel.textContent = `${calculatedPeriod} ${calculatedPeriod === 1 ? 'day' : 'days'} ago`;
 
+    console.log(userData)
+
     if (avatarUrl) {
         userAvatarInput.src = avatarUrl;
     } else if (avatarImage) {
-        userAvatarInput.src = `base64;${avatarUrl}`;
+        userAvatarInput.src = `data:image/jpg;charset=utf-8;base64, ${avatarImage}`;
     } else {
         userAvatarInput.src = '../../assets/ghost_icon.jpeg';
     }
@@ -87,9 +90,6 @@ function checkForUserDataChange() {
     );
 
     updateAccountButtons.style.display = isChanged ? 'flex' : 'none';
-
-    console.log(currentUserData);
-    console.log(initialUserData)
 }
 
 [userNicknameInput, userEmailInput].forEach(input => {
@@ -102,7 +102,7 @@ cancelUpdateButton.addEventListener('click', () => {
     updateAccountButtons.style.display = 'none';
 })
 
-uploadAvatarButton.onclick = () => {
+uploadAvatarButton.onclick = async () => {
     uploadAvatarModal.style.display = 'block';
 }
 
@@ -126,9 +126,35 @@ avatarUrlInput.addEventListener('change', (e) => {
     validateUploadAvatarModalForm();
 })
 
+avatarFileDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    avatarFileDropArea.classList.add("dragover")
+})
+
+avatarFileDropArea.addEventListener('dragleave', () => {
+    avatarFileDropArea.classList.remove("dragover")
+})
+
+avatarFileDropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    avatarFileDropArea.classList.remove("dragover")
+
+    const file = e.dataTransfer.files[0];
+    addImageFile(file)
+    avatarFileInput.files = e.dataTransfer.files;
+
+    validateUploadAvatarModalForm();
+})
+
 avatarFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
+    addImageFile(file)
+    avatarFileInput.files = e.target.files;
 
+    validateUploadAvatarModalForm();
+})
+
+function addImageFile(file) {
     if (file) {
         const reader = new FileReader();
         reader.onload = () => {
@@ -145,9 +171,7 @@ avatarFileInput.addEventListener('change', (e) => {
     if (avatarUrlInput.value.length > 0) {
         avatarUrlInput.value = '';
     }
-
-    validateUploadAvatarModalForm();
-})
+}
 
 changeUserNicknameIcon.onclick = () => {
     userNicknameInput.removeAttribute('readonly');
@@ -168,7 +192,7 @@ changeUserEmailIcon.onclick = () => {
 }
 
 function validateUploadAvatarModalForm() {
-    const isValid = avatarUrlInput.value.length > 0 || avatarUrlInput.files.length > 0;
+    const isValid = avatarUrlInput.value.length > 0 || avatarFileInput.files.length > 0;
     modalSubmitButton.disabled = !isValid;
 }
 
@@ -177,3 +201,75 @@ window.addEventListener('click', (event) => {
         uploadAvatarModal.style.display = 'none';
     }
 })
+
+modalSubmitButton.onclick = async () => {
+    await uploadUserAvatar();
+}
+
+async function uploadUserAvatar() {
+    const formData = new FormData();
+    const userId = await getSignedUserId();
+    formData.append('userId', userId);
+
+    if (avatarUrlInput.value.length > 0) {
+        formData.append('avatarUrl', avatarUrlInput.value);
+    } else {
+        formData.append('avatarImage', avatarFileInput.files[0]);
+    }
+
+    await fetch('../../utils/account/upload_avatar.php', {
+        method: 'POST',
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(data)
+                data.type === 'url' ? userAvatarInput.src = avatarUrlInput.value : userAvatarInput.src = URL.createObjectURL(avatarFileInput.files[0]);
+
+                showToast("Added new avatar!", "success");
+                uploadAvatarModal.style.display = 'none'
+            } else {
+                data.errors.forEach(error => {
+                    showToast(error, 'error');
+                })
+            }
+        }).catch(error => console.log(error))
+}
+
+updateAccountButtons.addEventListener('submit', async event => {
+    event.preventDefault();
+    await updateUserData();
+})
+
+async function updateUserData() {
+    const formData = new FormData();
+    const userId = await getSignedUserId();
+    formData.append('userId', userId);
+
+    if (userNicknameInput.value.trim() !== initialUserData['userNickname']) {
+        formData.append('nickname', userNicknameInput.value.trim());
+    }
+
+    if (userEmailInput.value.trim() !== initialUserData['userEmail']) {
+        formData.append('email', userEmailInput.value.trim());
+    }
+
+    fetch('../../utils/users/update_user_data.php', {
+        method: 'POST',
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+        if (data.success) {
+            data.messages.forEach(message => {
+                showToast(message, 'success');
+            })
+        } else {
+            data.errors.forEach(error => {
+                showToast(error, 'error');
+            })
+        }
+    })
+        .catch(error => console.log(error))
+}

@@ -1,10 +1,33 @@
 const createPostButton = document.getElementById("createPostButton");
 const postOptionsModal = document.getElementById("postOptionsContainer");
-
 const dashboardContentContainer = document.getElementById("dashboardContentContainer");
-const myPostsSelector = document.getElementById("myPostsTopicItem");
-
 const postTextAreas = document.querySelectorAll(".post-text");
+const myPostsSelector = document.getElementById("myPostsTopicItem");
+const dashboardSelector = document.getElementById("dashboardItem");
+const discoverSelector = document.getElementById("discoverItem");
+const topicsSelector = document.getElementById("topicsItem");
+const accountSelector = document.getElementById("accountItem");
+
+
+let currentActiveSection = 'dashboard';
+
+const sectionSelectors = {
+    dashboard: dashboardSelector,
+    account: accountSelector,
+    discover: discoverSelector,
+    myPosts: myPostsSelector,
+    topics: topicsSelector,
+};
+
+function handleSectionChange(chosenSection) {
+    sectionSelectors[currentActiveSection].style.color = "#ACACAC"
+    sectionSelectors[chosenSection].style.color = "#FFFFFF"
+    currentActiveSection = chosenSection;
+}
+
+Object.entries(sectionSelectors).forEach(([section, selector]) => {
+    selector.onclick = () => handleSectionChange(section)
+})
 
 let chosenTags = [];
 
@@ -14,7 +37,7 @@ createPostButton.onclick = () => {
 
 if (myPostsSelector) {
     myPostsSelector.onclick = async () => {
-        console.log('CLICKED!')
+        handleSectionChange('myPosts')
         await fetchUserPosts();
     }
 }
@@ -197,3 +220,7 @@ async function fetchPostAmountOfLikes(postId) {
 
     return 0;
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+    handleSectionChange('dashboard');
+})

@@ -147,7 +147,7 @@ signUpForm.addEventListener('submit', (event) => {
 
     let formData = new FormData(signUpForm);
 
-    fetch('utils/sign-up/sign_up.php', {
+    fetch('../utils/sign-up/sign_up.php', {
         method: 'POST',
         body: formData,
     })

@@ -7,9 +7,9 @@ class User implements JsonSerializable {
     private DateTime $createdAt;
     private string $userRole;
     private ?string $avatarUrl;
-    private ?array $avatarImage;
+    private ?string $avatarImage;
 
-    public function __construct(int $id, string $userNickname, string $userEmail, DateTime $createdAt, string $userRole, ?string $avatarUrl, ?array $avatarImage) {
+    public function __construct(int $id, string $userNickname, string $userEmail, DateTime $createdAt, string $userRole, ?string $avatarUrl, ?string $avatarImage) {
         $this->id = $id;
         $this->userNickname = $userNickname;
         $this->userEmail = $userEmail;
@@ -27,7 +27,7 @@ class User implements JsonSerializable {
             'createdAt' => $this->createdAt,
             'userRole' => $this->userRole,
             'avatarUrl' => $this->avatarUrl,
-            'avatarImage' => $this->avatarImage
+            'avatarImage' => $this->avatarImage ? base64_encode($this->avatarImage) : null
         ];
     }
 }

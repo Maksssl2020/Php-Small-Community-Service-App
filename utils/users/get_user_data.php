@@ -9,6 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         require_once('users_model.php');
         require_once('users_controller.php');
 
+        global $pdo;
+
         $errors = [];
 
         if (is_user_id_empty($userId)) {

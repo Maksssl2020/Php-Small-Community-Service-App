@@ -18,6 +18,7 @@
     <title>Account</title>
 </head>
 <body class="body-container">
+<div id="toastContainer"></div>
     <div class="main-container">
         <div class="left-column">
             <div class="left-sidebar">
@@ -97,10 +98,10 @@
                     </div>
                 </div>
 
-                <div id="updateAccountButtons" class="update-account-buttons">
+                <form id="updateAccountButtons" class="update-account-buttons">
                     <button id="cancelUpdateButton" class="cancel-update-button">Cancel</button>
-                    <button class="submit-update-button">Update</button>
-                </div>
+                    <button type="submit" class="submit-update-button">Update</button>
+                </form>
             </div>
         </div>
     </div>
@@ -110,7 +111,7 @@
             <div class="avatar-inputs-container">
                 <div class="upload-avatar-as-image">
                     <label class="modal-info-label">Add avatar image</label>
-                    <label for="avatarFileInput" class="modal-image-placeholder">
+                    <label id="avatarFileDropArea" for="avatarFileInput" class="modal-image-placeholder">
                         <i class="bi bi-cloud-arrow-up-fill"></i>
                     </label>
                     <input id="avatarFileInput" type="file"/>

@@ -27,9 +27,9 @@ function manage_session(bool $isLoggedIn):void {
 
 function regenerate_session_id(bool $isLoggedIn): void {
     if ($isLoggedIn) {
-        $userId = $_SESSION["user_id"];
-        $newSessionId = session_create_id("user_{$userId}_");
-        session_id($newSessionId);
+        $userId = preg_replace('/[^a-zA-Z0-9\-]/', '', $_SESSION["user_id"]);
+        session_regenerate_id(true);
+        $_SESSION['session_prefix'] = "user_{$userId}_";
     } else {
         session_regenerate_id(true);
     }

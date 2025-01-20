@@ -33,25 +33,25 @@
                             <p>Dashboard</p>
                         </a>
                     </li>
-                    <li >
+                    <li id="discoverItem">
                         <a>
                             <i class="bi bi-compass-fill"></i>
                             <p>Discover</p>
                         </a>
                     </li>
-                    <li >
+                    <li id="topicsItem">
                        <a href="../start/start.php">
                            <i class="bi bi-bookmarks-fill"></i>
                            <p>Topics</p>
                        </a>
                     </li>
-                    <li >
-                        <a id="myPostsTopicItem">
+                    <li id="myPostsTopicItem">
+                        <a >
                             <i class="bi bi-stickies-fill"></i>
                             <p>My posts</p>
                         </a>
                     </li>
-                    <li >
+                    <li id="accountItem">
                         <a href="../account/account.php">
                             <i class="bi bi-person-fill-gear"></i>
                             <p>Account</p>
