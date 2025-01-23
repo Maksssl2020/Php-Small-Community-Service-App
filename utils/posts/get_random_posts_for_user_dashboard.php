@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 header('Content-Type: application/json');
 ini_set('display_errors', 1);
@@ -21,17 +22,9 @@ try {
 
     global $pdo;
 
-    if (!$pdo) {
-        echo json_encode(['success' => false, 'message' => 'Database connection failed']);
-        exit;
-    }
-
     $errors = false;
 
     if (is_user_not_logged_in($userId)) {
-        $errors = true;
-    }
-    if (user_does_not_have_added_posts($pdo, $userId)) {
         $errors = true;
     }
 
@@ -40,21 +33,13 @@ try {
         exit;
     }
 
-    $foundUserPosts = get_all_user_posts($pdo, $userId);
-
-    echo json_encode(['success' => true, 'data' => $foundUserPosts], JSON_PRETTY_PRINT);
+    $result = get_random_posts_for_user($pdo, $userId);
+    echo json_encode(['success' => true, 'data' => $result], JSON_PRETTY_PRINT);
     exit;
-
 } catch (PDOException $exception) {
     echo json_encode([
         'success' => false,
         'errors' => ['Database connection error: ' . $exception->getMessage()]
-    ], JSON_PRETTY_PRINT);
-    exit;
-} catch (Exception $exception) {
-    echo json_encode([
-        'success' => false,
-        'errors' => ['Unexpected error: ' . $exception->getMessage()]
     ], JSON_PRETTY_PRINT);
     exit;
 }

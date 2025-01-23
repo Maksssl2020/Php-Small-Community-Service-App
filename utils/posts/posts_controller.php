@@ -112,3 +112,7 @@ function append_tags_to_post(object $pdo, int $post_id, array $tags): void {
 function get_all_user_posts(PDO $pdo, int $user_id): array {
     return fetch_user_posts($pdo, $user_id);
 }
+
+function get_random_posts_for_user(PDO $pdo, int $user_id): array {
+    return fetch_random_posts_for_user($pdo, $user_id);
+}

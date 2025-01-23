@@ -79,3 +79,21 @@ function calcPeriodFromDate(date) {
 
     return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
 }
+
+async function getSignedUserId() {
+    return await fetch('../../utils/users/get_signed_user_id.php', {
+        method: 'GET',
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                return data.data;
+            } else {
+                return null;
+            }
+        })
+        .catch((error) => {
+            console.log(error)
+            return null;
+        })
+}

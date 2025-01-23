@@ -66,12 +66,8 @@
             </div>
         </div>
         <div class="dashboard-container">
-            <header class="dashboard-header">
-                <button class="header-button">For you</button>
-                <button class="header-button">Your tags</button>
-                <button class="header-options-button">
-                    <i class="bi bi-sliders"></i>
-                </button>
+            <header id="dashboardHeader" class="dashboard-header">
+
             </header>
             <div class="dashboard-content-container" id="dashboardContentContainer">
             </div>

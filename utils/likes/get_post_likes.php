@@ -8,6 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         require_once('likes_model.php');
         require_once('likes_controller.php');
 
+        global $pdo;
+
         $errors = [];
 
         if (is_post_id_empty($postId)) {

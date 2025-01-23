@@ -34,24 +34,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 })
 
-async function getSignedUserId() {
-    return await fetch('../../utils/users/get_signed_user_id.php', {
-        method: 'GET',
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                return data.data;
-            } else {
-                return null;
-            }
-        })
-        .catch((error) => {
-            console.log(error)
-            return null;
-        })
-}
-
 async function populatePageWithUserData(userData) {
     const {id, userNickname, userEmail, avatarUrl, avatarImage, createdAt} = userData;
 

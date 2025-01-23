@@ -74,6 +74,27 @@ function fetch_user_posts(PDO $pdo, int $user_id): array {
         return [];
     }
 
+    return get_posts_data($pdo, $posts);
+}
+
+function fetch_random_posts_for_user(PDO $pdo, int $userId): array {
+    require_once('../models/dashboard_post.php');
+
+    $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId";
+    $statement = $pdo->prepare($query);
+    $statement->bindParam(':userId', $userId);
+    $statement->execute();
+    $posts = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($posts)) {
+        return [];
+    }
+
+    return get_posts_data($pdo, $posts);
+}
+
+
+function get_posts_data(PDO $pdo, array $posts): array {
     $postIds = array_column($posts, 'id');
     $allTags = get_posts_tags($pdo, $postIds);
     $allImages = get_posts_images($pdo, $postIds);
