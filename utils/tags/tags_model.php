@@ -1,5 +1,7 @@
 <?php
 
+use models\Tag;
+
 function get_tag_name(object $pdo, string $tag_name): bool {
     $query = "SELECT COUNT(*) FROM `flickit-db`.tags WHERE name = :tagName";
     $statement = $pdo->prepare($query);
@@ -84,7 +86,7 @@ function find_tag_by_tag_name(object $pdo, string $tag_name): ?int {
 }
 
 function find_post_tags_by_post_id(PDO $pdo, int $post_id): array {
-    require_once('../models/tag.php');
+    require_once('../Models/tag.php');
 
     $findTagsIdQuery = "SELECT * FROM `flickit-db`.post_tags WHERE post_id = :postId";
     $statement = $pdo->prepare($findTagsIdQuery);

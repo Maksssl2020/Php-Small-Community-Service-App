@@ -1,6 +1,8 @@
 <?php
 
-require_once('../models/main_tag_with_image.php');
+use models\TagWithImage;
+
+require_once('../Models/main_tag_with_image.php');
 
 function get_all_main_tags(object $pdo): array {
     $query = "SELECT id,name,imageUrl FROM `flickit-db`.tags WHERE isMain=true ORDER BY name DESC LIMIT 14";

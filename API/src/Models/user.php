@@ -1,6 +1,8 @@
 <?php
 
-class User implements JsonSerializable {
+namespace models;
+class User implements JsonSerializable
+{
     private int $id;
     private string $userNickname;
     private string $userEmail;
@@ -9,7 +11,8 @@ class User implements JsonSerializable {
     private ?string $avatarUrl;
     private ?string $avatarImage;
 
-    public function __construct(int $id, string $userNickname, string $userEmail, DateTime $createdAt, string $userRole, ?string $avatarUrl, ?string $avatarImage) {
+    public function __construct(int $id, string $userNickname, string $userEmail, DateTime $createdAt, string $userRole, ?string $avatarUrl, ?string $avatarImage)
+    {
         $this->id = $id;
         $this->userNickname = $userNickname;
         $this->userEmail = $userEmail;
@@ -19,7 +22,8 @@ class User implements JsonSerializable {
         $this->avatarImage = $avatarImage;
     }
 
-    public function jsonSerialize(): array {
+    public function jsonSerialize(): array
+    {
         return [
             'id' => $this->id,
             'userNickname' => $this->userNickname,

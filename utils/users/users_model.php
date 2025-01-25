@@ -1,7 +1,9 @@
 <?php
 
+use models\User;
+
 function get_user_data_by_id(PDO $pdo, int $userId): User {
-    require_once('../models/user.php');
+    require_once('../Models/user.php');
 
     $query = "SELECT * FROM `flickit-db`.users WHERE id = :userId";
     $statement = $pdo->prepare($query);

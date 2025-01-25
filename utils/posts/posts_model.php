@@ -1,5 +1,9 @@
 <?php
 
+use models\DashboardPost;
+use models\PostImage;
+use models\Tag;
+
 function set_text_post(object $pdo, int $user_id, string $title, string $content): int {
     $query = "INSERT INTO `flickit-db`.posts (userId, type, title, content) VALUES (:userId, 'text', :title, :content)";
     $statement = $pdo->prepare($query);
@@ -62,7 +66,7 @@ function amount_of_user_posts(PDO $pdo, int $user_id): int {
 }
 
 function fetch_user_posts(PDO $pdo, int $user_id): array {
-    require_once('../models/dashboard_post.php');
+    require_once('../Models/dashboard_post.php');
 
     $query = "SELECT * FROM `flickit-db`.`posts` WHERE userId = :user_id";
     $statement = $pdo->prepare($query);
@@ -78,7 +82,7 @@ function fetch_user_posts(PDO $pdo, int $user_id): array {
 }
 
 function fetch_random_posts_for_user(PDO $pdo, int $userId): array {
-    require_once('../models/dashboard_post.php');
+    require_once('../Models/dashboard_post.php');
 
     $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId";
     $statement = $pdo->prepare($query);
@@ -130,7 +134,7 @@ function get_posts_data(PDO $pdo, array $posts): array {
 }
 
 function get_posts_tags(PDO $pdo, array $post_ids): array {
-    require_once '../models/tag.php';
+    require_once '../Models/tag.php';
 
     if (empty($post_ids)) {
         return [];
@@ -161,7 +165,7 @@ function get_posts_tags(PDO $pdo, array $post_ids): array {
 }
 
 function get_posts_images(PDO $pdo, array $post_ids): array {
-    require_once('../models/post_image.php');
+    require_once('../Models/post_image.php');
 
     if (empty($post_ids)) {
         return [];

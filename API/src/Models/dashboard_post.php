@@ -1,6 +1,8 @@
 <?php
 
-class DashboardPost implements JsonSerializable {
+namespace models;
+class DashboardPost implements JsonSerializable
+{
     private int $id;
     private int $userId;
     private string $postType;
@@ -11,7 +13,8 @@ class DashboardPost implements JsonSerializable {
     private ?array $tags;
     private ?array $images;
 
-    public function __construct(int $id, int $userId, string $postType, ?string $postTitle, ?string $postContent, ?array $postSitesLinks, DateTime $createdAt, ?array $tags, ?array $images) {
+    public function __construct(int $id, int $userId, string $postType, ?string $postTitle, ?string $postContent, ?array $postSitesLinks, DateTime $createdAt, ?array $tags, ?array $images)
+    {
         $this->id = $id;
         $this->userId = $userId;
         $this->postType = $postType;
@@ -23,8 +26,9 @@ class DashboardPost implements JsonSerializable {
         $this->images = $images ?? [];
     }
 
-    public function jsonSerialize(): array {
-        return  [
+    public function jsonSerialize(): array
+    {
+        return [
             'id' => $this->id,
             'userId' => $this->userId,
             'postType' => $this->postType,
@@ -37,7 +41,8 @@ class DashboardPost implements JsonSerializable {
         ];
     }
 
-    public function __toString(): string {
-        return $this->postTitle.' - '.$this->postContent.' - '.$this->createdAt->format('Y-m-d H:i:s').' - '.implode($this->tags).' - ';
+    public function __toString(): string
+    {
+        return $this->postTitle . ' - ' . $this->postContent . ' - ' . $this->createdAt->format('Y-m-d H:i:s') . ' - ' . implode($this->tags) . ' - ';
     }
 }

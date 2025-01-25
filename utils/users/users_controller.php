@@ -1,5 +1,7 @@
 <?php
 
+use models\User;
+
 function no_data_to_update_provided(?string $email, ?string $nickname): bool{
     return empty($email) && empty($nickname);
 }

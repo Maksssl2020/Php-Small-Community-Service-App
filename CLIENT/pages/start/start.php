@@ -1,6 +1,8 @@
 <?php
 
-require_once('../../utils/db/config_session.php');
+session_start();
+error_log(print_r($_SESSION, true));
+
 $isSignedIn = isset($_SESSION['user_id']);
 $role = '';
 $isAdmin = false;
@@ -13,6 +15,8 @@ if ($role == 'admin') {
     $isAdmin = true;
 }
 
+error_log($isSignedIn);
+
 ?>
 
 <!doctype html>
@@ -24,7 +28,7 @@ if ($role == 'admin') {
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Flickit</title>
     <link rel="stylesheet" href="start.css">
-    <link rel="stylesheet" href="../../index.css">
+    <link rel="stylesheet" href="../../../index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -130,6 +134,6 @@ if ($role == 'admin') {
     </div>
 
     <script src="start.js"></script>
-    <script src="../../index.js"></script>
+    <script src="../../../index.js"></script>
 </body>
 </html>

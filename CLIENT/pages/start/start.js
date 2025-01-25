@@ -86,34 +86,45 @@ const signInNicknameInput = document.getElementById('signInNicknameInput');
 const signInPasswordInput = document.getElementById('signInPasswordInput');
 const signInSubmitButton = document.getElementById('signInSubmitButton');
 
-signInForm.addEventListener('submit', (event) => {
+signInForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    await signIn();
+})
 
-    let formData = new FormData(signInForm);
+async function signIn() {
 
-    fetch('../../utils/sign-in/sign_in.php', {
+    fetch('http://localhost/php-small-social-service-app/authentication/sign-in', {
         method: 'POST',
-        body: formData,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            nickname: signInNicknameInput.value,
+            password: signInPasswordInput.value,
+        }),
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
 
-            setTimeout(() => {
-                signInModal.style.display = 'none';
-                signInForm.reset();
-            }, 1000)
+            if (data.success) {
+                showToast(data.message, 'success');
 
-            window.location = "../dashboard/dashboard.php";
-        } else {
-            data.errors.forEach((error) => showToast(error));
-        }
-    }).catch(error => {
-        console.log(error)
+                setTimeout(() => {
+                    signInModal.style.display = 'none';
+                    signInForm.reset();
+                }, 1000)
+
+                window.location = "../dashboard/dashboard.php";
+            } else {
+                data.errors.forEach((error) => showToast(error));
+            }
+        }).catch(errors => {
+        console.log(errors)
         showToast('Something went wrong. Please try again later.', 'error')
     });
-})
+}
 
 function validateFormInput(input, isValid) {
     input.style.border = isValid ? '2px solid #E9E1FF' : '2px solid #ff4d4f';
@@ -147,9 +158,15 @@ signUpForm.addEventListener('submit', (event) => {
 
     let formData = new FormData(signUpForm);
 
-    fetch('../utils/sign-up/sign_up.php', {
+    fetch('http://localhost/php-small-social-service-app/authentication/sign-up', {
         method: 'POST',
-        body: formData,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            nickname: 'exampleUser',
+            password: 'examplePassword'
+        })
     })
     .then(res => res.json())
     .then(data => {
