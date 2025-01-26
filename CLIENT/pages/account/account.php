@@ -131,7 +131,8 @@
         </div>
     </div>
 
-    <script src="../../../index.js"></script>
     <script src="account.js"></script>
+    <script src="accountApiFunctions.js"></script>
+    <script src="../../../index.js"></script>
 </body>
 </html>

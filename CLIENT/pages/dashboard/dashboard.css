@@ -549,7 +549,7 @@
 
 .post-content {
     width: 100%;
-    height: fit-content;
+    height: auto;
     display: flex;
     flex-direction: column;
 }
@@ -561,7 +561,6 @@
 .post-text {
     color: var(--custom-white-color-100);
     background: transparent;
-    min-height: 50px;
     height: auto;
     border: none;
     resize: none;
@@ -572,6 +571,7 @@
     padding: 15px 0;
     line-height: 30px;
     font-family: "Montserrat", serif;
+    box-sizing: border-box;
 }
 
 .post-images-container {

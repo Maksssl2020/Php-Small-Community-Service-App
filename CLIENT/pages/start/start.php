@@ -134,6 +134,7 @@ error_log($isSignedIn);
     </div>
 
     <script src="start.js"></script>
+    <script src="startApiFunctions.js"></script>
     <script src="../../../index.js"></script>
 </body>
 </html>

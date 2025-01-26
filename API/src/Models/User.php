@@ -1,6 +1,9 @@
 <?php
 
-namespace models;
+namespace Models;
+use DateTime;
+use JsonSerializable;
+
 class User implements JsonSerializable
 {
     private int $id;
@@ -21,6 +24,36 @@ class User implements JsonSerializable
         $this->avatarUrl = $avatarUrl;
         $this->avatarImage = $avatarImage;
     }
+
+    public function getId(): int {
+        return $this->id;
+    }
+
+    public function getUserNickname(): string {
+        return $this->userNickname;
+    }
+
+    public function getUserEmail(): string {
+        return $this->userEmail;
+    }
+
+    public function getCreatedAt(): DateTime {
+        return $this->createdAt;
+    }
+
+    public function getUserRole(): string {
+        return $this->userRole;
+    }
+
+    public function getAvatarUrl(): ?string {
+        return $this->avatarUrl;
+    }
+
+    public function getAvatarImage(): ?string {
+        return $this->avatarImage;
+    }
+
+
 
     public function jsonSerialize(): array
     {

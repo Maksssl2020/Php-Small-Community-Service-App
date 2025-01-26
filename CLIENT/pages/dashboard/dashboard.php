@@ -66,9 +66,7 @@
             </div>
         </div>
         <div class="dashboard-container">
-            <header id="dashboardHeader" class="dashboard-header">
-
-            </header>
+            <header id="dashboardHeader" class="dashboard-header"></header>
             <div class="dashboard-content-container" id="dashboardContentContainer">
             </div>
         </div>
@@ -149,6 +147,7 @@
 
     <script src="dashboard.js"></script>
     <script src="dashboardAddNewPosts.js"></script>
+    <script src="dashboardApiFunctions.js"></script>
     <script src="../../../index.js"></script>
 </body>
 </html>

@@ -22,7 +22,7 @@ let initialUserData = {};
 window.addEventListener('DOMContentLoaded', async () => {
     let userData;
 
-    const userId = await getSignedUserId();
+    const {userId} = await getSignedInUserData();
 
     if (userId) {
         userData = await fetchUserData(userId);
@@ -188,70 +188,7 @@ modalSubmitButton.onclick = async () => {
     await uploadUserAvatar();
 }
 
-async function uploadUserAvatar() {
-    const formData = new FormData();
-    const userId = await getSignedUserId();
-    formData.append('userId', userId);
-
-    if (avatarUrlInput.value.length > 0) {
-        formData.append('avatarUrl', avatarUrlInput.value);
-    } else {
-        formData.append('avatarImage', avatarFileInput.files[0]);
-    }
-
-    await fetch('../../utils/account/upload_avatar.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log(data)
-                data.type === 'url' ? userAvatarInput.src = avatarUrlInput.value : userAvatarInput.src = URL.createObjectURL(avatarFileInput.files[0]);
-
-                showToast("Added new avatar!", "success");
-                uploadAvatarModal.style.display = 'none'
-            } else {
-                data.errors.forEach(error => {
-                    showToast(error, 'error');
-                })
-            }
-        }).catch(error => console.log(error))
-}
-
 updateAccountButtons.addEventListener('submit', async event => {
     event.preventDefault();
     await updateUserData();
 })
-
-async function updateUserData() {
-    const formData = new FormData();
-    const userId = await getSignedUserId();
-    formData.append('userId', userId);
-
-    if (userNicknameInput.value.trim() !== initialUserData['userNickname']) {
-        formData.append('nickname', userNicknameInput.value.trim());
-    }
-
-    if (userEmailInput.value.trim() !== initialUserData['userEmail']) {
-        formData.append('email', userEmailInput.value.trim());
-    }
-
-    fetch('../../utils/users/update_user_data.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(response => response.json())
-        .then(data => {
-        if (data.success) {
-            data.messages.forEach(message => {
-                showToast(message, 'success');
-            })
-        } else {
-            data.errors.forEach(error => {
-                showToast(error, 'error');
-            })
-        }
-    })
-        .catch(error => console.log(error))
-}

@@ -2,6 +2,9 @@
 declare(strict_types=1);
 namespace Repositories;
 
+use DateTime;
+use Exception;
+use Models\User;
 use PDO;
 
 class UserRepository extends BaseRepository {
@@ -35,36 +38,52 @@ class UserRepository extends BaseRepository {
         return $stmt->fetchColumn() > 0;
     }
 
-    public function getUser(string $id): array | false {
-        $query = "SELECT * FROM `flickit-db`.`users` WHERE id = :id";
+    public function userExists(string $id): bool {
+        $query = "SELECT COUNT(*) FROM `flickit-db`.`users` WHERE id = :id";
         $stmt = $this->connection->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetchColumn() > 0;
     }
 
-    public function updateUser(array $current, array $new): int {
+    public function getUser(string $id): User | false {
+        $query = "SELECT * FROM `flickit-db`.`users` WHERE id = :id";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return new User($result['id'], $result['nickname'], $result['email'], DateTime::createFromFormat('Y-m-d H:i:s', $result['created_at']), $result['role'], $result['avatarUrl'], $result['avatarImage']);
+    }
+
+    public function updateUser(User $current, array $new): int {
         $query = "UPDATE `flickit-db`.`users` 
-                  SET nickname = :nickname, email = :email, password = :password, role = :role, avatarUrl = :avatarUrl, avatarImage = :avatarImage
+                  SET nickname = :nickname, email = :email, role = :role, avatarUrl = :avatarUrl, avatarImage = :avatarImage
                   WHERE id = :id 
                     ";
 
-        $password = $current['password'];
-
         $stmt = $this->connection->prepare($query);
-        $stmt->bindValue(':nickname', $new['nickname'] ?? $current['nickname']);
-        $stmt->bindValue(':email', $new['email'] ?? $current['email']);
-        $stmt->bindValue(':role', $new['role'] ?? $current['role']);
-        $stmt->bindValue(':avatarUrl', $new['avatarUrl'] ?? $current['avatarUrl']);
-        $stmt->bindValue(':avatarImage', $new['avatarImage'] ?? $current['avatarImage']);
-        $stmt->bindValue(':id', $current['id']);
+        $stmt->bindValue(':nickname', $new['nickname'] ?? $current->getUserNickname());
+        $stmt->bindValue(':email', $new['email'] ?? $current->getUserEmail());
+        $stmt->bindValue(':role', $new['role'] ?? $current->getUserRole());
+        $stmt->bindValue(':id', $current->getId());
 
-        if (!empty($new['password'])) {
-            $password = $this->hashPassword($new['password']);
+        if (isset($new['avatarImage'])) {
+            $avatarImage = $new['avatarImage'];
+            if (str_starts_with($avatarImage, 'data:image/')) {
+                $avatarImage = preg_replace('/^data:image\/\w+;base64,/', '', $avatarImage);
+            }
+
+            $decodedImage = base64_decode($avatarImage);
+            $stmt->bindValue(':avatarImage', $decodedImage, PDO::PARAM_LOB);
+            $stmt->bindValue(':avatarUrl', null, PDO::PARAM_NULL);
         }
 
-        $stmt->bindValue(':password',  $password);
+        if (isset($new['avatarUrl'])) {
+            $stmt->bindValue(':avatarUrl', $new['avatarUrl']);
+            $stmt->bindValue(':avatarImage', null, PDO::PARAM_NULL);
+        }
 
         $stmt->execute();
 

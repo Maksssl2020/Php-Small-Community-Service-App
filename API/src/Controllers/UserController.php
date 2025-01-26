@@ -4,7 +4,7 @@ namespace Controllers;
 
 use Repositories\UserRepository;
 
-class UserController
+readonly class UserController
 {
 
     public function __construct(private UserRepository $userRepository)
@@ -13,10 +13,26 @@ class UserController
 
     public function processRequest(string $method, string $action, ?string $id): void
     {
-        if ($id) {
+        if ($method == "GET" && $action == "get-signed-in-user-data") {
+            $this->processSessionRequest();
+        } elseif ($id) {
             $this->processResourceRequest($method, $id);
         } else {
             $this->processCollectionRequest($method);
+        }
+    }
+
+    private function processSessionRequest(): void {
+        session_start();
+
+        if (isset($_SESSION["user_id"])) {
+            echo json_encode(['success' => true, 'data' => [
+                "userId" => $_SESSION["user_id"],
+                "userNickname" => $_SESSION["user_nickname"],
+                "userRole" => $_SESSION["user_role"],
+            ]]);
+        } else {
+            echo json_encode(['success' => false, 'errors' => ['User is not signed in!']]);
         }
     }
 
@@ -31,16 +47,14 @@ class UserController
         }
 
         switch ($method) {
-            case 'GET':
-            {
+            case 'GET':{
                 echo json_encode(['success' => true, 'data' => $user]);
                 break;
             }
-            case "PATCH":
-            {
-                $data = (array)json_decode(file_get_contents("php://input"), true);
+            case "PATCH": {
+                $data = (array)json_decode(file_get_contents("php://input"), true) ?? [];
+                $errors = $this->getValidationErrors($data);
 
-                $errors = $this->getValidationErrors($data, false);
                 if (!empty($errors)) {
                     http_response_code(422);
                     echo json_encode(["success" => false, "errors" => $errors]);
@@ -49,17 +63,15 @@ class UserController
 
                 $rows = $this->userRepository->updateUser($user, $data);
 
-                echo json_encode(["success" => true, "message" => "User $id updated", "rows" => $rows]);
+                echo json_encode(["success" => true, 'type'=>$data['type'],"message" => "User $id updated", "rows" => $rows]);
                 break;
             }
-            case "DELETE":
-            {
+            case "DELETE": {
                 $rows = $this->userRepository->deleteUser($id);
                 echo json_encode(["success" => true, "message" => "User $id deleted", "rows" => $rows]);
                 break;
             }
-            default:
-            {
+            default:{
                 http_response_code(405);
                 header("Allow: GET, PATCH, DELETE");
             }
@@ -82,7 +94,7 @@ class UserController
         }
     }
 
-    private function getValidationErrors(array $data, bool $isNew = true): array
+    private function getValidationErrors(array $data): array
     {
         $errors = [];
 

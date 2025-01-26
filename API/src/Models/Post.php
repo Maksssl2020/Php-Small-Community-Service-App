@@ -1,7 +1,10 @@
 <?php
 
-namespace models;
-class DashboardPost implements JsonSerializable
+namespace Models;
+use DateTime;
+use JsonSerializable;
+
+class Post implements JsonSerializable
 {
     private int $id;
     private int $userId;

@@ -1,6 +1,9 @@
 <?php
 
-namespace models;
+namespace Models;
+use DateTime;
+use JsonSerializable;
+
 class PostImage implements JsonSerializable
 {
     private int $id;

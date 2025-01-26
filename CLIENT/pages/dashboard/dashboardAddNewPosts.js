@@ -26,48 +26,48 @@ selectLabel.onclick = () => {
     }
 }
 
-addTextPostButton.onclick = () => {
+addTextPostButton.onclick =  async () => {
     postOptionsModal.style.display = "none";
     addNewPostModal.style.display = "block";
 
     generateAddTextPostModal();
-    fetchAllTags();
+    await fetchAllTags();
 
-    addNewPostButton.onclick = (e) => {
-        addNewTextPost(e);
+    addNewPostButton.onclick = async (e) => {
+        await addNewTextPost(e);
     }
 }
 
-addImagePostButton.onclick = () => {
+addImagePostButton.onclick = async () => {
     postOptionsModal.style.display = "none";
     addNewPostModal.style.display = "block";
 
     generateAddImagePostModal();
-    fetchAllTags();
+    await fetchAllTags();
 
-    addNewPostButton.onclick = (e) => {
-        addNewImagePost(e);
+    addNewPostButton.onclick = async (e) => {
+        await addNewImagePost(e);
     }
 }
 
-addQuotePostButton.onclick = () => {
+addQuotePostButton.onclick = async () => {
     postOptionsModal.style.display = "none";
     addNewPostModal.style.display = "block";
 
     generateAddQuotePostModal();
-    fetchAllTags();
+    await fetchAllTags();
 
     addNewPostButton.onclick = (e) => {
         addNewQuotePost(e);
     }
 }
 
-addLinkPostButton.onclick = () => {
+addLinkPostButton.onclick = async () => {
     postOptionsModal.style.display = "none";
     addNewPostModal.style.display = "block";
 
     generateAddLinkPostModal();
-    fetchAllTags();
+    await fetchAllTags();
 
     addNewPostButton.onclick = (e) => {
         addNewLinkPost(e);
@@ -250,26 +250,6 @@ function addPhotoUrlToTheList(url, addedLinksList) {
     addedLinksList.append(urlListItem);
 }
 
-function fetchAllTags() {
-    fetch('../../utils/tags/get_all_tags.php')
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                availableTags = [];
-
-                data.data.forEach((tag) => {
-                    availableTags.push(tag);
-                })
-
-                const popularTags = availableTags.slice(0, 8);
-                populateTagSelect(popularTags);
-            } else {
-                console.log("Error: No tags found.");
-            }
-        })
-        .catch(err => console.log(err));
-}
-
 function populateTagSelect(tags) {
     selectOptions.innerHTML = "";
 
@@ -327,26 +307,6 @@ function removeTag(tagName, tagElement) {
     populateTagSelect(availableTags.slice(0, 8));
 }
 
-function addNewUserTag(tagName) {
-    const formData = new FormData();
-    formData.append("tagName", tagName);
-    formData.append("isMainTag", String(false));
-
-    fetch('../../utils/tags/add_new_tag.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                addTag(tagName);
-            } else {
-                showToast("Failed to add a new tag.", "error");
-            }
-        })
-        .catch(err => console.log(err));
-}
-
 function validateTextPostForm() {
     const isTextPostTitleValid = document.getElementById("textPostTitle").value.length > 0;
     const isTextPostContentValid = document.getElementById("textPostContent").value.length > 0;
@@ -368,109 +328,11 @@ function validateLinkPostForm() {
     addNewPostButton.disabled = !isLinkListValid;
 }
 
-function addNewTextPost(event) {
-    event.preventDefault();
-
-    const formData = new FormData(addPostModalFormContainer);
-    formData.append('postType', 'text');
-    formData.append('postTags', JSON.stringify(chosenTags));
-
-    fetch('../../utils/posts/add_new_post.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, "success");
-                resetFormData();
-            } else {
-                showToast("Failed to add a new post!", "error");
-            }
-        })
-        .catch(err => console.log(err));
-}
-
-function addNewImagePost(event) {
-    event.preventDefault();
-
-    const addedLinksList = document.getElementById("addedLinksList");
-    const imageLinks = Array.from(addedLinksList.children).map(item => item.id);
-
-    const formData = new FormData(addPostModalFormContainer);
-    formData.append('postType', 'image');
-    formData.append('postTags', JSON.stringify(chosenTags));
-    formData.append('postImagesLinks', JSON.stringify(imageLinks));
-
-    fetch('../../utils/posts/add_new_post.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, "success");
-                addedLinksList.innerHTML = "";
-                resetFormData();
-            } else {
-                showToast("Failed to add a new post!", "error");
-            }
-        })
-        .catch(err => console.log(err));
-}
-
-function addNewQuotePost(event) {
-    event.preventDefault();
-
-    const formData = new FormData(addPostModalFormContainer);
-    formData.append('postType', 'quote');
-    formData.append('postTags', JSON.stringify(chosenTags));
-
-    fetch('../../utils/posts/add_new_post.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, "success");
-                resetFormData();
-            }
-        })
-        .catch(err => console.log(err));
-}
-
-function addNewLinkPost(event) {
-    event.preventDefault();
-
-    const addedLinksList = document.getElementById("addedLinksList");
-    const links = Array.from(addedLinksList.children).map(item => item.id);
-
-    const formData = new FormData(addPostModalFormContainer);
-    formData.append('postType', 'link');
-    formData.append('postTags', JSON.stringify(chosenTags));
-    formData.append('postLinks', JSON.stringify(links));
-
-    fetch('../../utils/posts/add_new_post.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, "success");
-                addedLinksList.innerHTML = "";
-                resetFormData();
-            }
-        })
-        .catch(err => console.log(err));
-}
-
-function resetFormData() {
+async function resetFormData() {
     addPostModalFormContainer.reset();
     chosenTags = [];
     addedTagsContainer.innerHTML = "";
-    fetchAllTags();
+    await fetchAllTags();
 }
 
 window.onclick = (event) => {

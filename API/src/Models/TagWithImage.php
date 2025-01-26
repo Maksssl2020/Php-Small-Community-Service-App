@@ -1,6 +1,8 @@
 <?php
 
-namespace models;
+namespace Models;
+use JsonSerializable;
+
 class TagWithImage implements JsonSerializable
 {
     public int $id;

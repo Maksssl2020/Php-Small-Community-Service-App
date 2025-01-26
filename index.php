@@ -13,9 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 use Controllers\AuthenticationController;
-use Controllers\TagsController;
+use Controllers\PostController;
+use Controllers\TagController;
 use Controllers\UserController;
-use Repositories\TagsRepository;
+use Repositories\PostRepository;
+use Repositories\TagRepository;
 use Repositories\UserRepository;
 use Repositories\AuthenticationRepository;
 
@@ -29,6 +31,7 @@ set_exception_handler("ErrorHandler::handleException");
 header("Content-Type: application/json;");
 
 $parts = explode('/', $_SERVER['REQUEST_URI']);
+
 
 $resource = $parts[2] ?? null;
 $action = $parts[3] ?? null;
@@ -45,8 +48,14 @@ if ($resource === 'users') {
     $controller = new AuthenticationController($repository);
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
 } elseif ($resource === 'tags') {
-    $repository = new TagsRepository($database);
-    $controller = new TagsController($repository);
+    $repository = new TagRepository($database);
+    $controller = new TagController($repository);
+    $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
+} elseif ($resource === 'posts') {
+    $postRepository = new PostRepository($database);
+    $userRepository = new UserRepository($database);
+    $tagRepository = new TagRepository($database);
+    $controller = new PostController($postRepository, $userRepository, $tagRepository);
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
 } else {
     http_response_code(404);

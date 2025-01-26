@@ -86,40 +86,10 @@ if (myPostsSelector) {
     }
 }
 
-async function fetchRandomPostsForUser() {
-fetch("../../utils/posts/get_random_posts_for_user_dashboard.php")
-    .then(res => res.json())
-    .then(async data => {
-        if (data.success) {
-            dashboardContentContainer.innerHTML = "";
-            await populateDashboardContentWithUserPosts(data.data);
-            console.log(data.data);
-        } else {
-            console.log(data.errors);
-        }
-    })
-    .catch(err => console.log(err));
-}
-
 postTextAreas.forEach((textArea) => {
     textArea.addEventListener("input", autoResize);
     autoResize.call(textArea);
 })
-
-async function fetchUserPosts() {
-    fetch("../../utils/posts/get_user_all_posts.php")
-        .then( res => res.json())
-        .then(async data => {
-            if (data.success) {
-                dashboardContentContainer.innerHTML = "";
-                await populateDashboardContentWithUserPosts(data.data);
-                console.log(data.data);
-            } else {
-                console.log(data.errors);
-            }
-        })
-        .catch(err => console.log(err));
-}
 
 async function populateDashboardContentWithUserPosts(userPosts) {
     for (const post of userPosts) {
@@ -158,7 +128,7 @@ async function populateDashboardContentWithUserPosts(userPosts) {
             postContentDiv = `
             <div class="post-content">
                 <h3 class="post-title">${postTitle}</h3>
-                <textarea class="post-text" spellcheck="false" readonly>${postContent}</textarea>
+                <p id="autoresize" class="post-text" spellcheck="false">${postContent}</p>
                 <div class="post-tags">${postTags}</div>
             </div>`;
         } else if (postType === 'image') {
@@ -167,13 +137,13 @@ async function populateDashboardContentWithUserPosts(userPosts) {
             postContentDiv = `
             <div class="post-content">
                 <div class="post-images-container">${postImages}</div>
-                <textarea class="post-text" spellcheck="false" readonly>${postContent ?? ''}</textarea>
+                <p id="autoresize" class="post-text" spellcheck="false">${postContent ?? ''}</p>
                 <div class="post-tags">${postTags}</div>
             </div>`;
         } else if (postType === 'quote') {
             postContentDiv = `
             <div class="post-content">
-                <textarea class="post-text" spellcheck="false" readonly>${postContent}</textarea>
+                <p id="autoresize" class="post-text" spellcheck="false" >${postContent}</p>
                 <div class="post-tags">${postTags}</div>
             </div>
             `
@@ -190,14 +160,14 @@ async function populateDashboardContentWithUserPosts(userPosts) {
             postContentDiv = `
             <div class="post-content">
                 ${linksContainer.outerHTML}
-                <textarea class="post-text" spellcheck="false" readonly>${postContent ?? ''}</textarea>
+                <p id="autoresize" class="post-text" spellcheck="false" >${postContent ?? ''}</p>
                 <div class="post-tags">${postTags}</div>
             </div>
             `
         }
 
         const postLikes = await fetchPostAmountOfLikes(id);
-        const isLikedByUser = await checkIsPostLikedByUser(id);
+        const isLikedByUser = await isPostLikedByUser(id);
 
         const postFooter = `
             <footer class="post-footer">
@@ -219,38 +189,17 @@ async function populateDashboardContentWithUserPosts(userPosts) {
 
 dashboardContentContainer.addEventListener('click', async event => {
     const likeIcon = event.target;
+    console.log(likeIcon);
 
-    if (likeIcon.classList.contains('bi-heart')) {
+    if (likeIcon.classList.contains('bi-heart') || likeIcon.classList.contains('liked')) {
         const postId = likeIcon.id;
-        await handlePostLike(postId);
+        await likeOrUnlikePost(postId);
     }
-
 });
 
-async function handlePostLike(postId) {
-    const formData = new FormData();
-    formData.append('postId', postId);
-
-    fetch('../../utils/likes/add_post_like.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                updatePostAfterLike(postId);
-                showToast(data.message, 'success');
-            } else {
-                data.errors.forEach(err => showToast(err));
-            }
-        })
-        .catch(err => console.log(err));
-}
-
-async function updatePostAfterLike(postId) {
+async function updatePostAfterLikeOrUnlike(postId) {
     const updatedLikes = await fetchPostAmountOfLikes(postId);
-    const isLikedByUser = await checkIsPostLikedByUser(postId);
-
+    const isLikedByUser = await isPostLikedByUser(postId);
     const postElement = document.getElementById(postId);
 
     if (postElement) {
@@ -306,49 +255,6 @@ async function createSiteCard(url, siteData) {
     listItem.id = url;
 
     return listItem;
-}
-
-async function fetchPostAmountOfLikes(postId) {
-    const formData = new FormData();
-    formData.append("postId", postId);
-
-    return fetch('../../utils/likes/get_post_likes.php', {
-        method: 'POST',
-        body: formData,
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                return data.data;
-            }
-            return 0;
-        })
-        .catch(err => {
-            console.log(err);
-            return 0;
-        });
-}
-
-async function checkIsPostLikedByUser(postId) {
-    const formData = new FormData();
-    formData.append("postId", postId);
-
-    return fetch('../../utils/likes/is_post_liked_by_user.php', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            return data.data;
-        }
-
-        return false;
-    })
-    .catch(err => {
-        console.log(err);
-        return false;
-    });
 }
 
 window.addEventListener('DOMContentLoaded', () => {

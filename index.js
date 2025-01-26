@@ -19,14 +19,16 @@ function showToast(message, type = 'error') {
 }
 
 async function fetchUserData(userId) {
-    const formData = new FormData();
-    formData.append('userId', userId);
-
-    return await fetch('/utils/users/get_user_data.php', {
-        method: 'POST',
-        body: formData
+    return await fetch(`http://localhost/php-small-social-service-app/users/get-user-data/${userId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        }
     })
-        .then(response => response.json())
+        .then(response => {
+            return response.json()
+        })
         .then(data => {
             if (data.success) {
                 console.log(data.data);
@@ -43,7 +45,7 @@ async function fetchUserData(userId) {
 
 function autoResize() {
     this.style.height = "auto";
-    this.style.height = `${this.scrollHeight}px`;
+    this.style.height = this.scrollHeight + 50 + "px";
 }
 
 async function fetchSiteData(url) {
@@ -80,20 +82,21 @@ function calcPeriodFromDate(date) {
     return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
 }
 
-async function getSignedUserId() {
-    return await fetch('../../utils/users/get_signed_user_id.php', {
+async function getSignedInUserData() {
+    return await fetch('http://localhost/php-small-social-service-app/users/get-signed-in-user-data', {
         method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        }
     })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                return data.data;
-            } else {
-                return null;
-            }
-        })
-        .catch((error) => {
-            console.log(error)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        } else {
             return null;
-        })
+        }
+    })
+    .catch(err => console.log(err));
 }

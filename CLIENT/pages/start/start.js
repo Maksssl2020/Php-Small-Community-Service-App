@@ -5,8 +5,8 @@ const signInButton = document.getElementById('signInButton');
 const logoutButton = document.getElementById('logoutButton');
 const mainTagsContainer = document.getElementById('mainTags');
 
-document.addEventListener('DOMContentLoaded', () => {
-    fetchMainTags();
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchMainTagsForStartPage();
 })
 
 if (signUpButton) {
@@ -41,37 +41,6 @@ if (logoutButton) {
     })
 }
 
-function fetchMainTags() {
-    fetch('../../utils/start/get_main_tags.php', {
-        method: 'GET'
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                data.data.forEach(mainTag => {
-                    const mainTagDiv = document.createElement('div');
-                    mainTagDiv.className = 'main-tag-card';
-
-                    const tagImg = document.createElement('img');
-                    tagImg.src = mainTag.imageUrl;
-                    tagImg.alt = mainTag.name;
-
-                    const tagP = document.createElement('p');
-                    tagP.textContent = mainTag.name;
-
-                    mainTagDiv.appendChild(tagImg);
-                    mainTagDiv.appendChild(tagP);
-
-                    mainTagsContainer.appendChild(mainTagDiv);
-                })
-            } else {
-                console.log("Failed to fetch main tags. Please try again.");
-            }
-        }).catch(err => {
-            console.log(err);
-    })
-}
-
 window.onclick = (event) => {
     if (event.target === signUpModal) {
         signUpModal.style.display = 'none';
@@ -91,40 +60,7 @@ signInForm.addEventListener('submit', async (event) => {
     await signIn();
 })
 
-async function signIn() {
 
-    fetch('http://localhost/php-small-social-service-app/authentication/sign-in', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            nickname: signInNicknameInput.value,
-            password: signInPasswordInput.value,
-        }),
-    })
-        .then(res => res.json())
-        .then(data => {
-            console.log(data);
-
-            if (data.success) {
-                showToast(data.message, 'success');
-
-                setTimeout(() => {
-                    signInModal.style.display = 'none';
-                    signInForm.reset();
-                }, 1000)
-
-                window.location = "../dashboard/dashboard.php";
-            } else {
-                data.errors.forEach((error) => showToast(error));
-            }
-        }).catch(errors => {
-        console.log(errors)
-        showToast('Something went wrong. Please try again later.', 'error')
-    });
-}
 
 function validateFormInput(input, isValid) {
     input.style.border = isValid ? '2px solid #E9E1FF' : '2px solid #ff4d4f';
@@ -153,39 +89,10 @@ const signUpPasswordInput = document.getElementById('signUpPasswordInput');
 const signUpRepeatPasswordInput = document.getElementById('signUpRepeatPasswordInput');
 const signUpSubmitButton = document.getElementById('signUpSubmitButton');
 
-signUpForm.addEventListener('submit', (event) => {
+signUpForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-
-    let formData = new FormData(signUpForm);
-
-    fetch('http://localhost/php-small-social-service-app/authentication/sign-up', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            nickname: 'exampleUser',
-            password: 'examplePassword'
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-
-            setTimeout(() => {
-                signUpModal.style.display = 'none';
-                signUpForm.reset();
-            }, 1000)
-        } else {
-            data.errors.forEach(error => showToast(error, 'error'));
-        }
-    }).catch(error => {
-        console.log(error);
-        showToast('Something went wrong. Please try again later.', 'error');
-    });
+    await signUp();
 });
-
 
 function validateSignUpForm() {
     const isNicknameValid = signUpNicknameInput.value.trim().length > 0;
