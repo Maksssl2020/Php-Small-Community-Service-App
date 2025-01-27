@@ -7,10 +7,23 @@ const dashboardSelector = document.getElementById("dashboardItem");
 const discoverSelector = document.getElementById("discoverItem");
 const topicsSelector = document.getElementById("topicsItem");
 const accountSelector = document.getElementById("accountItem");
-
 const dashboardHeader = document.getElementById("dashboardHeader");
 
+const followedTagsModal = document.getElementById("manageFollowedTagsModal");
+const followedTagsModalList = document.getElementById("followedTagsModalList");
+const searchNewTagsToFollowInput = document.getElementById("searchNewTagsToFollow");
+const resetTagsSearchbarIcon = document.getElementById("resetTagsSearchbar");
+const closeManageFollowedTagsModalIcon = document.getElementById("closeManageFollowedTagsModal");
+
+const testItemA = document.getElementById("testItem");
+
+// testItemA.addEventListener("click", (e) => {
+//     e.preventDefault();
+//     test("test");
+// })
+
 let currentActiveSection = 'dashboard';
+let currentActiveHeaderButton = 'forYou';
 
 const sectionSelectors = {
     dashboard: dashboardSelector,
@@ -20,10 +33,10 @@ const sectionSelectors = {
     topics: topicsSelector,
 };
 
-const dashboardHeaderMainButtons = ['For You', 'Your Tags'];
-const dashboardHeaderDiscoverButtons =  ['Popular', 'For You'];
+const dashboardHeaderMainButtons = [{name: 'For You', id: 'dashboardForYou'}, {name: 'Your Tags', id: 'yourTags'}];
+const dashboardHeaderDiscoverButtons =  [{name: 'Recent', id: 'recent'}, {name: 'The best', id: 'theBest'}];
 
-function handleSectionChange(chosenSection) {
+async function handleSectionChange(chosenSection) {
     sectionSelectors[currentActiveSection].style.color = "#ACACAC"
     sectionSelectors[chosenSection].style.color = "#FFFFFF"
     currentActiveSection = chosenSection;
@@ -46,22 +59,48 @@ function handleSectionChange(chosenSection) {
         dashboardHeaderMainButtons.forEach(button => {
             createHeaderButtons(button, dashboardHeaderMainButtons);
         })
+
+        await fetchRandomPostsForUser();
     }
+
+    console.log(chosenSection);
 }
 
 function createHeaderButtons(button, buttonsCollection) {
     const headerButton = document.createElement('button');
-    headerButton.setAttribute('id', button);
+    headerButton.setAttribute('id', button.id);
     headerButton.setAttribute('type', 'button');
-    headerButton.textContent = button;
+    headerButton.textContent = button.name;
     headerButton.classList.add('header-button');
+    currentActiveHeaderButton = buttonsCollection[0].id;
 
-    if (button === buttonsCollection[0]) {
-        headerButton.style.color = "#FFFFFF"
-        headerButton.style.borderBottomColor = "#FF8A80"
+    if (button.id === currentActiveHeaderButton) {
+        headerButton.classList.add('active');
+    }
+
+    headerButton.onclick = async function () {
+        handleHeaderButtonChange(this);
+
+        if (button.id === 'dashboardForYou') {
+            await fetchRandomPostsForUser();
+        } else if (button.id === 'yourTags') {
+            await fetchPostsWithUserFollowedTags();
+        } else if (button.id === 'recent') {
+
+        } else if (button.id === 'theBest') {
+
+        }
     }
 
     dashboardHeader.appendChild(headerButton);
+}
+
+const handleHeaderButtonChange = (button) => {
+    const currentActiveButton = document.getElementById(currentActiveHeaderButton);
+    currentActiveButton.classList.remove('active');
+
+    currentActiveHeaderButton = button.id;
+    button.classList.add('active');
 }
 
 Object.entries(sectionSelectors).forEach(([section, selector]) => {
@@ -74,16 +113,10 @@ createPostButton.onclick = () => {
     postOptionsModal.style.display = "block";
 }
 
-if (dashboardSelector) {
-    dashboardSelector.onclick = async () => {
-        await fetchRandomPostsForUser();
-    }
-}
-
 if (myPostsSelector) {
-    myPostsSelector.onclick = async () => {
+    myPostsSelector.addEventListener('click', async () => {
         await fetchUserPosts();
-    }
+    })
 }
 
 postTextAreas.forEach((textArea) => {
@@ -91,8 +124,165 @@ postTextAreas.forEach((textArea) => {
     autoResize.call(textArea);
 })
 
-async function populateDashboardContentWithUserPosts(userPosts) {
-    for (const post of userPosts) {
+async function populateDashboardContentWithPostsThatContainFollowedTags(posts) {
+    const amountOfFollowedUserTags = await getAmountOfUserFollowedTags();
+
+    if (amountOfFollowedUserTags === 0) {
+        dashboardContentContainer.innerHTML += `
+        <div class="no-posts-info">
+            <h3>You didn't follow any tag!</h3>
+        </div>
+        `;
+    }
+
+    const followedTagsContainer = `
+    <div class="followed-tags-container">
+        <div class="followed-tags-title">
+            <h2>Followed tags</h2>
+            <button id="openFollowedTagsModal">Manage</button>
+        </div>
+    </div>
+    `
+
+    dashboardContentContainer.innerHTML += followedTagsContainer;
+
+    const openFollowedTagsModalButton = document.getElementById('openFollowedTagsModal');
+    openFollowedTagsModalButton.addEventListener('click', async function () {
+        followedTagsModal.style.display = "block";
+
+        const followedTags = await getUserFollowedTags();
+        const notFollowedTags = await getUserNotFollowedTags();
+
+        if (followedTags.length === 0) {
+            populateFollowedTagsModalListWithTags(notFollowedTags, false);
+        } else {
+            populateFollowedTagsModalListWithTags(followedTags, true);
+        }
+
+    })
+
+    await populateDashboardContentPosts(posts);
+}
+
+function populateFollowedTagsModalListWithTags(tags, areFollowed) {
+    followedTagsModalList.innerHTML = "";
+
+    if (areFollowed) {
+        createFollowedTagsListElements(tags);
+    } else {
+        createUnfollowedTagsListElements(tags);
+    }
+
+    addFollowUnfollowListeners();
+}
+function createFollowedTagsListElements(tags) {
+    tags.forEach(tag => {
+        const listElement = `
+            <div class="followed-tags-modal-list-element followed">
+                <p>#${tag.name}</p>
+                <div class="followed-tags-list-element-buttons-container">
+                    <button id="${tag.name}" class="go-to-tag-button">Go to tag</button>
+                    <button id="${tag.name}" class="follow-option-button unfollow">Unfollow</button>
+                </div>
+            </div>
+            `
+
+        followedTagsModalList.innerHTML += listElement;
+    })
+}
+
+function createUnfollowedTagsListElements(tags) {
+    tags.slice(0, 8).forEach(tag => {
+        const listElement = `
+            <div class="followed-tags-modal-list-element not-followed">
+                <p>#${tag.name}</p>
+                <button id="${tag.name}" class="follow-option-button follow">Follow</button>
+            </div>
+            `
+
+        followedTagsModalList.innerHTML += listElement;
+    })
+}
+
+if (searchNewTagsToFollowInput) {
+    searchNewTagsToFollowInput.addEventListener('change', async (event) => {
+        resetTagsSearchbarIcon.style.visibility = "visible";
+        const inputValue = event.target.value.toLowerCase();
+        followedTagsModalList.innerHTML = '';
+        const notFollowedTags = await getUserNotFollowedTags();
+        const filteredTags = notFollowedTags.filter(tag => tag.name.toLowerCase().includes(inputValue));
+        createUnfollowedTagsListElements(filteredTags);
+        addFollowUnfollowListeners();
+    })
+}
+
+if (closeManageFollowedTagsModalIcon) {
+    closeManageFollowedTagsModalIcon.addEventListener('click', function () {
+        followedTagsModal.style.display = "none";
+    })
+}
+
+if (resetTagsSearchbarIcon) {
+    resetTagsSearchbarIcon.addEventListener('click', async () => {
+        const followedTags = await getUserFollowedTags();
+        searchNewTagsToFollowInput.value = "";
+        populateFollowedTagsModalListWithTags(followedTags, true);
+        resetTagsSearchbarIcon.style.visibility = "hidden";
+    })
+}
+
+function addFollowUnfollowListeners() {
+    const followButtons = document.querySelectorAll('.follow-option-button.follow');
+    followButtons.forEach(button => {
+        button.removeEventListener('click', followTagEventListener); // Usunięcie istniejącego listenera
+        button.addEventListener('click', followTagEventListener);
+    });
+
+    const unfollowButtons = document.querySelectorAll('.follow-option-button.unfollow');
+    unfollowButtons.forEach(button => {
+        button.removeEventListener('click', unfollowTagEventListener); // Usunięcie istniejącego listenera
+        button.addEventListener('click', unfollowTagEventListener);
+    });
+}
+
+async function followTagEventListener() {
+    const tagName = this.getAttribute('id');
+    const success = await followTag(tagName);
+
+    if (success) {
+        this.classList.remove('follow');
+        this.classList.add('unfollow');
+        this.textContent = 'Unfollow';
+
+        this.removeEventListener('click', followTagEventListener);
+        this.addEventListener('click', unfollowTagEventListener);
+    } else {
+        showToast("Could not follow the tag. Please try again.", "error");
+    }
+}
+
+async function unfollowTagEventListener() {
+    const tagName = this.getAttribute('id');
+    const followedTags = await getAmountOfUserFollowedTags();
+
+    if (followedTags > 1) {
+        const success = await unfollowTag(tagName);
+
+        if (success) {
+            this.classList.remove('unfollow');
+            this.classList.add('follow');
+            this.textContent = 'Follow';
+
+            this.removeEventListener('click', unfollowTagEventListener);
+            this.addEventListener('click', followTagEventListener);
+        }
+    } else {
+        showToast("Cannot unfollow that tag! You have to follow at least 1 tag!", "error");
+    }
+}
+
+async function populateDashboardContentPosts(posts) {
+    for (const post of posts) {
         const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = post;
         const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
 
@@ -189,7 +379,6 @@ async function populateDashboardContentWithUserPosts(userPosts) {
 
 dashboardContentContainer.addEventListener('click', async event => {
     const likeIcon = event.target;
-    console.log(likeIcon);
 
     if (likeIcon.classList.contains('bi-heart') || likeIcon.classList.contains('liked')) {
         const postId = likeIcon.id;
@@ -257,6 +446,6 @@ async function createSiteCard(url, siteData) {
     return listItem;
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    handleSectionChange('dashboard');
+window.addEventListener('DOMContentLoaded', async () => {
+    await handleSectionChange('dashboard');
 })

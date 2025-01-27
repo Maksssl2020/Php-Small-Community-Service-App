@@ -344,4 +344,8 @@ window.onclick = (event) => {
         addNewPostModal.style.display = 'none';
         addPostModalFormContainer.innerHTML = '';
     }
+
+    if (event.target === followedTagsModal) {
+        followedTagsModal.style.display = 'none';
+    }
 }

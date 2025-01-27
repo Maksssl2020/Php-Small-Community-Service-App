@@ -175,6 +175,10 @@ readonly class PostController {
                 echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsForUser($id)]);
                 break;
             }
+            case "get-dashboard-posts-by-followed-tags": {
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsByFollowedTags($id)]);
+                break;
+            }
             case "get-post-likes": {
                 if (!$this->postRepository->postExists($id)) {
                     http_response_code(404);

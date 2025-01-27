@@ -11,7 +11,29 @@ async function fetchRandomPostsForUser() {
         .then(async data => {
             if (data.success) {
                 dashboardContentContainer.innerHTML = "";
-                await populateDashboardContentWithUserPosts(data.data);
+                await populateDashboardContentPosts(data.data);
+            } else {
+                console.log(data.errors);
+                showToast("Something went wrong... Please try again later.", 'error')
+            }
+        })
+        .catch(err => console.log(err));
+}
+
+async function fetchPostsWithUserFollowedTags() {
+    const {userId} = await getSignedInUserData();
+
+    fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(res => res.json())
+        .then(async data => {
+            if (data.success) {
+                dashboardContentContainer.innerHTML = "";
+                await populateDashboardContentWithPostsThatContainFollowedTags(data.data);
             } else {
                 console.log(data.errors);
                 showToast("Something went wrong... Please try again later.", 'error')
@@ -33,12 +55,117 @@ async function fetchUserPosts() {
         .then(async data => {
             if (data.success) {
                 dashboardContentContainer.innerHTML = "";
-                await populateDashboardContentWithUserPosts(data.data);
+                await populateDashboardContentPosts(data.data);
             } else {
                 showToast("Something went wrong... Please try again later.", 'error');
             }
         })
         .catch(err => console.log(err));
+}
+
+async function getUserFollowedTags() {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/get-user-followed-tags/${userId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then( res => res.json())
+        .then(async data => {
+            if (data.success) {
+                return data.data;
+            } else {
+                showToast("Something went wrong... Please try again later.", 'error');
+                return [];
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            return [];
+        });
+}
+
+async function getUserNotFollowedTags() {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/get-user-not-followed-tags/${userId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then( res => res.json())
+        .then(async data => {
+            if (data.success) {
+                return data.data;
+            } else {
+                showToast("Something went wrong... Please try again later.", 'error');
+                return [];
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            return [];
+        });
+}
+
+async function followTag(tagName) {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/follow-tag/${userId}`, {
+        method: "POST",
+        body: JSON.stringify({
+            tagName: tagName
+        }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(res => res.json())
+        .then(async data => {
+            if (data.success) {
+                return true;
+            } else if (!data.success) {
+                data.errors.forEach(err => showToast(err));
+                return false;
+            }
+
+            return false;
+        })
+        .catch(err => {
+            console.log(err);
+            return false;
+        });
+}
+
+async function unfollowTag(tagName) {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/unfollow-tag/${userId}`, {
+        method: "DELETE",
+        body: JSON.stringify({
+            tagName: tagName
+        }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(res =>  res.json())
+        .then(async data => {
+            if (data.success) {
+                return true;
+            } else if (!data.success) {
+                data.errors.forEach(err => showToast(err));
+                return false;
+            }
+
+            return false;
+        })
+        .catch(err => {
+            console.log(err);
+            return false;
+        });
 }
 
 async function likeOrUnlikePost(postId) {
@@ -113,6 +240,29 @@ async function isPostLikedByUser(postId) {
             console.log(err);
             return false;
         });
+}
+
+async function getAmountOfUserFollowedTags() {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/count-user-followed-tags/${userId}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                return parseInt(data.data);
+            }
+
+            return 0;
+        })
+    .catch(err => {
+        console.log(err);
+        return 0;
+    })
 }
 
 async function fetchAllTags() {
@@ -275,4 +425,21 @@ function addNewUserTag(tagName) {
             }
         })
         .catch(err => console.log(err));
+}
+
+async function test($path) {
+    fetch(`http://localhost/php-small-social-service-app/pages/${$path}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(res => {
+            console.log(res);
+            console.log(res.text());
+        })
+    .then(data => {
+
+    })
+    .catch(err => console.log(err));
 }

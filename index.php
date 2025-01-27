@@ -20,6 +20,7 @@ use Repositories\PostRepository;
 use Repositories\TagRepository;
 use Repositories\UserRepository;
 use Repositories\AuthenticationRepository;
+use Router\Router;
 
 spl_autoload_register(function ($class) {
     require __DIR__."/API/src/$class.php";
@@ -30,6 +31,7 @@ set_exception_handler("ErrorHandler::handleException");
 
 header("Content-Type: application/json;");
 
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $parts = explode('/', $_SERVER['REQUEST_URI']);
 
 
@@ -52,11 +54,26 @@ if ($resource === 'users') {
     $controller = new TagController($repository);
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
 } elseif ($resource === 'posts') {
-    $postRepository = new PostRepository($database);
-    $userRepository = new UserRepository($database);
     $tagRepository = new TagRepository($database);
+    $postRepository = new PostRepository($database, $tagRepository);
+    $userRepository = new UserRepository($database);
     $controller = new PostController($postRepository, $userRepository, $tagRepository);
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
+} elseif ($resource == "pages") {
+    $router = new Router();
+    $router->add("/php-small-social-service-app/pages/test", function () {
+        header("Content-Type: text/html");
+        include_once __DIR__."/views/test.php";
+    });
+
+    $router->add("/php-small-social-service-app/pages/dashboard/discover/{tag}", function ($tag){
+        header("Content-Type: text/html");
+
+        require __DIR__."/CLIENT/pages/dashboard/dashboard.php";
+    });
+
+
+    $router->dispatch($path);
 } else {
     http_response_code(404);
     echo json_encode(['status'=>404, 'errors'=>['Not Found!']]);

@@ -2,6 +2,7 @@
 
 namespace Repositories;
 
+use Database;
 use DateTime;
 use Models\Post;
 use Models\PostImage;
@@ -9,6 +10,10 @@ use Models\Tag;
 use PDO;
 
 class PostRepository extends BaseRepository {
+    public function __construct(Database $database, private readonly TagRepository $tagRepository) {
+        parent::__construct($database);
+    }
+
     public function postExists(string $postId): bool {
         $query = "SELECT COUNT(*) FROM `flickit-db`.posts WHERE id = :postId";
         $statement = $this->connection->prepare($query);
@@ -39,6 +44,46 @@ class PostRepository extends BaseRepository {
         $statement->bindParam(":userId", $userId);
         $statement->execute();
         $posts = $statement->fetchAll();
+
+        if (empty($posts)) {
+            return [];
+        }
+
+        return $this->getPostsData($posts);
+    }
+
+    public function getDashboardPostsByFollowedTags(string $userId): array {
+        $followedTags = $this->tagRepository->findUserFollowedTagsData($userId);
+
+        if (empty($followedTags)) {
+            return [];
+        }
+
+        $tagIds = array_column($followedTags, 'tagId');
+
+        $getPostsWhichContainsFollowedTag = "
+            SELECT DISTINCT postId 
+            FROM `flickit-db`.post_tags 
+            WHERE tagId IN (" . implode(',', array_fill(0, count($tagIds), '?')) . ")
+        ";
+
+        $statement = $this->connection->prepare($getPostsWhichContainsFollowedTag);
+        $statement->execute($tagIds);
+        $postsIds = $statement->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($postsIds)) {
+            return [];
+        }
+
+        $fetchPostsQuery = "
+            SELECT * 
+            FROM `flickit-db`.posts 
+            WHERE id IN (" . implode(',', array_fill(0, count($postsIds), '?')) . ")
+        ";
+
+        $statement = $this->connection->prepare($fetchPostsQuery);
+        $statement->execute($postsIds);
+        $posts = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($posts)) {
             return [];
@@ -135,26 +180,29 @@ class PostRepository extends BaseRepository {
             $postType = $post['type'];
 
             $foundTags = $allTags[$postId] ?? [];
-            $foundPostImages = ($postType === 'image') ? ($allImages[$postId] ?? []) : [];;
+            $foundPostImages = ($postType === 'image') ? ($allImages[$postId] ?? []) : [];
             $foundPostLinks = ($postType === 'link') ? ($allLinks[$postId] ?? []) : [];
 
-            $dashboardPost = new Post(
-                $postId,
-                $post['userId'],
-                $postType,
-                $post['title'],
-                $post['content'],
-                $foundPostLinks,
-                DateTime::createFromFormat('Y-m-d H:i:s', $post['createdAt']),
-                $foundTags,
-                $foundPostImages
-            );
+            $dashboardPost = $this->createPostModel($post, $foundTags, $foundPostImages, $foundPostLinks);
 
-            error_log($dashboardPost);
             $dashboardPosts[] = $dashboardPost;
         }
 
         return $dashboardPosts;
+    }
+
+    private function createPostModel(array $postData, ?array $foundTags, ?array $foundPostLinks, ?array $foundPostImages): Post {
+        return new Post(
+            $postData['id'],
+            $postData['userId'],
+            $postData['type'],
+            $postData['title'],
+            $postData['content'],
+            $foundPostLinks,
+            DateTime::createFromFormat('Y-m-d H:i:s', $postData['createdAt']),
+            $foundTags,
+            $foundPostImages
+        );
     }
 
     private function getPostTags(array $postsIds): array {

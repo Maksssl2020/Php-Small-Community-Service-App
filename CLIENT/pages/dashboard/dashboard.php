@@ -2,6 +2,7 @@
     session_start();
     $userNickname = htmlspecialchars($_SESSION['user_nickname']);
 ?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,14 +10,17 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="dashboard.css">
-    <link rel="stylesheet" href="../../../index.css">
+    <link rel="stylesheet" href="/php-small-social-service-app/CLIENT/pages/dashboard/dashboard.css">
+    <link rel="stylesheet" href="/php-small-social-service-app/CLIENT/pages/dashboard/../../../index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <title>Dashboard</title>
 </head>
+
+
+
 <body class="body-container" id="dashboardBody">
 <div id="toastContainer"></div>
     <div class="main-container">
@@ -55,6 +59,12 @@
                         <a href="../account/account.php">
                             <i class="bi bi-person-fill-gear"></i>
                             <p>Account</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="http://localhost/php-small-social-service-app/pages/dashboard/discover/123" class="tag-link" >
+                            <i class="bi bi-person-fill-gear"></i>
+                            <p>Test</p>
                         </a>
                     </li>
                 </ul>
@@ -145,9 +155,28 @@
         </div>
     </div>
 
-    <script src="dashboard.js"></script>
-    <script src="dashboardAddNewPosts.js"></script>
-    <script src="dashboardApiFunctions.js"></script>
-    <script src="../../../index.js"></script>
+    <div id="manageFollowedTagsModal" class="modal-container">
+        <div class="modal-content">
+            <div class="followed-tags-modal-content-container">
+                <div class="followed-tags-modal-header">
+                    <header>
+                        <label>Followed tags</label>
+                        <i style="cursor: pointer;" id="closeManageFollowedTagsModal" class="bi bi-x"></i>
+                    </header>
+                </div>
+                <div class="followed-tags-modal-searchbar">
+                    <i class="bi bi-search search-icon"></i>
+                    <input placeholder="Find more tags" id="searchNewTagsToFollow" type="text"/>
+                    <i id="resetTagsSearchbar" class="bi bi-x reset-searchbar"></i>
+                </div>
+                <div id="followedTagsModalList" class="followed-tags-modal-list"></div>
+            </div>
+        </div>
+    </div>
+
+<script src="/php-small-social-service-app/CLIENT/pages/dashboard/dashboard.js"></script>
+<script src="/php-small-social-service-app/CLIENT/pages/dashboard/dashboardAddNewPosts.js"></script>
+<script src="/php-small-social-service-app/CLIENT/pages/dashboard/dashboardApiFunctions.js"></script>
+<script src="/php-small-social-service-app/CLIENT/pages/dashboard/../../../index.js"></script>
 </body>
 </html>

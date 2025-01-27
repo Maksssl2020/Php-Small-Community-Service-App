@@ -22,6 +22,62 @@ class TagRepository extends BaseRepository {
         return $tagModels;
     }
 
+    public function getUserNotFollowedTags(string $userId): array {
+        $followedTags = $this->findUserFollowedTagsData($userId);
+
+        if (empty($followedTags)) {
+            return $this->getAllTags();
+        }
+
+        $tagIds = array_column($followedTags, 'tagId');
+        $query = "
+            SELECT name FROM `flickit-db`.tags 
+            WHERE id 
+            NOT IN (" . implode(',', array_fill(0, count($tagIds), '?')) . ")
+            ";
+        $statement = $this->connection->prepare($query);
+        $statement->execute(array_values($tagIds));
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getUserFollowedTags(string $userId): array {
+        $followedTags = $this->findUserFollowedTagsData($userId);
+
+        if (empty($followedTags)) {
+            return [];
+        }
+
+        $tagIds = array_column($followedTags, 'tagId');
+        $query = "
+            SELECT name FROM `flickit-db`.tags 
+            WHERE id 
+            IN (" . implode(',', array_fill(0, count($tagIds), '?')) . ")
+            ";
+        $statement = $this->connection->prepare($query);
+        $statement->execute(array_values($tagIds));
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function findUserFollowedTagsData(string $userId): array {
+        $followedTagsQuery = "SELECT * FROM `flickit-db`.user_followed_tags WHERE userId = :userId";
+        $followedTagsStatement = $this->connection->prepare($followedTagsQuery);
+        $followedTagsStatement->bindParam(":userId", $userId, PDO::PARAM_INT);
+        $followedTagsStatement->execute();
+
+        return $followedTagsStatement->fetchAll();
+    }
+
+    public function countUserFollowedTags(string $userId): int {
+        $query = "SELECT COUNT(*) FROM `flickit-db`.user_followed_tags WHERE userId = :userId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":userId", $userId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchColumn();
+    }
+
     public function getAllTags(): array {
         $query = "SELECT name FROM `flickit-db`.tags ORDER BY name DESC";
         $statement = $this->connection->prepare($query);
@@ -56,6 +112,35 @@ class TagRepository extends BaseRepository {
             $tagId = $this->getTagIdByTagName($tag);
             $statement->execute([$postId, $tagId]);
         }
+    }
+
+    public function followTag(string $userId, array $data): void {
+        $tagId = $this->getTagIdByTagName($data['tagName']);
+        $query = "INSERT INTO `flickit-db`.user_followed_tags (userId, tagId) VALUES (:userId, :tagId)";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
+        $statement->execute();
+    }
+
+    public function unfollowTag(string $userId, array $data): void {
+        $tagId = $this->getTagIdByTagName($data['tagName']);
+        $query = "DELETE FROM `flickit-db`.user_followed_tags WHERE userId = :userId && tagId = :tagId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
+        $statement->execute();
+    }
+
+    public function isTagFollowedByUser(string $userId, string $tagName): bool {
+        $tagId = $this->getTagIdByTagName($tagName);
+        $query = "SELECT COUNT(*) FROM `flickit-db`.user_followed_tags WHERE userId = :userId AND tagId = :tagId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":userId", $userId, PDO::PARAM_INT);
+        $statement->bindParam(":tagId", $tagId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchColumn() > 0;
     }
 
     private function getTagIdByTagName(string $tagName): ?int {
