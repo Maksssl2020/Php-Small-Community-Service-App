@@ -4,6 +4,7 @@ namespace Repositories;
 
 use Database;
 use DateTime;
+use Models\Like;
 use Models\Post;
 use Models\PostImage;
 use Models\Tag;
@@ -90,6 +91,34 @@ class PostRepository extends BaseRepository {
         }
 
         return $this->getPostsData($posts);
+    }
+
+    public function getPostLikes(string $postId): array {
+        $query = "SELECT id, postId, userId FROM `flickit-db`.likes WHERE postId = :postId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":postId", $postId);
+        $statement->execute();
+        $postLikes = $statement->fetchAll();
+
+        if (empty($postLikes)) {
+            return [];
+        }
+
+        $likeModels = [];
+
+        foreach ($postLikes as $like) {
+            $likeModels[] = $this->createLikeModel($like);
+        }
+
+        return $likeModels;
+    }
+
+    private function createLikeModel(array $data): Like {
+        return new Like(
+            $data["id"],
+            $data["postId"],
+            $data["userId"],
+        );
     }
 
     public function countPostLikes(string $postId): int {

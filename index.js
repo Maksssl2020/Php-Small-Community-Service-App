@@ -1,4 +1,4 @@
-function showToast(message, type = 'error') {
+export function showToast(message, type = 'error') {
     const toastContainer = document.getElementById('toastContainer')
     const toast = document.createElement('div');
     toast.classList.add('toast');
@@ -18,7 +18,7 @@ function showToast(message, type = 'error') {
     }, 4000)
 }
 
-async function fetchUserData(userId) {
+export async function fetchUserData(userId) {
     return await fetch(`http://localhost/php-small-social-service-app/users/get-user-data/${userId}`, {
         method: 'GET',
         credentials: 'include',
@@ -43,12 +43,12 @@ async function fetchUserData(userId) {
         });
 }
 
-function autoResize() {
+export function autoResize() {
     this.style.height = "auto";
     this.style.height = this.scrollHeight + 50 + "px";
 }
 
-async function fetchSiteData(url) {
+export async function fetchSiteData(url) {
     return await fetch('/utils/ogp/get_ogp_from_link.php', {
         method: 'POST',
         headers: {
@@ -74,7 +74,7 @@ async function fetchSiteData(url) {
         });
 }
 
-function calcPeriodFromDate(date) {
+export function calcPeriodFromDate(date) {
     const today = new Date();
     const enteredDate = new Date(date);
     const differenceInMilliseconds = today - enteredDate;
@@ -82,7 +82,7 @@ function calcPeriodFromDate(date) {
     return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
 }
 
-async function getSignedInUserData() {
+export async function getSignedInUserData() {
     return await fetch('http://localhost/php-small-social-service-app/users/get-signed-in-user-data', {
         method: 'GET',
         credentials: 'include',

@@ -13,9 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 use Controllers\AuthenticationController;
+use Controllers\CommentController;
 use Controllers\PostController;
 use Controllers\TagController;
 use Controllers\UserController;
+use Repositories\CommentRepository;
 use Repositories\PostRepository;
 use Repositories\TagRepository;
 use Repositories\UserRepository;
@@ -59,7 +61,11 @@ if ($resource === 'users') {
     $userRepository = new UserRepository($database);
     $controller = new PostController($postRepository, $userRepository, $tagRepository);
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
-} elseif ($resource == "pages") {
+} elseif($resource == "comments") {
+    $commentRepository = new CommentRepository($database);
+    $controller = new CommentController($commentRepository);
+    $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
+} elseif ($resource == "pages2323") {
     $router = new Router();
     $router->add("/php-small-social-service-app/pages/test", function () {
         header("Content-Type: text/html");

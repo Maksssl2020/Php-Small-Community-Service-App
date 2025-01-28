@@ -1,7 +1,7 @@
 RewriteEngine On
 RewriteBase /php-small-social-service-app
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^.*$ index.php [L]
 <IfModule mod_headers.c>
     Header Set Access-Control-Allow-Origin "http://localhost:63342"

@@ -138,9 +138,7 @@
                             </div>
                             <div id="selectOptionsContainer" class="select-options-container">
                                 <input id="tagsFilter" type="text" placeholder="Filter tags..."/>
-                                <div id="selectOptions" class="options-list-container">
-
-                                </div>
+                                <div id="selectOptions" class="options-list-container"></div>
                             </div>
                         </div>
                     </div>
@@ -174,9 +172,12 @@
         </div>
     </div>
 
-<script src="/php-small-social-service-app/CLIENT/pages/dashboard/dashboard.js"></script>
-<script src="/php-small-social-service-app/CLIENT/pages/dashboard/dashboardAddNewPosts.js"></script>
-<script src="/php-small-social-service-app/CLIENT/pages/dashboard/dashboardApiFunctions.js"></script>
-<script src="/php-small-social-service-app/CLIENT/pages/dashboard/../../../index.js"></script>
+<script type="module" src="dashboard.js"></script>
+<script type="module" src="dashboardAddNewPosts.js"></script>
+<script type="module" src="dashboardApiFunctions.js"></script>
+<script type="module" src="../../../index.js"></script>
+<script type="module" src="dashboardPostRender.js"></script>
+<script type="module" src="dashboardUtils.js"></script>
+<script type="module" src="dashboardEventListeners.js"></script>
 </body>
 </html>

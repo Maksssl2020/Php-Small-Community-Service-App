@@ -179,7 +179,7 @@ readonly class PostController {
                 echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsByFollowedTags($id)]);
                 break;
             }
-            case "get-post-likes": {
+            case "count-post-likes": {
                 if (!$this->postRepository->postExists($id)) {
                     http_response_code(404);
                     echo json_encode(['success' => false, 'errors' => ['Post not found!']]);
@@ -187,6 +187,16 @@ readonly class PostController {
                 }
 
                 echo json_encode(['success'=>true, 'data' => $this->postRepository->countPostLikes($id)]);
+                break;
+            }
+            case "get-post-likes": {
+                if (!$this->postRepository->postExists($id)) {
+                    http_response_code(404);
+                    echo json_encode(['success' => false, 'errors' => ['Post not found!']]);
+                    break;
+                }
+
+                echo json_encode(['success'=>true, 'data' => $this->postRepository->getPostLikes($id)]);
                 break;
             }
         }

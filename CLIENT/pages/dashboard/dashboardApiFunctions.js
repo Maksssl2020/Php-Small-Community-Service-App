@@ -1,4 +1,8 @@
-async function fetchRandomPostsForUser() {
+import {dashboardContentContainer, populateDashboardContentWithPostsThatContainFollowedTags} from "./dashboard.js";
+import {populateDashboardContentPosts, updatePostAfterLikeOrUnlike} from "./dashboardPostRender.js";
+import {getSignedInUserData, showToast} from "../../../index.js";
+
+export async function fetchRandomPostsForUser() {
     const {userId} = await getSignedInUserData();
 
     fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-for-user/${userId}`, {
@@ -20,7 +24,7 @@ async function fetchRandomPostsForUser() {
         .catch(err => console.log(err));
 }
 
-async function fetchPostsWithUserFollowedTags() {
+export async function fetchPostsWithUserFollowedTags() {
     const {userId} = await getSignedInUserData();
 
     fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}`, {
@@ -42,7 +46,7 @@ async function fetchPostsWithUserFollowedTags() {
         .catch(err => console.log(err));
 }
 
-async function fetchUserPosts() {
+export async function fetchUserPosts() {
     const {userId} = await getSignedInUserData();
 
     fetch(`http://localhost/php-small-social-service-app/posts/get-user-posts/${userId}`, {
@@ -63,7 +67,7 @@ async function fetchUserPosts() {
         .catch(err => console.log(err));
 }
 
-async function getUserFollowedTags() {
+export async function getUserFollowedTags() {
     const {userId} = await getSignedInUserData();
 
     return await fetch(`http://localhost/php-small-social-service-app/tags/get-user-followed-tags/${userId}`, {
@@ -87,7 +91,7 @@ async function getUserFollowedTags() {
         });
 }
 
-async function getUserNotFollowedTags() {
+export async function getUserNotFollowedTags() {
     const {userId} = await getSignedInUserData();
 
     return await fetch(`http://localhost/php-small-social-service-app/tags/get-user-not-followed-tags/${userId}`, {
@@ -111,7 +115,7 @@ async function getUserNotFollowedTags() {
         });
 }
 
-async function followTag(tagName) {
+export async function followTag(tagName) {
     const {userId} = await getSignedInUserData();
 
     return await fetch(`http://localhost/php-small-social-service-app/tags/follow-tag/${userId}`, {
@@ -140,7 +144,7 @@ async function followTag(tagName) {
         });
 }
 
-async function unfollowTag(tagName) {
+export async function unfollowTag(tagName) {
     const {userId} = await getSignedInUserData();
 
     return await fetch(`http://localhost/php-small-social-service-app/tags/unfollow-tag/${userId}`, {
@@ -168,7 +172,7 @@ async function unfollowTag(tagName) {
         });
 }
 
-async function likeOrUnlikePost(postId) {
+export async function likeOrUnlikePost(postId) {
     const {userId} = await getSignedInUserData();
 
     fetch(`http://localhost/php-small-social-service-app/posts/like-post/${postId}`, {
@@ -194,8 +198,8 @@ async function likeOrUnlikePost(postId) {
         .catch(err => console.log(err));
 }
 
-async function fetchPostAmountOfLikes(postId) {
-    return fetch(`http://localhost/php-small-social-service-app/posts/get-post-likes/${postId}`, {
+export async function fetchPostAmountOfLikes(postId) {
+    return fetch(`http://localhost/php-small-social-service-app/posts/count-post-likes/${postId}`, {
         method: 'GET',
         headers: {
             "Content-Type": "application/json"
@@ -214,7 +218,7 @@ async function fetchPostAmountOfLikes(postId) {
         });
 }
 
-async function isPostLikedByUser(postId) {
+export async function isPostLikedByUser(postId) {
     const {userId} = await getSignedInUserData();
 
     return await fetch(`http://localhost/php-small-social-service-app/posts/is-post-liked-by-user/${postId}`, {
@@ -242,7 +246,7 @@ async function isPostLikedByUser(postId) {
         });
 }
 
-async function getAmountOfUserFollowedTags() {
+export async function getAmountOfUserFollowedTags() {
     const {userId} = await getSignedInUserData();
 
     return await fetch(`http://localhost/php-small-social-service-app/tags/count-user-followed-tags/${userId}`, {
@@ -265,7 +269,7 @@ async function getAmountOfUserFollowedTags() {
     })
 }
 
-async function fetchAllTags() {
+export async function fetchAllTags() {
     fetch('http://localhost/php-small-social-service-app/tags/get-all-tags', {
         method: 'GET',
         headers: {
@@ -290,7 +294,7 @@ async function fetchAllTags() {
         .catch(err => console.log(err));
 }
 
-async function addNewTextPost() {
+export async function addNewTextPost() {
     const {userId} = await getSignedInUserData();
     const formData = new FormData(addPostModalFormContainer);
 
@@ -315,7 +319,7 @@ async function addNewTextPost() {
         .catch(err => console.log(err));
 }
 
-async function addNewImagePost() {
+export async function addNewImagePost() {
     const {userId} = await getSignedInUserData();
     const formData = new FormData(addPostModalFormContainer);
     const addedLinksList = document.getElementById("addedLinksList");
@@ -346,7 +350,7 @@ async function addNewImagePost() {
         .catch(err => console.log(err));
 }
 
-async function addNewQuotePost() {
+export async function addNewQuotePost() {
     const {userId} = await getSignedInUserData();
     const formData = new FormData(addPostModalFormContainer);
     formData.append('postType', 'quote');
@@ -372,7 +376,7 @@ async function addNewQuotePost() {
         .catch(err => console.log(err));
 }
 
-async function addNewLinkPost() {
+export async function addNewLinkPost() {
     const {userId} = await getSignedInUserData();
     const addedLinksList = document.getElementById("addedLinksList");
     const links = Array.from(addedLinksList.children).map(item => item.id);
@@ -405,7 +409,7 @@ async function addNewLinkPost() {
         .catch(err => console.log(err));
 }
 
-function addNewUserTag(tagName) {
+export function addNewUserTag(tagName) {
     fetch('http://localhost/php-small-social-service-app/tags/add-new-tag-by-user', {
         method: 'POST',
         body: JSON.stringify({
@@ -427,7 +431,97 @@ function addNewUserTag(tagName) {
         .catch(err => console.log(err));
 }
 
-async function test($path) {
+export async function addComment(postId, content) {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/comments/add-comment/${postId}`, {
+        method: 'POST',
+        body: JSON.stringify({
+            userId: userId,
+            content: content
+        }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return parseInt(data.id);
+        }
+
+        return -1;
+    })
+    .catch(err => {
+        console.log(err);
+        return -1;
+    });
+}
+
+export async function countPostComments(postId) {
+    return await fetch(`http://localhost/php-small-social-service-app/comments/count-post-comments/${postId}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return parseInt(data.data);
+        }
+
+        return 0;
+    })
+    .catch(err => {
+        console.log(err);
+        return 0;
+    });
+}
+
+export async function getPostComments(postId) {
+    return await fetch(`http://localhost/php-small-social-service-app/comments/get-post-comments/${postId}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return [];
+    })
+        .catch(err => {
+            console.log(err);
+            return [];
+        });
+}
+
+export async function getPostLikesData(postId) {
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-post-likes/${postId}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return [];
+    })
+        .catch(err => {
+            console.log(err);
+            return [];
+        });
+}
+
+export async function test($path) {
     fetch(`http://localhost/php-small-social-service-app/pages/${$path}`, {
         method: 'GET',
         headers: {

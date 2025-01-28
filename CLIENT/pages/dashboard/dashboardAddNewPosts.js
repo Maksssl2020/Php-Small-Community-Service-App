@@ -335,17 +335,3 @@ async function resetFormData() {
     await fetchAllTags();
 }
 
-window.onclick = (event) => {
-    if (postOptionsModal && event.target === postOptionsModal) {
-        postOptionsModal.style.display = 'none';
-    }
-
-    if (event.target === addNewPostModal) {
-        addNewPostModal.style.display = 'none';
-        addPostModalFormContainer.innerHTML = '';
-    }
-
-    if (event.target === followedTagsModal) {
-        followedTagsModal.style.display = 'none';
-    }
-}
