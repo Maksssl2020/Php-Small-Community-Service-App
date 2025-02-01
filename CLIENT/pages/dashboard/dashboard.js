@@ -1,20 +1,27 @@
 import {populateDashboardContentPosts} from "./dashboardPostRender.js";
 import {
-    addComment,
+    fetchController,
     fetchPostsWithUserFollowedTags,
     fetchRandomPostsForUser,
     fetchUserPosts,
-    followTag, getAmountOfUserFollowedTags, getUserFollowedTags, getUserNotFollowedTags
+    getAmountOfUserFollowedTags,
+    getUserFollowedTags,
+    getUserNotFollowedTags
 } from "./dashboardApiFunctions.js";
-import {autoResize, getSignedInUserData, showToast} from "../../../index.js";
+import {autoResize} from "../../../index.js";
 import {
-    addPostCommentEventListener, expandPostStatisticsSection, fillStatisticsWithCommentsOrLikesEventListener,
-    followTagEventListener, likeOrUnlikePostEventListener,
+    addPostCommentEventListener,
+    expandPostStatisticsSection,
+    fillStatisticsWithCommentsOrLikesEventListener,
+    followTagEventListener,
+    likeOrUnlikePostEventListener,
+    showPostAndLikesStatisticsContainer,
+    showPostOptionsToManageIt,
     unfollowTagEventListener
 } from "./dashboardEventListeners.js";
 
-const createPostButton = document.getElementById("createPostButton");
 
+const createPostButton = document.getElementById("createPostButton");
 const postTextAreas = document.querySelectorAll(".post-text");
 const myPostsSelector = document.getElementById("myPostsTopicItem");
 const dashboardSelector = document.getElementById("dashboardItem");
@@ -23,13 +30,9 @@ const topicsSelector = document.getElementById("topicsItem");
 const accountSelector = document.getElementById("accountItem");
 const dashboardHeader = document.getElementById("dashboardHeader");
 
-
-
 const postCommentInput = document.getElementById("postCommentInput");
 const addCommentButton = document.getElementById("addCommentButton");
 
-let currentActiveSection = 'dashboard';
-let currentActiveHeaderButton = 'forYou';
 
 
 // dashboardContentContainer
@@ -45,6 +48,11 @@ const searchNewTagsToFollowInput = document.getElementById("searchNewTagsToFollo
 const resetTagsSearchbarIcon = document.getElementById("resetTagsSearchbar");
 const closeManageFollowedTagsModalIcon = document.getElementById("closeManageFollowedTagsModal");
 
+const dashboardHeaderMainButtons = [{name: 'For You', id: 'dashboardForYou'}, {name: 'Your Tags', id: 'yourTags'}];
+const dashboardHeaderDiscoverButtons =  [{name: 'Recent', id: 'recent'}, {name: 'The best', id: 'theBest'}];
+
+let currentActiveHeaderButton = 'forYou';
+let currentActiveSection = 'dashboard';
 
 const sectionSelectors = {
     dashboard: dashboardSelector,
@@ -54,40 +62,48 @@ const sectionSelectors = {
     topics: topicsSelector,
 };
 
-const dashboardHeaderMainButtons = [{name: 'For You', id: 'dashboardForYou'}, {name: 'Your Tags', id: 'yourTags'}];
-const dashboardHeaderDiscoverButtons =  [{name: 'Recent', id: 'recent'}, {name: 'The best', id: 'theBest'}];
+Object.entries(
+    sectionSelectors,
+).forEach(([section, selector]) => {
+    selector.onclick = () => handleSectionChange(section, fetchController)
+})
 
-async function handleSectionChange(chosenSection) {
+
+async function handleSectionChange(chosenSection, fetchController) {
     sectionSelectors[currentActiveSection].style.color = "#ACACAC"
     sectionSelectors[chosenSection].style.color = "#FFFFFF"
     currentActiveSection = chosenSection;
 
-    if (currentActiveSection === 'myPosts') {
-        dashboardHeader.style.display = 'none'
+    fetchController.abort();
+    fetchController = new AbortController();
+
+    if (chosenSection === 'myPosts') {
+        dashboardHeader.style.display = 'none';
+        await fetchUserPosts(fetchController.signal);
     } else {
-        dashboardHeader.style.display = 'block'
+        dashboardHeader.style.display = 'block';
     }
 
     if (currentActiveSection === 'discover') {
         dashboardHeader.innerHTML = ''
         dashboardHeaderDiscoverButtons.forEach(button => {
-            createHeaderButtons(button, dashboardHeaderDiscoverButtons);
+            createHeaderButtons(button, dashboardHeaderDiscoverButtons, fetchController.signal);
         })
     }
 
     if (currentActiveSection === 'dashboard') {
         dashboardHeader.innerHTML = ''
         dashboardHeaderMainButtons.forEach(button => {
-            createHeaderButtons(button, dashboardHeaderMainButtons);
+            createHeaderButtons(button, dashboardHeaderMainButtons, fetchController.signal);
         })
 
-        await fetchRandomPostsForUser();
+        await fetchRandomPostsForUser(fetchController.signal);
     }
 
-    console.log(chosenSection);
+    console.log(chosenSection)
 }
 
-function createHeaderButtons(button, buttonsCollection) {
+function createHeaderButtons(button, buttonsCollection, signal) {
     const headerButton = document.createElement('button');
     headerButton.setAttribute('id', button.id);
     headerButton.setAttribute('type', 'button');
@@ -103,9 +119,9 @@ function createHeaderButtons(button, buttonsCollection) {
         handleHeaderButtonChange(this);
 
         if (button.id === 'dashboardForYou') {
-            await fetchRandomPostsForUser();
+            await fetchRandomPostsForUser(signal);
         } else if (button.id === 'yourTags') {
-            await fetchPostsWithUserFollowedTags();
+            await fetchPostsWithUserFollowedTags(signal);
         } else if (button.id === 'recent') {
 
         } else if (button.id === 'theBest') {
@@ -124,20 +140,8 @@ const handleHeaderButtonChange = (button) => {
     button.classList.add('active');
 }
 
-Object.entries(sectionSelectors).forEach(([section, selector]) => {
-    selector.onclick = () => handleSectionChange(section)
-})
-
-let chosenTags = [];
-
 createPostButton.onclick = () => {
     postOptionsModal.style.display = "block";
-}
-
-if (myPostsSelector) {
-    myPostsSelector.addEventListener('click', async () => {
-        await fetchUserPosts();
-    })
 }
 
 postTextAreas.forEach((textArea) => {
@@ -268,13 +272,14 @@ function addFollowUnfollowListeners() {
 
 
 
-
+dashboardContentContainer.addEventListener('click', showPostAndLikesStatisticsContainer)
 dashboardContentContainer.addEventListener("change", addPostCommentEventListener);
 dashboardContentContainer.addEventListener('click', likeOrUnlikePostEventListener);
 dashboardContentContainer.addEventListener('click', expandPostStatisticsSection);
 dashboardContentContainer.addEventListener('click', fillStatisticsWithCommentsOrLikesEventListener);
+dashboardContentContainer.addEventListener('click', showPostOptionsToManageIt);
 window.addEventListener('DOMContentLoaded', async () => {
-    await handleSectionChange('dashboard');
+    await handleSectionChange('dashboard', fetchController);
 })
 
 

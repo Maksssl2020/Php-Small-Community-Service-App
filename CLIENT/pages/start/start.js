@@ -1,9 +1,12 @@
-const signUpModal = document.getElementById('signUpModal');
-const signInModal = document.getElementById('signInModal');
-const signUpButton = document.getElementById('signUpButton');
-const signInButton = document.getElementById('signInButton');
-const logoutButton = document.getElementById('logoutButton');
-const mainTagsContainer = document.getElementById('mainTags');
+import {fetchMainTagsForStartPage, signIn, signUp} from "./startApiFunctions.js";
+import {showToast} from "../../../index.js";
+
+export const signUpModal = document.getElementById('signUpModal');
+export const signInModal = document.getElementById('signInModal');
+export const signUpButton = document.getElementById('signUpButton');
+export const signInButton = document.getElementById('signInButton');
+export const logoutButton = document.getElementById('logoutButton');
+export const mainTagsContainer = document.getElementById('mainTags');
 
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchMainTagsForStartPage();
@@ -50,10 +53,10 @@ window.onclick = (event) => {
     }
 }
 
-const signInForm = document.getElementById('signInForm');
-const signInNicknameInput = document.getElementById('signInNicknameInput');
-const signInPasswordInput = document.getElementById('signInPasswordInput');
-const signInSubmitButton = document.getElementById('signInSubmitButton');
+export const signInForm = document.getElementById('signInForm');
+export const signInNicknameInput = document.getElementById('signInNicknameInput');
+export const signInPasswordInput = document.getElementById('signInPasswordInput');
+export const signInSubmitButton = document.getElementById('signInSubmitButton');
 
 signInForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -82,12 +85,12 @@ signInPasswordInput.addEventListener('change', () => {
     validateSignInForm();
 });
 
-const signUpForm = document.getElementById('signUpForm');
-const signUpNicknameInput = document.getElementById('signUpNicknameInput');
-const signUpEmailInput = document.getElementById('signUpEmailInput');
-const signUpPasswordInput = document.getElementById('signUpPasswordInput');
-const signUpRepeatPasswordInput = document.getElementById('signUpRepeatPasswordInput');
-const signUpSubmitButton = document.getElementById('signUpSubmitButton');
+export const signUpForm = document.getElementById('signUpForm');
+export const signUpNicknameInput = document.getElementById('signUpNicknameInput');
+export const signUpEmailInput = document.getElementById('signUpEmailInput');
+export const signUpPasswordInput = document.getElementById('signUpPasswordInput');
+export const signUpRepeatPasswordInput = document.getElementById('signUpRepeatPasswordInput');
+export const signUpSubmitButton = document.getElementById('signUpSubmitButton');
 
 signUpForm.addEventListener('submit', async (event) => {
     event.preventDefault();

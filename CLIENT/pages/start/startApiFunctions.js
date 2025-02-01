@@ -1,4 +1,14 @@
-async function fetchMainTagsForStartPage() {
+import {showToast} from "../../../index.js";
+import {
+    mainTagsContainer,
+    signInForm,
+    signInModal,
+    signInNicknameInput,
+    signInPasswordInput, signUpEmailInput, signUpForm,
+    signUpModal, signUpNicknameInput, signUpPasswordInput
+} from "./start.js";
+
+export async function fetchMainTagsForStartPage() {
     fetch('http://localhost/php-small-social-service-app/tags/get-main-tags', {
         method: 'GET',
         headers: {
@@ -32,7 +42,7 @@ async function fetchMainTagsForStartPage() {
     })
 }
 
-async function signIn() {
+export async function signIn() {
     fetch('http://localhost/php-small-social-service-app/authentication/sign-in', {
         method: 'POST',
         headers: {
@@ -66,7 +76,7 @@ async function signIn() {
     });
 }
 
-async function signUp() {
+export async function signUp() {
     fetch('http://localhost/php-small-social-service-app/authentication/sign-up', {
         method: 'POST',
         headers: {

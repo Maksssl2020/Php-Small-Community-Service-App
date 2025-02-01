@@ -31,7 +31,6 @@ export async function fetchUserData(userId) {
         })
         .then(data => {
             if (data.success) {
-                console.log(data.data);
                 return data.data;
             } else {
                 return null;
@@ -79,7 +78,46 @@ export function calcPeriodFromDate(date) {
     const enteredDate = new Date(date);
     const differenceInMilliseconds = today - enteredDate;
 
-    return Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+    const differenceInDays = Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+    if (differenceInDays > 0) {
+        return differenceInDays === 1 ? `${differenceInDays} day ago` : `${differenceInDays} days ago`;
+    }
+
+    const differenceInHours = Math.floor(differenceInMilliseconds / (1000 * 60 * 60));
+    if (differenceInHours > 0) {
+        return differenceInHours === 1 ?  `${differenceInHours} hour ago` : `${differenceInHours} hours ago`;
+    }
+
+    const differenceInMinutes = Math.floor(differenceInMilliseconds / (1000 * 60));
+    if (differenceInMinutes > 0) {
+        return differenceInMinutes === 1 ? `${differenceInMinutes} minute ago` : `${differenceInMinutes} minutes ago`;
+    }
+
+    return "a moment ago";
+}
+
+export function formatDate(dateString, isLongDate = false) {
+    const date = new Date(dateString);
+    let formattedDate, formattedTime;
+
+    if (isLongDate) {
+        formattedDate = date.toLocaleDateString("pl-PL", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+
+        })
+
+        formattedTime = date.toLocaleTimeString("pl-PL", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        })
+
+        return `${formattedDate}, ${formattedTime}`;
+    }
+
+    return  date.toLocaleDateString("pl-PL");
 }
 
 export async function getSignedInUserData() {
@@ -98,5 +136,8 @@ export async function getSignedInUserData() {
             return null;
         }
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+        console.log(err);
+        return null;
+    });
 }

@@ -133,8 +133,8 @@ error_log($isSignedIn);
         </div>
     </div>
 
-    <script src="start.js"></script>
-    <script src="startApiFunctions.js"></script>
-    <script src="../../../index.js"></script>
+    <script type="module" src="start.js"></script>
+    <script type="module" src="startApiFunctions.js"></script>
+    <script type="module" src="../../../index.js"></script>
 </body>
 </html>

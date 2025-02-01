@@ -215,6 +215,10 @@
     }
 }
 
+.warning {
+    color: var(--custom-red-color-300);
+}
+
 .errors {
     height: auto;
     width: 100%;

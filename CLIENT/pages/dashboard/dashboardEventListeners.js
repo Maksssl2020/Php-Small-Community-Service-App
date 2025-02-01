@@ -1,39 +1,39 @@
 import {followedTagsModal, postOptionsModal} from "./dashboard.js";
 import {
-    addComment,
+    addComment, fetchUserPosts,
     followTag,
     getAmountOfUserFollowedTags, getPostComments, getPostLikesData,
     likeOrUnlikePost,
     unfollowTag
 } from "./dashboardApiFunctions.js";
 import {getSignedInUserData, showToast} from "../../../index.js";
-import {addCommentCardToPost, fillCommentsSection, fillLikesSection} from "./dashboardPostRender.js";
+import {
+    addCommentCardToPost,
+    fillCommentsSection,
+    fillLikesSection,
+    updatePostAfterAddCommentOrRemoveComment
+} from "./dashboardPostRender.js";
 import {getPostIdFromIdAttribute} from "./dashboardUtils.js";
 
-document.addEventListener("click", () => {
-    const dashboardContentContainer = document.querySelector("#dashboardContentContainer");
+export async function showPostAndLikesStatisticsContainer(event) {
+    const target = event.target;
 
-    dashboardContentContainer.addEventListener("click", (e) => {
-        const target = e.target;
-        console.log(target)
+    if (target.id !== "showPostComments" && target.classList.contains("bi-chat")) {
+        const postCommentsLikesContainer = target.closest(".post-comments-likes-container");
 
-        if (target.id !== "showPostComments" && target.classList.contains("bi-chat")) {
-            const postCommentsLikesContainer = target.closest(".post-comments-likes-container");
-
-            if (!postCommentsLikesContainer) {
-                return;
-            }
-
-            if (target.id === "commentsStatistic") {
-                postCommentsLikesContainer.classList.add("comments");
-                postCommentsLikesContainer.classList.remove("likes");
-            } else if (target.id === "likesStatistic") {
-                postCommentsLikesContainer.classList.add("likes");
-                postCommentsLikesContainer.classList.remove("comments");
-            }
+        if (!postCommentsLikesContainer) {
+            return;
         }
-    })
-})
+
+        if (target.id === "commentsStatistic") {
+            postCommentsLikesContainer.classList.add("comments");
+            postCommentsLikesContainer.classList.remove("likes");
+        } else if (target.id === "likesStatistic") {
+            postCommentsLikesContainer.classList.add("likes");
+            postCommentsLikesContainer.classList.remove("comments");
+        }
+    }
+}
 
 export async function followTagEventListener() {
     const tagName = this.getAttribute('id');
@@ -77,6 +77,18 @@ export async function likeOrUnlikePostEventListener(event)  {
     if (likeIcon.id === "likeOrUnlikePost" || likeIcon.classList.contains('liked')) {
         const postId = likeIcon.getAttribute("postId");
         await likeOrUnlikePost(postId);
+    }
+}
+
+export async function showPostOptionsToManageIt(event) {
+    const userPostSettingsButton = event.target;
+
+
+    if (userPostSettingsButton.classList.contains('post-settings-button') ) {
+        const postId = userPostSettingsButton.getAttribute("postId");
+        const userSettingsDropdown = document.getElementById(`userPostSettingsDropdown-${postId}`);
+
+        userSettingsDropdown.classList.toggle('hidden');
     }
 }
 
@@ -149,10 +161,14 @@ export async function addPostCommentEventListener(event) {
 
         addCommentButton.addEventListener("click", async () => {
             const id = await addComment(postId, content)
+            await updatePostAfterAddCommentOrRemoveComment(postId);
 
             if (id !== -1 && id > 0) {
                 await addCommentCardToPost(id, postId, userId, content, new Date().toLocaleDateString())
             }
+
+            event.target.value = "";
+            addCommentButton.disabled = true;
         });
 
         if (content.length > 0) {

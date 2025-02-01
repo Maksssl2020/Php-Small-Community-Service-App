@@ -1,70 +1,96 @@
-import {dashboardContentContainer, populateDashboardContentWithPostsThatContainFollowedTags} from "./dashboard.js";
+import {
+    dashboardContentContainer,
+    populateDashboardContentWithPostsThatContainFollowedTags
+} from "./dashboard.js";
 import {populateDashboardContentPosts, updatePostAfterLikeOrUnlike} from "./dashboardPostRender.js";
 import {getSignedInUserData, showToast} from "../../../index.js";
 
-export async function fetchRandomPostsForUser() {
+export let fetchController = new AbortController();
+
+export async function fetchRandomPostsForUser(signal) {
     const {userId} = await getSignedInUserData();
 
-    fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-for-user/${userId}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
+    fetchController.abort();
+    fetchController = new AbortController();
+
+    try {
+        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-for-user/${userId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            signal: signal,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            dashboardContentContainer.innerHTML = "";
+            await populateDashboardContentPosts(data.data);
+        } else {
+            console.log(data.errors);
+            showToast("Something went wrong... Please try again later.", 'error')
         }
-    })
-        .then(res => res.json())
-        .then(async data => {
-            if (data.success) {
-                dashboardContentContainer.innerHTML = "";
-                await populateDashboardContentPosts(data.data);
-            } else {
-                console.log(data.errors);
-                showToast("Something went wrong... Please try again later.", 'error')
-            }
-        })
-        .catch(err => console.log(err));
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-export async function fetchPostsWithUserFollowedTags() {
+export async function fetchPostsWithUserFollowedTags(signal) {
     const {userId} = await getSignedInUserData();
 
-    fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
+    fetchController.abort();
+    fetchController = new AbortController();
+
+    try {
+        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            signal: signal,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            dashboardContentContainer.innerHTML = "";
+            await populateDashboardContentWithPostsThatContainFollowedTags(data.data);
+        } else {
+            console.log(data.errors);
+            showToast("Something went wrong... Please try again later.", 'error')
         }
-    })
-        .then(res => res.json())
-        .then(async data => {
-            if (data.success) {
-                dashboardContentContainer.innerHTML = "";
-                await populateDashboardContentWithPostsThatContainFollowedTags(data.data);
-            } else {
-                console.log(data.errors);
-                showToast("Something went wrong... Please try again later.", 'error')
-            }
-        })
-        .catch(err => console.log(err));
+    }  catch(error) {
+        console.log(error);
+    }
 }
 
-export async function fetchUserPosts() {
+export async function fetchUserPosts(signal) {
     const {userId} = await getSignedInUserData();
 
-    fetch(`http://localhost/php-small-social-service-app/posts/get-user-posts/${userId}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
+    fetchController.abort();
+    fetchController = new AbortController();
+
+    try {
+        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-user-posts/${userId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            signal: signal,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            dashboardContentContainer.innerHTML = "";
+            await populateDashboardContentPosts(data.data);
+        } else {
+            showToast("Something went wrong... Please try again later.", 'error')
         }
-    })
-        .then( res => res.json())
-        .then(async data => {
-            if (data.success) {
-                dashboardContentContainer.innerHTML = "";
-                await populateDashboardContentPosts(data.data);
-            } else {
-                showToast("Something went wrong... Please try again later.", 'error');
-            }
-        })
-        .catch(err => console.log(err));
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 export async function getUserFollowedTags() {
@@ -94,11 +120,15 @@ export async function getUserFollowedTags() {
 export async function getUserNotFollowedTags() {
     const {userId} = await getSignedInUserData();
 
+    fetchController.abort();
+    fetchController = new AbortController();
+
     return await fetch(`http://localhost/php-small-social-service-app/tags/get-user-not-followed-tags/${userId}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
-        }
+        },
+        signal: fetchController.signal,
     })
         .then( res => res.json())
         .then(async data => {

@@ -1,6 +1,6 @@
 import {getUserAvatar} from "./dashboardUtils.js";
 import {dashboardContentContainer} from "./dashboard.js";
-import {fetchSiteData, fetchUserData, getSignedInUserData} from "../../../index.js";
+import {calcPeriodFromDate, fetchSiteData, fetchUserData, formatDate, getSignedInUserData} from "../../../index.js";
 import {countPostComments, fetchPostAmountOfLikes, isPostLikedByUser} from "./dashboardApiFunctions.js";
 
 export async function populateDashboardContentPosts(posts) {
@@ -14,7 +14,7 @@ async function createDashboardPost(postData) {
     const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = postData;
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
 
-    let userAvatar = '';
+    let userAvatar;
 
     if (avatarUrl != null) {
         userAvatar = avatarUrl;
@@ -28,7 +28,7 @@ async function createDashboardPost(postData) {
     postDiv.classList.add("dashboard-post-card");
     postDiv.setAttribute('id', `post-${id}`);
 
-    const postHeader = createDashboardPostHeader(userAvatar, userNickname, createdAt);
+    const postHeader = await createDashboardPostHeader(id, userId, userAvatar, userNickname, createdAt);
     const postContentDiv = await createDashboardPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks);
     const postFooter = await createDashboardPostFooter(id);
     const postStatisticsContainer = await createDashboardPostStatisticsContainer(id);
@@ -37,13 +37,28 @@ async function createDashboardPost(postData) {
     return postDiv;
 }
 
-function createDashboardPostHeader(userAvatar, userNickname, createdAt) {
+async function createDashboardPostHeader(postId, userId, userAvatar, userNickname, createdAt) {
+    const { userId: signedInUserId } = await getSignedInUserData();
+
+    const isUserPostAuthor = userId === signedInUserId;
+    const settingsContainerClass = isUserPostAuthor ? "visible" : "hidden";
+
     return `
         <header class="post-header">
             <img src=${userAvatar} alt="user_icon" class="post-author-image"/>
             <div class="post-data-container">
                 <p style="color:  var(--custom-white-color-100);">${userNickname}</p>
-                <p>${new Date(createdAt.date).toLocaleDateString('pl-PL')}</p>
+                <p>${formatDate(createdAt.date)}</p>
+            </div>
+            <div class="post-settings-container ${settingsContainerClass}">
+                <button postId="${postId}" class="post-settings-button">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+                <div id="userPostSettingsDropdown-${postId}" class="post-settings-dropdown hidden">
+                    <p>${formatDate(createdAt.date, true)}</p>
+                    <button id="editPost-${postId}">Edit</button>
+                    <button id="deletePost-${postId}" class="warning">Delete</button>
+                </div>
             </div>
         </header>
     `;
@@ -122,24 +137,26 @@ async function createDashboardPostFooter(postId) {
 }
 
 async function createDashboardPostStatisticsContainer(postId) {
-    const {userNickname, avatarUrl, avatarImage} = getSignedInUserData();
+    const {userId, userNickname} = await getSignedInUserData();
+    const {avatarUrl, avatarImage} = await fetchUserData(userId)
     const postLikes = await fetchPostAmountOfLikes(postId);
     const postAmountOfComments = await countPostComments(postId);
+    const avatarSrc = getUserAvatar(avatarUrl, avatarImage);
 
     return `
         <div postId="${postId}" class="post-comments-likes-container hidden">
             <div class="statistics-info-container">
-                <div id="commentsStatistic" class="statistic-container active">
+                <div id="commentsStatistic-${postId}" class="statistic-container active">
                     <i id="showPostComments" class="bi bi-chat"></i>
                     <span>${postAmountOfComments}</span>
                 </div>
-                <div id="likesStatistic" class="statistic-container">
+                <div id="likesStatistic-${postId}" class="statistic-container">
                     <i id="showPostLikes" class="bi bi-heart"></i>
                     <span>${postLikes}</span>
                 </div>
             </div>
             <div id="addCommentContainer-${postId}" class="add-comment-container">
-                <img src="../../assets/ghost_icon.jpeg" alt="user"/>
+                <img src="${avatarSrc}" alt="user"/>
                 <div class="comment-input">
                     <input postId="${postId}" id="postCommentInput" placeholder="Respond as @${userNickname}"/>
                     <button disabled id="addCommentButton" class="add-comment-button">
@@ -147,17 +164,26 @@ async function createDashboardPostStatisticsContainer(postId) {
                     </button>
                 </div>
             </div>
-            <div id="commentsLikesContainer-${postId}" class="all-comments-likes-container comments"></div>
+            <div id="commentsLikesContainer-${postId}" class="all-comments-likes-container "></div>
         </div>
         `
 }
 
 export async function fillCommentsSection(postId, comments) {
     const commentsContainer = document.getElementById(`commentsLikesContainer-${postId}`);
+    const commentInput = document.getElementById(`addCommentContainer-${postId}`);
 
+    if (commentInput && commentInput.classList.contains('hidden')) {
+        commentInput.classList.remove('hidden');
+        commentInput.classList.add('visible');
+    } else if (commentInput && !commentInput.classList.contains('visible')) {
+        commentInput.classList.add('visible');
+    }
 
     if (commentsContainer && commentsContainer.classList.contains('likes')) {
         commentsContainer.classList.remove('likes');
+        commentsContainer.classList.add('comments');
+    } else if (commentsContainer && !commentsContainer.classList.contains("comments")) {
         commentsContainer.classList.add('comments');
     }
 
@@ -173,12 +199,17 @@ export async function fillCommentsSection(postId, comments) {
 
 export async function fillLikesSection(postId, likes) {
     const likesContainer = document.getElementById(`commentsLikesContainer-${postId}`);
+    const commentInput = document.getElementById(`addCommentContainer-${postId}`);
+
+    if (commentInput && commentInput.classList.contains('visible')) {
+        commentInput.classList.remove('visible');
+        commentInput.classList.add('hidden');
+    }
 
     if (likesContainer && likesContainer.classList.contains('comments')) {
         likesContainer.classList.remove('comments');
         likesContainer.classList.add('likes');
     }
-
 
     if (likesContainer) {
         likesContainer.innerHTML = "";
@@ -191,17 +222,9 @@ export async function fillLikesSection(postId, likes) {
 }
 
 async function createPostCommentCard(commentData) {
-    const {id, postId, userId, content, addedAt} = commentData;
+    const {id, postId, userId, content, createdAt} = commentData;
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
-    let avatarSrc = '';
-
-    if (avatarUrl != null) {
-        avatarSrc = avatarUrl;
-    } else if (avatarImage != null) {
-        avatarSrc = `data:image/jpeg;base64,${avatarImage}`
-    } else {
-        avatarSrc = '../../assets/ghost_icon.jpeg';
-    }
+    let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
 
     return `
     <div commentId="comment-${id}" class="comment-card">
@@ -211,7 +234,7 @@ async function createPostCommentCard(commentData) {
         <div class="comment-data">
             <div class="comment-user-nickname-and-date">
                 <p class="comment-nickname">${userNickname}</p>
-                <p class="comment-date">${addedAt}</p>
+                <p class="comment-date">${calcPeriodFromDate(createdAt.date)}</p>
             </div>
             <p class="comment-content">
                 ${content}
@@ -240,7 +263,9 @@ async function createLikeCard(likeData) {
 export async function updatePostAfterLikeOrUnlike(postId) {
     const updatedLikes = await fetchPostAmountOfLikes(postId);
     const isLikedByUser = await isPostLikedByUser(postId);
-    const postElement = document.getElementById(postId);
+    const postElement = document.getElementById(`post-${postId}`);
+    const statisticsSection = postElement.querySelector(".post-comments-likes-container");
+
 
     if (postElement) {
         const likesContainer = postElement.querySelector('.post-likes-container span:first-child');
@@ -250,6 +275,25 @@ export async function updatePostAfterLikeOrUnlike(postId) {
         if (likeIcon) {
             likeIcon.className = isLikedByUser ? 'bi bi-heart-fill liked' : 'bi bi-heart';
         }
+    }
+
+    if (statisticsSection) {
+        const likesStatisticInfo = document.getElementById(`likesStatistic-${postId}`)
+
+        if (likesStatisticInfo) {
+            likesStatisticInfo.querySelector("span").textContent = updatedLikes;
+        }
+    }
+}
+
+export async function updatePostAfterAddCommentOrRemoveComment(postId) {
+    const updatedCommentsCount  = await countPostComments(postId);
+    const commentsStatisticInfo = document.getElementById(`commentsStatistic-${postId}`);
+
+    if (commentsStatisticInfo) {
+        const commentsCountInfo = commentsStatisticInfo.querySelector('span');
+
+        if (commentsCountInfo) commentsCountInfo.textContent = updatedCommentsCount;
     }
 }
 
