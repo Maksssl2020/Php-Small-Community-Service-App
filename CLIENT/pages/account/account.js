@@ -1,3 +1,6 @@
+import {calcPeriodFromDate, fetchUserData, getSignedInUserData} from "../../../index.js";
+import {updateUserData, uploadUserAvatar} from "./accountApiFunctions.js";
+
 const userAvatarInput = document.getElementById('userAvatar');
 const userEmailInput = document.getElementById('userEmail');
 const userNicknameInput = document.getElementById('userNickname');
@@ -41,9 +44,7 @@ async function populatePageWithUserData(userData) {
     userEmailInput.value = userEmail;
     userPasswordInput.value = '1234567890';
     createdAtDataLabel.textContent = new Date(createdAt.date).toLocaleString('pl-PL');
-    const calculatedPeriod = calcPeriodFromDate(createdAt.date);
-
-    createdAtPeriodLabel.textContent = `${calculatedPeriod} ${calculatedPeriod === 1 ? 'day' : 'days'} ago`;
+    createdAtPeriodLabel.textContent = calcPeriodFromDate(createdAt.date);
 
     console.log(userData)
 

@@ -143,7 +143,7 @@ class TagRepository extends BaseRepository {
         return $statement->fetchColumn() > 0;
     }
 
-    private function getTagIdByTagName(string $tagName): ?int {
+    public function getTagIdByTagName(string $tagName): ?int {
         $query = "SELECT id FROM `flickit-db`.tags WHERE LOWER(name) = lower(:tagName) LIMIT 1";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(':tagName', $tagName);

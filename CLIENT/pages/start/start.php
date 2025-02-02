@@ -45,7 +45,7 @@ error_log($isSignedIn);
                 <ul>
                     <?php if($isSignedIn): ?>
                     <li>
-                        <a href="../dashboard/dashboard.php">
+                        <a href="../dashboard/dashboard.php?section=dashboard">
                             <i class="bi bi-house-door-fill"></i>
                             <p>Dashboard</p>
                         </a>
@@ -53,7 +53,7 @@ error_log($isSignedIn);
                     <?php endif; ?>
                     <?php if($isSignedIn && $isAdmin): ?>
                         <li>
-                            <a href="../tags/tags-form.php">
+                            <a href="../tags/tagsForm.php">
                                 <i class="bi bi-bookmark-plus-fill"></i>
                                 <p>Add topic</p>
                             </a>

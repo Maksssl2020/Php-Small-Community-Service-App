@@ -11,13 +11,30 @@ class AuthenticationController {
     public function processRequest(string $method, string $action, ?string $id): void{
         if ($method === 'POST') {
             $this->processAuthenticationRequest($action);
+        } elseif ($method === "DELETE") {
+            $this->processLogoutRequest($action);
         } else {
             http_response_code(405);
             header("Allow: POST");
         }
     }
 
-    public function processAuthenticationRequest(string $action): void {
+    private function processLogoutRequest(string $action): void {
+        switch ($action) {
+            case "logout": {
+                session_start();
+
+                $_SESSION = [];
+
+                session_destroy();
+
+                echo json_encode(['success' => true, 'message' => 'Logged out successfully!']);
+                break;
+            }
+        }
+    }
+
+    private function processAuthenticationRequest(string $action): void {
         switch ($action) {
             case 'sign-up': {
                 $data = (array)json_decode(file_get_contents("php://input"), true);

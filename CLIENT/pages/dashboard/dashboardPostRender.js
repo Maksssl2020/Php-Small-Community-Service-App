@@ -1,5 +1,5 @@
 import {getUserAvatar} from "./dashboardUtils.js";
-import {dashboardContentContainer} from "./dashboard.js";
+import { dashboardContentContainer} from "./dashboard.js";
 import {calcPeriodFromDate, fetchSiteData, fetchUserData, formatDate, getSignedInUserData} from "../../../index.js";
 import {countPostComments, fetchPostAmountOfLikes, isPostLikedByUser} from "./dashboardApiFunctions.js";
 
@@ -10,25 +10,67 @@ export async function populateDashboardContentPosts(posts) {
     }
 }
 
+export async function populateDiscoverContentPosts(posts) {
+    dashboardContentContainer.innerHTML = '';
+
+    const container1 = document.createElement("div");
+    container1.setAttribute("id", "container1");
+    container1.classList.add("discover-posts-container-column");
+    const container2 = document.createElement("div");
+    container2.setAttribute("id", "container2");
+    container2.classList.add("discover-posts-container-column");
+
+    dashboardContentContainer.append(container1 , container2 )
+
+    let counter = 1;
+
+    for (let i = 0; i < posts.length; i++) {
+        const post = await createDiscoverPost(posts[i]);
+
+        if (!post) continue;
+
+        if (counter === 1) {
+            container1.append(post);
+        } else {
+            container2.append(post);
+        }
+
+        if (counter !== 2) {
+            counter++;
+        } else {
+            counter = 1;
+        }
+    }
+}
+
+async function createDiscoverPost(postData) {
+    const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = postData;
+    const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
+    let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
+
+    const postDiv = document.createElement('div');
+    postDiv.classList.add("discover-post-card");
+    postDiv.setAttribute('id', `post-${id}`);
+
+    const postHeader = await createDashboardPostHeader(id, userId, avatarSrc, userNickname, createdAt);
+    const postContentDiv = await createDashboardPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks);
+    const postFooter = await createDashboardPostFooter(id);
+
+
+    postDiv.innerHTML = postHeader + postContentDiv + postFooter;
+    return postDiv;
+}
+
 async function createDashboardPost(postData) {
     const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = postData;
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
-
-    let userAvatar;
-
-    if (avatarUrl != null) {
-        userAvatar = avatarUrl;
-    } else if (avatarImage != null) {
-        userAvatar = `data:image/jpeg;base64,${avatarImage}`
-    } else {
-        userAvatar = '../../assets/ghost_icon.jpeg';
-    }
+    let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
 
     const postDiv = document.createElement('div');
     postDiv.classList.add("dashboard-post-card");
     postDiv.setAttribute('id', `post-${id}`);
 
-    const postHeader = await createDashboardPostHeader(id, userId, userAvatar, userNickname, createdAt);
+    const postHeader = await createDashboardPostHeader(id, userId, avatarSrc, userNickname, createdAt);
     const postContentDiv = await createDashboardPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks);
     const postFooter = await createDashboardPostFooter(id);
     const postStatisticsContainer = await createDashboardPostStatisticsContainer(id);
@@ -54,10 +96,10 @@ async function createDashboardPostHeader(postId, userId, userAvatar, userNicknam
                 <button postId="${postId}" class="post-settings-button">
                     <i class="bi bi-three-dots"></i>
                 </button>
-                <div id="userPostSettingsDropdown-${postId}" class="post-settings-dropdown hidden">
+                <div postId="${postId}" id="userPostSettingsDropdown-${postId}" class="post-settings-dropdown hidden">
                     <p>${formatDate(createdAt.date, true)}</p>
                     <button id="editPost-${postId}">Edit</button>
-                    <button id="deletePost-${postId}" class="warning">Delete</button>
+                    <button postId="${postId}" id="deletePost" class="warning">Delete</button>
                 </div>
             </div>
         </header>
@@ -72,20 +114,20 @@ async function createDashboardPostContentContainer(postType, postTitle, postCont
             <div class="post-content">
                 <h3 class="post-title">${postTitle}</h3>
                 <p id="autoresize" class="post-text" spellcheck="false">${postContent}</p>
-                <div class="post-tags">${postTags}</div>
+                <div class="post-tags">${createPostTags(postTags)}</div>
             </div>`;
     } else if (postType === 'image') {
         postContentDiv = `
             <div class="post-content">
                 <div class="post-images-container">${createPostImages(images)}</div>
                 <p id="autoresize" class="post-text" spellcheck="false">${postContent ?? ''}</p>
-                <div class="post-tags">${postTags}</div>
+                <div class="post-tags">${createPostTags(postTags)}</div>
             </div>`;
     } else if (postType === 'quote') {
         postContentDiv = `
             <div class="post-content">
                 <p id="autoresize" class="post-text" spellcheck="false" >${postContent}</p>
-                <div class="post-tags">${postTags}</div>
+                <div class="post-tags">${createPostTags(postTags)}</div>
             </div>
             `
     } else if (postType === 'link') {
@@ -93,12 +135,16 @@ async function createDashboardPostContentContainer(postType, postTitle, postCont
             <div class="post-content">
                 ${createPostSiteLinks(postSitesLinks).outerHTML}
                 <p id="autoresize" class="post-text" spellcheck="false" >${postContent ?? ''}</p>
-                <div class="post-tags">${postTags}</div>
+                <div class="post-tags">${createPostTags(postTags)}</div>
             </div>
             `
     }
 
     return postContentDiv;
+}
+
+function createPostTags(postTags) {
+    return postTags.map(tag => `<a href="../dashboard/dashboard.php?section=discover&tag=${tag.name}">#${tag.name}</a>`).join('');
 }
 
 function createPostImages(images) {

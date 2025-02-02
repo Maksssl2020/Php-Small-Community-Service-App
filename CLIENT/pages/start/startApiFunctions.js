@@ -105,3 +105,26 @@ export async function signUp() {
         showToast('Something went wrong. Please try again later.', 'error');
     });
 }
+
+export async function logout() {
+    fetch("http://localhost/php-small-social-service-app/authentication/logout", {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            window.location = "../start/start.php";
+        } else {
+            showToast('Something went wrong. Please try again.', 'error')
+        }
+    })
+    .catch(errors => {
+        console.log(errors)
+        showToast('Something went wrong. Please try again.', 'error')
+    })
+}

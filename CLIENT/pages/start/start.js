@@ -1,4 +1,4 @@
-import {fetchMainTagsForStartPage, signIn, signUp} from "./startApiFunctions.js";
+import {fetchMainTagsForStartPage, logout, signIn, signUp} from "./startApiFunctions.js";
 import {showToast} from "../../../index.js";
 
 export const signUpModal = document.getElementById('signUpModal');
@@ -25,22 +25,9 @@ if (signInButton) {
 }
 
 if (logoutButton) {
-    logoutButton.addEventListener('click', () => {
-        fetch('../../utils/sign-in/logout.php', {
-            method: 'POST'
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    window.location.reload();
-                } else {
-                    showToast('Logout failed. Please try again.', 'error');
-                }
-            }).catch(err => {
-            console.log(err);
-            showToast('Something went wrong. Please try again.', 'error');
-        });
+    logoutButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+        await logout();
     })
 }
 

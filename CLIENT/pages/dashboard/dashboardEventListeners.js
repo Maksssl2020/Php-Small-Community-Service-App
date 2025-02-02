@@ -1,6 +1,6 @@
-import {followedTagsModal, postOptionsModal} from "./dashboard.js";
+import {dashboardContentContainer, followedTagsModal, postOptionsModal} from "./dashboard.js";
 import {
-    addComment, fetchUserPosts,
+    addComment, deletePostById, fetchUserPosts,
     followTag,
     getAmountOfUserFollowedTags, getPostComments, getPostLikesData,
     likeOrUnlikePost,
@@ -90,6 +90,34 @@ export async function showPostOptionsToManageIt(event) {
 
         userSettingsDropdown.classList.toggle('hidden');
     }
+}
+
+export function showDeletePostWarningModal(event) {
+    const deletePostButton = event.target;
+
+    if (deletePostButton.id === "deletePost") {
+        const postId = deletePostButton.getAttribute("postId");
+        const deleteWarningModal = document.getElementById("deletePostWarningContainer");
+        deleteWarningModal.style.display = "block";
+        deleteWarningModal.setAttribute("postId", postId);
+    }
+}
+
+export async function confirmPostDeleteEventListener() {
+    const deleteWarningModal = document.getElementById("deletePostWarningContainer");
+    const postId = deleteWarningModal.getAttribute("postId");
+    await deletePostById(postId);
+
+    const postToDelete = document.getElementById(`post-${postId}`);
+    dashboardContentContainer.removeChild(postToDelete)
+
+    cancelPostDeleteEventListener();
+}
+
+export function cancelPostDeleteEventListener() {
+    const deleteWarningModal = document.getElementById("deletePostWarningContainer");
+    deleteWarningModal.removeAttribute("postId");
+    deleteWarningModal.style.display = "none";
 }
 
 export async function expandPostStatisticsSection(event) {

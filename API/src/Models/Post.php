@@ -44,6 +44,44 @@ class Post implements JsonSerializable
         ];
     }
 
+    public function getId(): int {
+        return $this->id;
+    }
+
+    public function getUserId(): int {
+        return $this->userId;
+    }
+
+    public function getPostType(): string {
+        return $this->postType;
+    }
+
+    public function getPostTitle(): ?string {
+        return $this->postTitle;
+    }
+
+    public function getPostContent(): ?string {
+        return $this->postContent;
+    }
+
+    public function getPostSitesLinks(): ?array {
+        return $this->postSitesLinks;
+    }
+
+    public function getCreatedAt(): DateTime {
+        return $this->createdAt;
+    }
+
+    public function getTags(): ?array {
+        return $this->tags;
+    }
+
+    public function getImages(): ?array {
+        return $this->images;
+    }
+
+
+
     public function __toString(): string
     {
         return $this->postTitle . ' - ' . $this->postContent . ' - ' . $this->createdAt->format('Y-m-d H:i:s') . ' - ' . implode($this->tags) . ' - ';

@@ -24,12 +24,11 @@
 <body class="body-container" id="dashboardBody">
 <div id="toastContainer"></div>
     <div class="main-container">
-        <div class="left-column">
+        <div id="leftColumn" class="left-column">
             <div class="left-sidebar">
                 <div class="logo-container">
                     <h1>Flickit</h1>
                 </div>
-
                 <ul>
                     <li id="dashboardItem">
                         <a>
@@ -75,12 +74,11 @@
                 </button>
             </div>
         </div>
-        <div class="dashboard-container">
+        <div id="dashboardMiddleContainer" class="dashboard-container">
             <header id="dashboardHeader" class="dashboard-header"></header>
-            <div class="dashboard-content-container" id="dashboardContentContainer">
-            </div>
+            <div class="dashboard-content-container" id="dashboardContentContainer"></div>
         </div>
-        <div class="right-column">
+        <div id="rightColumn" class="right-column">
             <div class="searchbar">
                 <i class="bi bi-search"></i>
                 <input class="searchbar-input" type="text" placeholder="Search on Flickit"/>
@@ -168,6 +166,16 @@
                     <i id="resetTagsSearchbar" class="bi bi-x reset-searchbar"></i>
                 </div>
                 <div id="followedTagsModalList" class="followed-tags-modal-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deletePostWarningContainer" class="modal-container">
+        <div class="warning-modal-content">
+            <h2>Are you sure you want delete that post?</h2>
+            <div>
+                <button id="cancelDeletePost" class="cancel-button">Cancel</button>
+                <button id="confirmPostDelete" class="delete-button warning">Delete</button>
             </div>
         </div>
     </div>

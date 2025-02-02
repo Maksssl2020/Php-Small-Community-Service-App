@@ -1,5 +1,4 @@
 <?php
-
 ?>
 
 <!doctype html>
@@ -28,13 +27,13 @@
 
                 <ul>
                     <li id="dashboardItem">
-                        <a href="../dashboard/dashboard.php">
+                        <a href="../dashboard/dashboard.php?section=dashboard">
                             <i class="bi bi-house-door-fill"></i>
                             <p>Dashboard</p>
                         </a>
                     </li>
                     <li >
-                        <a>
+                        <a href="../dashboard/dashboard.php?section=discover">
                             <i class="bi bi-compass-fill"></i>
                             <p>Discover</p>
                         </a>
@@ -46,7 +45,7 @@
                         </a>
                     </li>
                     <li>
-                        <a id="myPostsTopicItem">
+                        <a id="myPostsTopicItem" href="../dashboard/dashboard.php?section=myPosts">
                             <i class="bi bi-stickies-fill"></i>
                             <p>My posts</p>
                         </a>
@@ -131,8 +130,8 @@
         </div>
     </div>
 
-    <script src="account.js"></script>
-    <script src="accountApiFunctions.js"></script>
-    <script src="../../../index.js"></script>
+    <script type="module" src="account.js"></script>
+    <script type="module" src="accountApiFunctions.js"></script>
+    <script type="module" src="../../../index.js"></script>
 </body>
 </html>

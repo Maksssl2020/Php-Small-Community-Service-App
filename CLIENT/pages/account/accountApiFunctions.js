@@ -1,8 +1,9 @@
-async function uploadUserAvatar() {
+import {getSignedInUserData, showToast} from "../../../index.js";
+
+export async function uploadUserAvatar() {
     const {userId} = await getSignedInUserData();
     let body;
     let headers = {};
-
 
     if (avatarUrlInput.value.length > 0) {
         body = JSON.stringify({
@@ -55,7 +56,7 @@ function encodeFileToBase64(file) {
     });
 }
 
-async function updateUserData() {
+export async function updateUserData() {
     const {userId} = await getSignedInUserData();
 
     let nickname;

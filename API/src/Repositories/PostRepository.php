@@ -39,6 +39,83 @@ class PostRepository extends BaseRepository {
         return $this->getPostsData($posts);
     }
 
+    public function getDiscoverPostsForUser(string $userId, bool $recent): array {
+        if ($recent) {
+            $posts = $this->getDashboardPostsForUser($userId);
+
+            usort($posts, function (Post $a, Post $b) {
+                return $b->getCreatedAt() <=> $a->getCreatedAt();
+            });
+
+            return $posts;
+        } else {
+            $query = "
+                SELECT p.*, 
+                (SELECT COUNT(*) FROM `flickit-db`.likes WHERE postId = p.id) AS like_count
+                FROM `flickit-db`.posts p
+                WHERE p.userId != :userId
+                ORDER BY like_count DESC
+            ";
+            $statement = $this->connection->prepare($query);
+            $statement->bindParam(":userId", $userId, PDO::PARAM_INT);
+            $statement->execute();
+            $posts = $statement->fetchAll();
+
+            return $this->getPostsData($posts);
+        }
+    }
+
+    public function getDiscoverPostsForUserBasedOnChosenTag(string $userId, string $specifiedTag, bool $recent): array {
+        $tagId = $this->tagRepository->getTagIdByTagName($specifiedTag);
+
+        if (empty($tagId)) {
+            return [];
+        }
+
+        $findPostsIdWithChosenTagQuery = "
+            SELECT DISTINCT postId FROM
+            `flickit-db`.post_tags
+            WHERE tagId = :tagId
+        ";
+
+        $statement = $this->connection->prepare($findPostsIdWithChosenTagQuery);
+        $statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
+        $statement->execute();
+        $postsIds = $statement->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($postsIds)) {
+            return [];
+        }
+
+        $fetchPostsQuery = "
+            SELECT p.*, 
+            (SELECT COUNT(*) FROM `flickit-db`.likes WHERE postId = p.id) AS like_count
+            FROM `flickit-db`.posts p
+            WHERE p.id IN (" . implode(',', array_fill(0, count($postsIds), '?')) . ")
+            AND p.userId != ?
+            ORDER BY like_count DESC
+        ";
+
+        $statement = $this->connection->prepare($fetchPostsQuery);
+        $params = array_merge($postsIds, [$userId]);
+        $statement->execute($params);
+        $posts = $statement->fetchAll();
+
+        if (empty($posts)) {
+            return [];
+        }
+
+        $postsModels = $this->getPostsData($posts);
+
+        if ($recent) {
+            usort($postsModels, function (Post $a, Post $b) {
+                return $b->getCreatedAt() <=> $a->getCreatedAt();
+            });
+        }
+
+        return $postsModels;
+    }
+
     public function getDashboardPostsForUser(string $userId): array {
         $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId";
         $statement = $this->connection->prepare($query);
@@ -187,13 +264,20 @@ class PostRepository extends BaseRepository {
         }
     }
 
-    function addPostLinks(int $postId, array $sitesLinks): void {
+    public function addPostLinks(int $postId, array $sitesLinks): void {
         $query = "INSERT INTO `flickit-db`.post_links (postId, link) VALUES (?, ?)";
         $statement = $this->connection->prepare($query);
 
         foreach ($sitesLinks as $siteLink) {
             $statement->execute([$postId, $siteLink]);
         }
+    }
+
+    public function deletePost(string $postId): void {
+        $query = "DELETE FROM `flickit-db`.posts WHERE id = :postId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":postId", $postId, PDO::PARAM_INT);
+        $statement->execute();
     }
 
     private function getPostsData(array $posts): array {

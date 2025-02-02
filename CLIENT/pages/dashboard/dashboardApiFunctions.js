@@ -93,6 +93,54 @@ export async function fetchUserPosts(signal) {
     }
 }
 
+export async function fetchPostsForUserDiscoverSection(signal, type, specifiedTag = "") {
+    const {userId} = await getSignedInUserData();
+    let url;
+    switch (type) {
+        case "recent": {
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent-${specifiedTag}/${userId}`;
+            break;
+        }
+        case "theBest": {
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-best-${specifiedTag}/${userId}`;
+            break;
+        }
+        case "popular": {
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-popular/${userId}`;
+            break;
+        }
+        case "recentForYou": {
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}`;
+            break;
+        }
+        default: {
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}`;
+            break;
+        }
+    }
+
+
+    return await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        signal: signal,
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                return data.data;
+            }
+
+            return [];
+        })
+        .catch(error => {
+            console.log(error);
+            return [];
+        });
+}
+
 export async function getUserFollowedTags() {
     const {userId} = await getSignedInUserData();
 
@@ -549,6 +597,22 @@ export async function getPostLikesData(postId) {
             console.log(err);
             return [];
         });
+}
+
+export async function deletePostById(postId) {
+    fetch(`http://localhost/php-small-social-service-app/posts/delete-post/${postId}`, {
+        method: 'DELETE',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+            }
+        })
+        .catch(err => console.log(err));
 }
 
 export async function test($path) {

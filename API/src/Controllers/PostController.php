@@ -12,14 +12,50 @@ readonly class PostController {
 
     public function processRequest(string $method, string $action, ?string $id): void{
         if ($method == 'GET' && !empty($id)) {
+
+            if (str_contains($action, 'get-discovered-posts')) {
+                $data = $this->explodeActionString($action);
+
+                count($data) == 2 ?
+                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts-with-tag", $id, $data) :
+                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts", $id, $data);
+            }
+
             $this->processCollectionGetRequestWithId($action, $id);
         } elseif ($method == 'POST' && !empty($id)) {
             $this->processResourcePostRequestWithId($action, $id);
         } elseif ($method == "POST" && empty($id)) {
             $this->processResourcePostRequestWithoutId($action);
+        } elseif ($method == 'DELETE' && !empty($id)) {
+            $this->processResourceDeleteRequestWithId($action, $id);
         } else {
             http_response_code(405);
             header("Allow: POST, GET");
+        }
+    }
+
+    private function explodeActionString(string $action): array {
+        $actionParts = explode('-', $action);
+
+        if (count($actionParts) > 4) {
+            return [$actionParts[count($actionParts) - 2], $actionParts[count($actionParts) - 1]];
+        } elseif (count($actionParts) === 4) {
+            return [$actionParts[count($actionParts) - 1]];
+        } else {
+            return [];
+        }
+    }
+
+    private function processCollectionGetRequestWithIdAndAdditionalData(string $action, string $id, array $data): void {
+        switch ($action) {
+            case "get-discovered-posts": {
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUser($id, $data[0] == "recent")]);
+                break;
+            }
+            case "get-discovered-posts-with-tag": {
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUserBasedOnChosenTag($id, $data[1], $data[0] == "recent")]);
+                break;
+            }
         }
     }
 
@@ -159,6 +195,16 @@ readonly class PostController {
         }
     }
 
+    public function processResourceDeleteRequestWithId(string $action, string $id): void {
+        switch ($action) {
+            case "delete-post": {
+                $this->postRepository->deletePost($id);
+                echo json_encode(["success" => true, "message" => "Post has been deleted!"]);
+                break;
+            }
+        }
+    }
+
     public function processCollectionGetRequestWithId(string $action, string $id): void{
         switch ($action) {
             case 'get-user-posts': {
@@ -199,6 +245,7 @@ readonly class PostController {
                 echo json_encode(['success'=>true, 'data' => $this->postRepository->getPostLikes($id)]);
                 break;
             }
+
         }
     }
 
