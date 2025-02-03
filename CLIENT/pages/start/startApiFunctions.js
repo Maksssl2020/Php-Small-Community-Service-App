@@ -1,4 +1,3 @@
-import {showToast} from "../../../index.js";
 import {
     mainTagsContainer,
     signInForm,
@@ -7,9 +6,10 @@ import {
     signInPasswordInput, signUpEmailInput, signUpForm,
     signUpModal, signUpNicknameInput, signUpPasswordInput
 } from "./start.js";
+import {showToast} from "../../../indexUtils.js";
 
 export async function fetchMainTagsForStartPage() {
-    fetch('http://localhost/php-small-social-service-app/tags/get-main-tags', {
+    return await fetch('http://localhost/php-small-social-service-app/tags/get-main-tags', {
         method: 'GET',
         headers: {
             "Content-Type": "application/json"
@@ -18,28 +18,37 @@ export async function fetchMainTagsForStartPage() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                data.data.slice(0, 14).forEach(mainTag => {
-                    const mainTagDiv = document.createElement('div');
-                    mainTagDiv.className = 'main-tag-card';
-
-                    const tagImg = document.createElement('img');
-                    tagImg.src = mainTag.imageUrl;
-                    tagImg.alt = mainTag.name;
-
-                    const tagP = document.createElement('p');
-                    tagP.textContent = mainTag.name;
-
-                    mainTagDiv.appendChild(tagImg);
-                    mainTagDiv.appendChild(tagP);
-
-                    mainTagsContainer.appendChild(mainTagDiv);
-                })
+               return data.data.slice(0, 14);
             } else {
                 console.log("Failed to fetch main tags. Please try again.");
+                return [];
             }
+
         }).catch(err => {
         console.log(err);
+        return [];
     })
+}
+
+export async function getPostsForNonLoggedInUser(specifiedTag) {
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-discovered-posts-${specifiedTag}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return [];
+    })
+        .catch(err => {
+            console.log(err);
+            return [];
+        })
 }
 
 export async function signIn() {
@@ -66,7 +75,7 @@ export async function signIn() {
                     signInForm.reset();
                 }, 1000)
 
-                window.location = "../dashboard/dashboard.php";
+                window.location = "../dashboard/dashboard.php?section=dashboard";
             } else {
                 data.errors.forEach((error) => showToast(error));
             }

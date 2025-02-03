@@ -39,6 +39,26 @@ class PostRepository extends BaseRepository {
         return $this->getPostsData($posts);
     }
 
+    public function getDiscoveredPostsBasedOnChosenTag(string $specifiedTag): array {
+        $postsIds = $this->getPostsIdsBasedOnChosenTag($specifiedTag);
+
+        if (empty($postsIds)) {
+            return [];
+        }
+
+        $fetchPostsQuery = "
+            SELECT * 
+            FROM `flickit-db`.posts 
+            WHERE id IN (" . implode(',', array_fill(0, count($postsIds), '?')) . ")
+        ";
+
+        $statement = $this->connection->prepare($fetchPostsQuery);
+        $statement->execute($postsIds);
+        $posts = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        return $this->getPostsData($posts);
+    }
+
     public function getDiscoverPostsForUser(string $userId, bool $recent): array {
         if ($recent) {
             $posts = $this->getDashboardPostsForUser($userId);
@@ -66,22 +86,7 @@ class PostRepository extends BaseRepository {
     }
 
     public function getDiscoverPostsForUserBasedOnChosenTag(string $userId, string $specifiedTag, bool $recent): array {
-        $tagId = $this->tagRepository->getTagIdByTagName($specifiedTag);
-
-        if (empty($tagId)) {
-            return [];
-        }
-
-        $findPostsIdWithChosenTagQuery = "
-            SELECT DISTINCT postId FROM
-            `flickit-db`.post_tags
-            WHERE tagId = :tagId
-        ";
-
-        $statement = $this->connection->prepare($findPostsIdWithChosenTagQuery);
-        $statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
-        $statement->execute();
-        $postsIds = $statement->fetchAll(PDO::FETCH_COLUMN);
+        $postsIds = $this->getPostsIdsBasedOnChosenTag($specifiedTag);
 
         if (empty($postsIds)) {
             return [];
@@ -114,6 +119,26 @@ class PostRepository extends BaseRepository {
         }
 
         return $postsModels;
+    }
+
+    private function getPostsIdsBasedOnChosenTag(string $specifiedTag): array {
+        $tagId = $this->tagRepository->getTagIdByTagName($specifiedTag);
+
+        if (empty($tagId)) {
+            return [];
+        }
+
+        $findPostsIdWithChosenTagQuery = "
+            SELECT DISTINCT postId FROM
+            `flickit-db`.post_tags
+            WHERE tagId = :tagId
+        ";
+
+        $statement = $this->connection->prepare($findPostsIdWithChosenTagQuery);
+        $statement->bindParam(':tagId', $tagId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
     }
 
     public function getDashboardPostsForUser(string $userId): array {
@@ -168,6 +193,15 @@ class PostRepository extends BaseRepository {
         }
 
         return $this->getPostsData($posts);
+    }
+
+    public function getPostCreatorId(string $postId): int {
+        $query = "SELECT userId FROM `flickit-db`.posts WHERE id = :postId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":postId", $postId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchColumn();
     }
 
     public function getPostLikes(string $postId): array {

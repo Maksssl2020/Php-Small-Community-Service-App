@@ -60,12 +60,6 @@
                             <p>Account</p>
                         </a>
                     </li>
-                    <li>
-                        <a href="http://localhost/php-small-social-service-app/pages/dashboard/discover/123" class="tag-link" >
-                            <i class="bi bi-person-fill-gear"></i>
-                            <p>Test</p>
-                        </a>
-                    </li>
                 </ul>
 
                 <button id="createPostButton" class="create-post-button">
@@ -170,13 +164,44 @@
         </div>
     </div>
 
-    <div id="deletePostWarningContainer" class="modal-container">
+    <div id="deleteModalWarningContainer" class="modal-container">
         <div class="warning-modal-content">
-            <h2>Are you sure you want delete that post?</h2>
+            <h2 id="deleteWarningMessage"></h2>
             <div>
-                <button id="cancelDeletePost" class="cancel-button">Cancel</button>
-                <button id="confirmPostDelete" class="delete-button warning">Delete</button>
+                <button id="cancelDelete" class="cancel-button">Cancel</button>
+                <button id="confirmDelete" class="delete-button warning">Delete</button>
             </div>
+        </div>
+    </div>
+
+    <div id="discoverPostStatisticsModal" class="modal-container">
+        <div class="modal-content">
+            <header class="discover-post-statistics-header">
+                <span id="discoverPostAmountOfHearts"></span>
+                <span id="discoverPostHeartsVariety"></span>
+                <i id="closeStatisticsModal" class="bi bi-x"></i>
+            </header>
+            <div class="discover-post-statistics-types-container">
+                <div id="discoverPostCommentsStatistic" class="statistic-container active">
+                    <i id="discoverPostShowComments" class="bi bi-chat"></i>
+                    <span id="discoverPostAmountOfComments"></span>
+                </div>
+                <div id="discoverPostLikesStatistic" class="statistic-container">
+                    <i id="discoverPostShowLikes" class="bi bi-heart"></i>
+                    <span id="discoverPostAmountOfLikes"></span>
+                </div>
+            </div>
+            <div id="discoverPostStatisticsContent" class="discover-post-statistics-content-container">
+            </div>
+            <footer id="discoverPostStatisticsFooter" class="discover-post-statistics-footer visible">
+                <img id="discoverPostCommentInputUserAvatar" src="" alt="user"/>
+                <div class="comment-input">
+                    <input id="discoverPostCommentInput"/>
+                    <button disabled id="discoverPostAddCommentButton" class="add-comment-button">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </footer>
         </div>
     </div>
 
@@ -184,6 +209,8 @@
 <script type="module" src="dashboardAddNewPosts.js"></script>
 <script type="module" src="dashboardApiFunctions.js"></script>
 <script type="module" src="../../../index.js"></script>
+<script type="module" src="../../../indexUtils.js"></script>
+<script type="module" src="../../../indexApiFunctions.js"></script>
 <script type="module" src="dashboardPostRender.js"></script>
 <script type="module" src="dashboardUtils.js"></script>
 <script type="module" src="dashboardEventListeners.js"></script>

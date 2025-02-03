@@ -1,6 +1,7 @@
 import {populateDashboardContentPosts, populateDiscoverContentPosts} from "./dashboardPostRender.js";
 import {
-    fetchController, fetchPostsForUserDiscoverSection,
+    fetchController,
+    fetchPostsForUserDiscoverSection,
     fetchPostsWithUserFollowedTags,
     fetchRandomPostsForUser,
     fetchUserPosts,
@@ -8,17 +9,25 @@ import {
     getUserFollowedTags,
     getUserNotFollowedTags
 } from "./dashboardApiFunctions.js";
-import {autoResize} from "../../../index.js";
 import {
-    addPostCommentEventListener, showDeletePostWarningModal,
+    addPostCommentEventListener,
+    cancelDeleteEventListener,
+    closeStatisticsModal,
+    confirmPostDeleteEventListener,
     expandPostStatisticsSection,
+    fetchCommentsOrLikesDataInDiscoverPostEventListener,
     fillStatisticsWithCommentsOrLikesEventListener,
     followTagEventListener,
     likeOrUnlikePostEventListener,
-    showPostAndLikesStatisticsContainer,
-    showPostOptionsToManageIt,
-    unfollowTagEventListener, confirmPostDeleteEventListener, cancelPostDeleteEventListener
+    showCommentManagementOptions,
+    showDashboardPostAndLikesStatisticsContainer,
+    showDeleteCommentWarningModal,
+    showDeletePostWarningModal,
+    showPostManagementOptions,
+    unfollowTagEventListener
 } from "./dashboardEventListeners.js";
+import {autoResize} from "../../../indexApiFunctions.js";
+import {showDiscoverPostAndLikesStatisticsContainer} from "../../../indexEventListeners.js";
 
 
 const leftColumn = document.getElementById("leftColumn");
@@ -34,8 +43,10 @@ const topicsSelector = document.getElementById("topicsItem");
 const accountSelector = document.getElementById("accountItem");
 const dashboardHeader = document.getElementById("dashboardHeader");
 
-const confirmDeletePostButton = document.getElementById("confirmPostDelete");
-const cancelPostDeleteButton = document.getElementById("cancelDeletePost");
+const confirmDeleteButton = document.getElementById("confirmDelete");
+const cancelDeleteButton = document.getElementById("cancelDelete");
+const closeStatisticsModalIcon = document.getElementById("closeStatisticsModal");
+const statisticsModal = document.getElementById("discoverPostStatisticsModal");
 
 // dashboardContentContainer
 export const dashboardContentContainer = document.getElementById("dashboardContentContainer");
@@ -64,19 +75,18 @@ const sectionSelectors = {
     topics: topicsSelector,
 };
 
-Object.entries(
-    sectionSelectors,
-).forEach(([section, selector]) => {
-    selector.onclick = () => handleSectionChange(section, fetchController)
-})
-
-
 document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const section = urlParams.get("section");
     const tag = urlParams.get("tag");
 
     await handleSectionChange(section, fetchController, tag);
+})
+
+Object.entries(sectionSelectors).forEach(([section, selector]) => {
+    if (selector) {
+        selector.onclick = () => handleSectionChange(section, fetchController)
+    }
 })
 
 async function handleSectionChange(chosenSection, fetchController, specifiedTag = "") {
@@ -200,8 +210,10 @@ const handleHeaderButtonChange = (button) => {
     button.classList.add('active');
 }
 
-createPostButton.onclick = () => {
-    postOptionsModal.style.display = "block";
+if (createPostButton) {
+    createPostButton.onclick = () => {
+        postOptionsModal.style.display = "block";
+    }
 }
 
 postTextAreas.forEach((textArea) => {
@@ -331,21 +343,35 @@ function addFollowUnfollowListeners() {
 }
 
 
-
-dashboardContentContainer.addEventListener('click', showPostAndLikesStatisticsContainer)
-dashboardContentContainer.addEventListener("change", addPostCommentEventListener);
-dashboardContentContainer.addEventListener('click', likeOrUnlikePostEventListener);
-dashboardContentContainer.addEventListener('click', expandPostStatisticsSection);
-dashboardContentContainer.addEventListener('click', fillStatisticsWithCommentsOrLikesEventListener);
-dashboardContentContainer.addEventListener('click', showPostOptionsToManageIt);
-dashboardContentContainer.addEventListener("click", showDeletePostWarningModal);
-
-if (confirmDeletePostButton) {
-    confirmDeletePostButton.addEventListener('click', confirmPostDeleteEventListener);
+if (statisticsModal) {
+    statisticsModal.addEventListener('click', fetchCommentsOrLikesDataInDiscoverPostEventListener);
+    statisticsModal.addEventListener("change", addPostCommentEventListener);
+    statisticsModal.addEventListener("click", showCommentManagementOptions);
+    statisticsModal.addEventListener("click", showDeleteCommentWarningModal)
 }
 
-if (cancelPostDeleteButton) {
-    cancelPostDeleteButton.addEventListener('click', cancelPostDeleteEventListener);
+if (dashboardContentContainer) {
+    dashboardContentContainer.addEventListener('click', showDashboardPostAndLikesStatisticsContainer)
+    dashboardContentContainer.addEventListener("click", showDiscoverPostAndLikesStatisticsContainer);
+    dashboardContentContainer.addEventListener("change", addPostCommentEventListener);
+    dashboardContentContainer.addEventListener('click', likeOrUnlikePostEventListener);
+    dashboardContentContainer.addEventListener('click', expandPostStatisticsSection);
+    dashboardContentContainer.addEventListener('click', fillStatisticsWithCommentsOrLikesEventListener);
+    dashboardContentContainer.addEventListener('click', showPostManagementOptions);
+    dashboardContentContainer.addEventListener("click", showDeletePostWarningModal);
+    dashboardContentContainer.addEventListener("click", showDeleteCommentWarningModal);
+}
+
+if (closeStatisticsModalIcon) {
+    closeStatisticsModalIcon.addEventListener('click', closeStatisticsModal)
+}
+
+if (confirmDeleteButton) {
+    confirmDeleteButton.addEventListener('click', confirmPostDeleteEventListener);
+}
+
+if (cancelDeleteButton) {
+    cancelDeleteButton.addEventListener('click', cancelDeleteEventListener);
 }
 
 async function createSiteCard(url, siteData) {

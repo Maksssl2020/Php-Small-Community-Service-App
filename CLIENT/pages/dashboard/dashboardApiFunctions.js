@@ -3,7 +3,8 @@ import {
     populateDashboardContentWithPostsThatContainFollowedTags
 } from "./dashboard.js";
 import {populateDashboardContentPosts, updatePostAfterLikeOrUnlike} from "./dashboardPostRender.js";
-import {getSignedInUserData, showToast} from "../../../index.js";
+import {showToast} from "../../../indexUtils.js";
+import {getSignedInUserData} from "../../../indexApiFunctions.js";
 
 export let fetchController = new AbortController();
 
@@ -276,9 +277,9 @@ export async function likeOrUnlikePost(postId) {
         .catch(err => console.log(err));
 }
 
-export async function fetchPostAmountOfLikes(postId) {
-    return fetch(`http://localhost/php-small-social-service-app/posts/count-post-likes/${postId}`, {
-        method: 'GET',
+export async function getPostCreatorId(postId) {
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-post-creator-id/${postId}`, {
+        method: "GET",
         headers: {
             "Content-Type": "application/json"
         }
@@ -288,39 +289,12 @@ export async function fetchPostAmountOfLikes(postId) {
             if (data.success) {
                 return data.data;
             }
+
             return 0;
         })
         .catch(err => {
             console.log(err);
             return 0;
-        });
-}
-
-export async function isPostLikedByUser(postId) {
-    const {userId} = await getSignedInUserData();
-
-    return await fetch(`http://localhost/php-small-social-service-app/posts/is-post-liked-by-user/${postId}`, {
-        method: 'POST',
-        body: JSON.stringify({
-            userId: userId
-        }),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-        .then(res => {
-            return res.json()
-        })
-        .then(data => {
-            if (data.success) {
-                return data.data;
-            }
-
-            return false;
-        })
-        .catch(err => {
-            console.log(err);
-            return false;
         });
 }
 
@@ -613,6 +587,22 @@ export async function deletePostById(postId) {
             }
         })
         .catch(err => console.log(err));
+}
+
+export async function deleteComment(commentId) {
+    fetch(`http://localhost/php-small-social-service-app/comments/delete-comment/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "success");
+        }
+    })
+    .catch(err => console.log(err));
 }
 
 export async function test($path) {

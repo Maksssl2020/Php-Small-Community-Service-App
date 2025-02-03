@@ -1,24 +1,24 @@
 import {dashboardContentContainer, followedTagsModal, postOptionsModal} from "./dashboard.js";
 import {
-    addComment, deletePostById, fetchUserPosts,
+    addComment,
+    deleteComment,
+    deletePostById,
     followTag,
-    getAmountOfUserFollowedTags, getPostComments, getPostLikesData,
+    getAmountOfUserFollowedTags, getPostCreatorId,
     likeOrUnlikePost,
     unfollowTag
 } from "./dashboardApiFunctions.js";
-import {getSignedInUserData, showToast} from "../../../index.js";
-import {
-    addCommentCardToPost,
-    fillCommentsSection,
-    fillLikesSection,
-    updatePostAfterAddCommentOrRemoveComment
-} from "./dashboardPostRender.js";
+import {addCommentCardToPost, updatePostAfterAddCommentOrRemoveComment} from "./dashboardPostRender.js";
 import {getPostIdFromIdAttribute} from "./dashboardUtils.js";
+import {getCommentsAndFillSection, getLikesAndFillSection} from "../../../indexEventListeners.js";
+import {showToast} from "../../../indexUtils.js";
+import {getSignedInUserData} from "../../../indexApiFunctions.js";
+import {addNewPostModal, addPostModalFormContainer} from "./dashboardAddNewPosts.js";
 
-export async function showPostAndLikesStatisticsContainer(event) {
+export async function showDashboardPostAndLikesStatisticsContainer(event) {
     const target = event.target;
 
-    if (target.id !== "showPostComments" && target.classList.contains("bi-chat")) {
+    if (target.id === "showDashboardPostStatisticsSection") {
         const postCommentsLikesContainer = target.closest(".post-comments-likes-container");
 
         if (!postCommentsLikesContainer) {
@@ -26,13 +26,16 @@ export async function showPostAndLikesStatisticsContainer(event) {
         }
 
         if (target.id === "commentsStatistic") {
-            postCommentsLikesContainer.classList.add("comments");
-            postCommentsLikesContainer.classList.remove("likes");
+            postCommentsLikesContainer.classList.replace("likes", "comments");
         } else if (target.id === "likesStatistic") {
-            postCommentsLikesContainer.classList.add("likes");
-            postCommentsLikesContainer.classList.remove("comments");
+            postCommentsLikesContainer.classList.replace("comments", "likes");
         }
     }
+}
+
+export function closeStatisticsModal() {
+    const statisticsModal = document.getElementById("discoverPostStatisticsModal");
+    statisticsModal.style.display = "none";
 }
 
 export async function followTagEventListener() {
@@ -75,20 +78,37 @@ export async function likeOrUnlikePostEventListener(event)  {
     const likeIcon = event.target;
 
     if (likeIcon.id === "likeOrUnlikePost" || likeIcon.classList.contains('liked')) {
+        const {userId} = await getSignedInUserData();
         const postId = likeIcon.getAttribute("postId");
-        await likeOrUnlikePost(postId);
+        const id = await getPostCreatorId(postId);
+
+        if (id !== userId) {
+            await likeOrUnlikePost(postId);
+        }
     }
 }
 
-export async function showPostOptionsToManageIt(event) {
+export async function showPostManagementOptions(event) {
     const userPostSettingsButton = event.target;
 
-
-    if (userPostSettingsButton.classList.contains('post-settings-button') ) {
+    if (userPostSettingsButton.id === "postSettingsButton" ) {
         const postId = userPostSettingsButton.getAttribute("postId");
         const userSettingsDropdown = document.getElementById(`userPostSettingsDropdown-${postId}`);
 
         userSettingsDropdown.classList.toggle('hidden');
+    }
+}
+
+export async function showCommentManagementOptions(event) {
+    const userCommentSettingsButton = event.target;
+
+    if (userCommentSettingsButton.id === "commentSettingsButton") {
+        console.log(event)
+
+        const commentId = userCommentSettingsButton.getAttribute("commentId");
+        const commentSettingsDropdown = document.getElementById(`userCommentSettingsDropdown-${commentId}`)
+
+        commentSettingsDropdown.classList.toggle('hidden');
     }
 }
 
@@ -97,45 +117,106 @@ export function showDeletePostWarningModal(event) {
 
     if (deletePostButton.id === "deletePost") {
         const postId = deletePostButton.getAttribute("postId");
-        const deleteWarningModal = document.getElementById("deletePostWarningContainer");
+
+        const deleteWarningModal = document.getElementById("deleteModalWarningContainer");
+        const deleteMessageH2 = document.getElementById("deleteWarningMessage");
+        deleteMessageH2.textContent = "Are you sure you want delete that post?";
+
         deleteWarningModal.style.display = "block";
         deleteWarningModal.setAttribute("postId", postId);
     }
 }
 
-export async function confirmPostDeleteEventListener() {
-    const deleteWarningModal = document.getElementById("deletePostWarningContainer");
-    const postId = deleteWarningModal.getAttribute("postId");
-    await deletePostById(postId);
+export function showDeleteCommentWarningModal(event) {
+    const deleteCommentButton = event.target;
 
-    const postToDelete = document.getElementById(`post-${postId}`);
-    dashboardContentContainer.removeChild(postToDelete)
+    if (deleteCommentButton.id === "deleteComment") {
+        const commentId = deleteCommentButton.getAttribute("commentId");
 
-    cancelPostDeleteEventListener();
+        const statisticsModal = document.getElementById(`discoverPostStatisticsModal`);
+
+        if (statisticsModal.style.display === "block") {
+            statisticsModal.style.display = "none";
+        }
+
+        const deleteWarningModal = document.getElementById("deleteModalWarningContainer");
+        const deleteMessageH2 = document.getElementById("deleteWarningMessage");
+        deleteMessageH2.textContent = "Are you sure you want delete that comment?";
+
+        deleteWarningModal.style.display = "block";
+        deleteWarningModal.setAttribute("commentId", commentId);
+    }
 }
 
-export function cancelPostDeleteEventListener() {
-    const deleteWarningModal = document.getElementById("deletePostWarningContainer");
+export async function confirmPostDeleteEventListener() {
+    const deleteWarningModal = document.getElementById("deleteModalWarningContainer");
+    const postId = deleteWarningModal.getAttribute("postId");
+    const commentId = deleteWarningModal.getAttribute("commentId");
+
+    if (postId !== undefined && postId > 0) {
+        await deletePostById(postId);
+
+        const postToDelete = document.getElementById(`post-${postId}`);
+        dashboardContentContainer.removeChild(postToDelete)
+        cancelDeleteEventListener();
+    } else if (commentId !== undefined && commentId > 0) {
+        await deleteComment(commentId);
+
+        const commentToDelete = document.getElementById(`comment-${commentId}`);
+        dashboardContentContainer.removeChild(commentToDelete)
+        cancelDeleteEventListener();
+    }
+}
+
+export function cancelDeleteEventListener() {
+    const deleteWarningModal = document.getElementById("deleteModalWarningContainer");
     deleteWarningModal.removeAttribute("postId");
+    deleteWarningModal.removeAttribute("commentId");
+
     deleteWarningModal.style.display = "none";
 }
 
 export async function expandPostStatisticsSection(event) {
     const commentIcon = event.target;
 
-    if (commentIcon.id === 'showStatisticsSection') {
+    if (commentIcon.id === 'showDashboardPostStatisticsSection') {
         const postDiv = commentIcon.closest('.dashboard-post-card');
         const commentsContainer = postDiv.querySelector('.post-comments-likes-container');
         const postId = getPostIdFromIdAttribute(postDiv.getAttribute('id'))
 
         if (commentsContainer.classList.contains('hidden')) {
-            commentsContainer.classList.remove('hidden');
-            commentsContainer.classList.add('visible');
-
+            commentsContainer.classList.replace('hidden', "visible");
             await getCommentsAndFillSection(postId);
         } else {
-            commentsContainer.classList.remove('visible');
-            commentsContainer.classList.add('hidden');
+            commentsContainer.classList.replace('visible', "hidden");
+        }
+    }
+}
+
+export async function fetchCommentsOrLikesDataInDiscoverPostEventListener(event) {
+    const clickedIcon = event.target;
+
+    if (clickedIcon.id === "discoverPostShowComments" || clickedIcon.id === "discoverPostShowLikes") {
+        const postId = clickedIcon.getAttribute("postId");
+        const commentsStatisticContainer = document.getElementById("discoverPostCommentsStatistic")
+        const likesStatisticContainer = document.getElementById("discoverPostLikesStatistic")
+
+        if (clickedIcon.id === 'discoverPostShowComments') {
+
+            if (!commentsStatisticContainer.classList.contains('active')) {
+                commentsStatisticContainer.classList.add('active');
+                likesStatisticContainer.classList.remove('active');
+            }
+
+            await getCommentsAndFillSection(postId, true);
+        } else if (clickedIcon.id === 'discoverPostShowLikes') {
+
+            if (!likesStatisticContainer.classList.contains('active')) {
+                likesStatisticContainer.classList.add('active');
+                commentsStatisticContainer.classList.remove('active');
+            }
+
+            await getLikesAndFillSection(postId, true);
         }
     }
 }
@@ -167,36 +248,34 @@ export async function fillStatisticsWithCommentsOrLikesEventListener(event) {
     }
 }
 
-async function getCommentsAndFillSection(postId) {
-    const postComments = await getPostComments(postId);
-    await fillCommentsSection(postId, postComments);
-}
-
-async function getLikesAndFillSection(postId) {
-    const likesData = await getPostLikesData(postId);
-    await fillLikesSection(postId, likesData);
-}
-
 export async function addPostCommentEventListener(event) {
     const {userId} = await getSignedInUserData();
 
-    if (event.target && event.target.id === "postCommentInput") {
+    if (event.target.id === "postCommentInput" || event.target.id === "discoverPostCommentInput") {
         const content = event.target.value;
-        const postId = event.target.getAttribute("postID");
-        const addCommentButton = event.target
-            .closest(".add-comment-container")
-            .querySelector("#addCommentButton");
+        const postId = event.target.getAttribute("postId");
+        const isDiscoverPost = event.target.id === "discoverPostCommentInput";
+        let addCommentButton;
+
+        if (isDiscoverPost) {
+            addCommentButton = document.getElementById("discoverPostAddCommentButton");
+        } else {
+            addCommentButton = event.target
+                .closest(".add-comment-container")
+                .querySelector("#addCommentButton");
+        }
 
         addCommentButton.addEventListener("click", async () => {
             const id = await addComment(postId, content)
-            await updatePostAfterAddCommentOrRemoveComment(postId);
+            await updatePostAfterAddCommentOrRemoveComment(postId, isDiscoverPost);
 
             if (id !== -1 && id > 0) {
-                await addCommentCardToPost(id, postId, userId, content, new Date().toLocaleDateString())
+                await addCommentCardToPost(id, postId, userId, content, new Date().toLocaleDateString(), isDiscoverPost)
             }
 
             event.target.value = "";
             addCommentButton.disabled = true;
+            addCommentButton.classList.remove("available");
         });
 
         if (content.length > 0) {

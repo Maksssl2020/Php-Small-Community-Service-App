@@ -63,8 +63,11 @@ error_log($isSignedIn);
             </div>
         </div>
         <div class="right-column">
-            <header>
-                <h2>Browse Topics</h2>
+            <header class="page-header">
+                <button id="headerReturnButton" class="header-return-button hidden">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <h2 class="header-title" id="headerTitle">Browse Topics</h2>
                 <div class="authentication-container">
                     <?php if(!$isSignedIn): ?>
                         <button type="button" id="signUpButton" class="authentication-button">
@@ -80,14 +83,14 @@ error_log($isSignedIn);
                     <?php endif; ?>
                 </div>
             </header>
-            <div id="mainTags" class="main-tags-container">
+            <div id="mainTags" class="main-tags-container main-tags">
             </div>
         </div>
     </div>
 
     <div id="signInModal" class="modal-container">
         <div class="modal-content">
-            <h3>Flickit</h3>
+            <h3 class="modal-title">Flickit</h3>
             <form id="signInForm" class="authentication-form">
                 <div class="input-container">
                     <label for="signInNicknameInput">Enter your nickname to sign in:</label>
@@ -106,7 +109,7 @@ error_log($isSignedIn);
 
     <div id="signUpModal" class="modal-container">
         <div class="modal-content">
-            <h3>Flickit</h3>
+            <h3 class="modal-title">Flickit</h3>
             <form id="signUpForm" class="authentication-form" >
                 <div class="input-container">
                     <label for="signUpNicknameInput">Enter a flickit nickname:</label>
@@ -133,8 +136,41 @@ error_log($isSignedIn);
         </div>
     </div>
 
+    <div id="discoverPostStatisticsModal" class="modal-container">
+        <div class="modal-content post">
+            <header class="discover-post-statistics-header">
+                <span id="discoverPostAmountOfHearts"></span>
+                <span id="discoverPostHeartsVariety"></span>
+                <i id="closeStatisticsModal" class="bi bi-x"></i>
+            </header>
+            <div class="discover-post-statistics-types-container">
+                <div id="discoverPostCommentsStatistic" class="statistic-container active">
+                    <i id="discoverPostShowComments" class="bi bi-chat"></i>
+                    <span id="discoverPostAmountOfComments"></span>
+                </div>
+                <div id="discoverPostLikesStatistic" class="statistic-container">
+                    <i id="discoverPostShowLikes" class="bi bi-heart"></i>
+                    <span id="discoverPostAmountOfLikes"></span>
+                </div>
+            </div>
+            <div id="discoverPostStatisticsContent" class="discover-post-statistics-content-container">
+            </div>
+            <footer id="discoverPostStatisticsFooter" class="discover-post-statistics-footer visible">
+                <img id="discoverPostCommentInputUserAvatar" src="" alt="user"/>
+                <div class="comment-input">
+                    <input id="discoverPostCommentInput"/>
+                    <button disabled id="discoverPostAddCommentButton" class="add-comment-button">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </footer>
+        </div>
+    </div>
+
     <script type="module" src="start.js"></script>
     <script type="module" src="startApiFunctions.js"></script>
     <script type="module" src="../../../index.js"></script>
+    <script type="module" src="../../../indexUtils.js"></script>
+    <script type="module" src="../../../indexApiFunctions.js"></script>
 </body>
 </html>

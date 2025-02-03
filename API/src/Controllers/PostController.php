@@ -14,7 +14,7 @@ readonly class PostController {
         if ($method == 'GET' && !empty($id)) {
 
             if (str_contains($action, 'get-discovered-posts')) {
-                $data = $this->explodeActionString($action);
+                $data = $this->explodeActionStringForRequestWithUserId($action);
 
                 count($data) == 2 ?
                     $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts-with-tag", $id, $data) :
@@ -22,6 +22,14 @@ readonly class PostController {
             }
 
             $this->processCollectionGetRequestWithId($action, $id);
+        } elseif ($method == "GET" && empty($id)) {
+            if (str_contains($action, 'get-discovered-posts')) {
+                $data = $this->explodeActionStringForRequestWithoutUserId($action);
+
+                if (count($data) != 0) {
+                    $this->processCollectionGetRequestWithoutIdAndWithSpecifiedTag($data[0]);
+                }
+            }
         } elseif ($method == 'POST' && !empty($id)) {
             $this->processResourcePostRequestWithId($action, $id);
         } elseif ($method == "POST" && empty($id)) {
@@ -34,12 +42,22 @@ readonly class PostController {
         }
     }
 
-    private function explodeActionString(string $action): array {
+    private function explodeActionStringForRequestWithUserId(string $action): array {
         $actionParts = explode('-', $action);
 
         if (count($actionParts) > 4) {
             return [$actionParts[count($actionParts) - 2], $actionParts[count($actionParts) - 1]];
         } elseif (count($actionParts) === 4) {
+            return [$actionParts[count($actionParts) - 1]];
+        } else {
+            return [];
+        }
+    }
+
+    private function explodeActionStringForRequestWithoutUserId(string $action): array {
+        $actionParts = explode('-', $action);
+
+        if (count($actionParts) == 4) {
             return [$actionParts[count($actionParts) - 1]];
         } else {
             return [];
@@ -57,6 +75,10 @@ readonly class PostController {
                 break;
             }
         }
+    }
+
+    private function processCollectionGetRequestWithoutIdAndWithSpecifiedTag(string $specifiedTag): void {
+        echo json_encode(["success"=>true, "data" => $this->postRepository->getDiscoveredPostsBasedOnChosenTag($specifiedTag)]);
     }
 
     public function processResourcePostRequestWithoutId(string $action): void {
@@ -245,7 +267,10 @@ readonly class PostController {
                 echo json_encode(['success'=>true, 'data' => $this->postRepository->getPostLikes($id)]);
                 break;
             }
-
+            case "get-post-creator-id": {
+                echo json_encode(['success'=>true, 'data' => $this->postRepository->getPostCreatorId($id)]);
+                break;
+            }
         }
     }
 

@@ -11,6 +11,8 @@ readonly class CommentController {
     public function processRequest(string $method, string $action, ?string $id): void {
         if ($method == "GET" && !empty($id)) {
             $this->processResourceGetRequestWithId($action, $id);
+        } elseif ($method == "DELETE" && !empty($id)) {
+            $this->processResourceDeleteRequestWithId($action, $id);
         } elseif ($method == 'POST' && !empty($id)) {
             $this->processResourcePostRequestWithId($action, $id);
         }
@@ -24,6 +26,16 @@ readonly class CommentController {
             }
             case "count-post-comments": {
                 echo json_encode(["success"=>true, "data"=>$this->commentRepository->countPostComments($id)]);
+                break;
+            }
+        }
+    }
+
+    private function processResourceDeleteRequestWithId(string $action, string $id): void {
+        switch ($action) {
+            case "delete-comment": {
+                $this->commentRepository->deleteCommentById($id);
+                echo json_encode(["success"=>true, "message"=>"Comment has been deleted."]);
                 break;
             }
         }

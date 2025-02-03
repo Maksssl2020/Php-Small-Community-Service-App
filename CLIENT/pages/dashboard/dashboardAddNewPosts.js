@@ -1,9 +1,21 @@
+import {
+    addNewImagePost,
+    addNewLinkPost,
+    addNewQuotePost,
+    addNewTextPost,
+    addNewUserTag,
+    fetchAllTags
+} from "./dashboardApiFunctions.js";
+import {postOptionsModal} from "./dashboard.js";
+import {autoResize, fetchSiteData} from "../../../indexApiFunctions.js";
+import {showToast} from "../../../indexUtils.js";
+
 const addTextPostButton = document.getElementById("addTextPostButton");
 const addImagePostButton = document.getElementById("addImagePostButton");
-const addNewPostModal = document.getElementById("addNewPostModal");
-const addNewPostModalCloseButton = document.getElementById("addNewPostModalCloseButton");
+export const addNewPostModal = document.getElementById("addNewPostModal");
+export const addNewPostModalCloseButton = document.getElementById("addNewPostModalCloseButton");
 
-const addPostModalFormContainer = document.getElementById("addPostModalFormContainer");
+export const addPostModalFormContainer = document.getElementById("addPostModalFormContainer");
 
 const selectLabel = document.getElementById("selectLabel");
 const selectOptionsContainer = document.getElementById("selectOptionsContainer");
@@ -12,65 +24,76 @@ const tagsFilter = document.getElementById("tagsFilter");
 const addedTagsContainer = document.getElementById("addedTagsContainer");
 
 let availableTags = [];
+let chosenTags = [];
 
 
 const addNewPostButton = document.getElementById("addNewPostButton");
 const addQuotePostButton = document.getElementById("addQuotePostButton");
 const addLinkPostButton = document.getElementById("addLinkPostButton");
 
-selectLabel.onclick = () => {
-    if (selectOptionsContainer.style.display === "none") {
-        selectOptionsContainer.style.display = "flex";
-    } else {
-        selectOptionsContainer.style.display = "none";
+if (selectLabel) {
+    selectLabel.onclick = () => {
+        if (selectOptionsContainer.style.display === "none") {
+            selectOptionsContainer.style.display = "flex";
+        } else {
+            selectOptionsContainer.style.display = "none";
+        }
     }
 }
 
-addTextPostButton.onclick =  async () => {
-    postOptionsModal.style.display = "none";
-    addNewPostModal.style.display = "block";
+if (addTextPostButton) {
+    addTextPostButton.onclick =  async () => {
+        postOptionsModal.style.display = "none";
+        addNewPostModal.style.display = "block";
 
-    generateAddTextPostModal();
-    await fetchAllTags();
+        generateAddTextPostModal();
+        await fetchAllTags();
 
-    addNewPostButton.onclick = async (e) => {
-        await addNewTextPost(e);
+        addNewPostButton.onclick = async (e) => {
+            await addNewTextPost(e);
+        }
     }
 }
 
-addImagePostButton.onclick = async () => {
-    postOptionsModal.style.display = "none";
-    addNewPostModal.style.display = "block";
+if (addImagePostButton) {
+    addImagePostButton.onclick = async () => {
+        postOptionsModal.style.display = "none";
+        addNewPostModal.style.display = "block";
 
-    generateAddImagePostModal();
-    await fetchAllTags();
+        generateAddImagePostModal();
+        await fetchAllTags();
 
-    addNewPostButton.onclick = async (e) => {
-        await addNewImagePost(e);
+        addNewPostButton.onclick = async (e) => {
+            await addNewImagePost(e);
+        }
     }
 }
 
-addQuotePostButton.onclick = async () => {
-    postOptionsModal.style.display = "none";
-    addNewPostModal.style.display = "block";
+if (addQuotePostButton) {
+    addQuotePostButton.onclick = async () => {
+        postOptionsModal.style.display = "none";
+        addNewPostModal.style.display = "block";
 
-    generateAddQuotePostModal();
-    await fetchAllTags();
+        generateAddQuotePostModal();
+        await fetchAllTags();
 
-    addNewPostButton.onclick = (e) => {
-        addNewQuotePost(e);
+        addNewPostButton.onclick = (e) => {
+            addNewQuotePost(e);
+        }
     }
 }
 
-addLinkPostButton.onclick = async () => {
-    postOptionsModal.style.display = "none";
-    addNewPostModal.style.display = "block";
+if (addLinkPostButton) {
+    addLinkPostButton.onclick = async () => {
+        postOptionsModal.style.display = "none";
+        addNewPostModal.style.display = "block";
 
-    generateAddLinkPostModal();
-    await fetchAllTags();
+        generateAddLinkPostModal();
+        await fetchAllTags();
 
-    addNewPostButton.onclick = (e) => {
-        addNewLinkPost(e);
+        addNewPostButton.onclick = (e) => {
+            addNewLinkPost(e);
+        }
     }
 }
 
@@ -80,26 +103,30 @@ if (addNewPostModalCloseButton) {
         addPostModalFormContainer.innerHTML = '';
     }
 }
-tagsFilter.addEventListener('keyup', (e) => {
-    const filterValue = e.target.value.toLowerCase();
-    const filteredTags = availableTags.filter(tag => tag.name.toLowerCase().includes(filterValue));
+if (tagsFilter) {
+    tagsFilter.addEventListener('keyup', (e) => {
+        const filterValue = e.target.value.toLowerCase();
+        const filteredTags = availableTags.filter(tag => tag.name.toLowerCase().includes(filterValue));
 
-    populateTagSelect(filteredTags.slice(0, 8));
-    focus();
-})
+        populateTagSelect(filteredTags.slice(0, 8));
+        focus();
+    })
+}
 
-tagsFilter.addEventListener('keypress', (e) => {
-    const inputValue = e.target.value.trim();
+if (tagsFilter) {
+    tagsFilter.addEventListener('keypress', (e) => {
+        const inputValue = e.target.value.trim();
 
-    if (e.key === "Enter" && availableTags.every(tag => tag.name.toLowerCase() !== inputValue.toLowerCase()) ) {
-        e.preventDefault();
+        if (e.key === "Enter" && availableTags.every(tag => tag.name.toLowerCase() !== inputValue.toLowerCase()) ) {
+            e.preventDefault();
 
-       if (inputValue) {
-           addNewUserTag(inputValue);
-           tagsFilter.value = '';
-       }
-    }
-})
+            if (inputValue) {
+                addNewUserTag(inputValue);
+                tagsFilter.value = '';
+            }
+        }
+    })
+}
 
 function generateAddTextPostModal() {
     const addTextPostForm = `

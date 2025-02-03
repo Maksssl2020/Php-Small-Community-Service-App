@@ -47,6 +47,13 @@ class CommentRepository extends BaseRepository {
         return $this->connection->lastInsertId();
     }
 
+    public function deleteCommentById(string $commentId): void {
+        $query = "DELETE FROM `flickit-db`.comments WHERE id = :commentId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':commentId', $commentId, PDO::PARAM_INT);
+        $statement->execute();
+    }
+
     public function createCommentModel(array $data): Comment {
         return new Comment(
             $data['id'],

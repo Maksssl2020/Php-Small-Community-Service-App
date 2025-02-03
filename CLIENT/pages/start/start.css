@@ -1,3 +1,10 @@
+.modal-content {
+    &.post {
+        padding: 0 !important;
+        background-color: var(--custom-gray-color-600) !important;
+    }
+}
+
 .left-column {
     width: 250px;
     height: 100%;
@@ -48,11 +55,19 @@
 
 .main-tags-container {
     height: calc(100% - 75px);
-    display: grid;
     padding: 2rem;
-    grid-template-columns: repeat(4, 1fr);
-    grid-gap: 12px;
     overflow-y: auto;
+
+    &.main-tags {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 12px;
+    }
+
+    &.discover {
+        display: flex;
+        gap: 1rem;
+    }
 }
 
 .main-tags-container .main-tag-card:nth-child(14n+3),
@@ -69,40 +84,83 @@
     border-radius: 10px;
     border: solid 2px var(--custom-gray-color-400);
     box-sizing: border-box;
+    position: relative;
 
-    img {
-        width: 100%;
-        min-height: calc(100% - 50px);
-        object-fit: cover;
-        border-top-right-radius: 10px;
-        border-top-left-radius: 10px;
-        margin: 0;
-    }
-
-    p {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        padding: 0 10px;
-        min-height: 50px;
-        background-color: var(--custom-gray-color-400);
-        font-weight: bold;
-        text-transform: uppercase;
-        border-bottom-right-radius: 8px;
-        border-bottom-left-radius: 8px;
+    a {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        text-decoration: none;
+        color: transparent;
     }
 }
 
-h2 {
+.main-tag-image {
+    width: 100%;
+    min-height: calc(100% - 50px);
+    object-fit: cover;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    margin: 0;
+}
+
+.main-tag-name {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    min-height: 50px;
+    background-color: var(--custom-gray-color-400);
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.header-return-button {
+    width: 45px;
+    height: 45px;
+    background: transparent;
+    border: none;
+    color: var(--custom-gray-color-500);
+    cursor: pointer;
+    border-radius: 100px;
+
+    i {
+        font-size: 28px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    &:hover {
+        background-color: var(--custom-gray-color-400);
+        color: var(--custom-white-color-100);
+    }
+
+    &.hidden {
+        display: none;
+    }
+
+    &.visible {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.header-title {
     font-size: 18px;
 }
 
-h3 {
+.modal-title {
     font-size: 36px;
     text-align: center;
 }
 
-header {
+.page-header {
     width: 100%;
     height: 75px;
     display: flex;
@@ -111,4 +169,6 @@ header {
     padding: 0 20px;
     border-bottom: 2px solid var(--custom-gray-color-300);
     align-items: center;
+    gap: 1rem;
 }
+
