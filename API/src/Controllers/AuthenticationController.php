@@ -2,7 +2,13 @@
 
 namespace Controllers;
 
+require("vendor/autoload.php");
+
+use PHPMailer\PHPMailer\Exception;
+use Random\RandomException;
 use Repositories\AuthenticationRepository;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 
 class AuthenticationController {
     public function __construct(private AuthenticationRepository $authenticationRepository){
@@ -10,9 +16,11 @@ class AuthenticationController {
 
     public function processRequest(string $method, string $action, ?string $id): void{
         if ($method === 'POST') {
-            $this->processAuthenticationRequest($action);
+            $this->processAuthenticationPostRequest($action);
         } elseif ($method === "DELETE") {
             $this->processLogoutRequest($action);
+        } elseif ($method === "PUT" && $action == "update-password" && !empty($id)) {
+            $this->processUpdatePasswordRequest($id);
         } else {
             http_response_code(405);
             header("Allow: POST");
@@ -34,7 +42,7 @@ class AuthenticationController {
         }
     }
 
-    private function processAuthenticationRequest(string $action): void {
+    private function processAuthenticationPostRequest(string $action): void {
         switch ($action) {
             case 'sign-up': {
                 $data = (array)json_decode(file_get_contents("php://input"), true);
@@ -62,7 +70,7 @@ class AuthenticationController {
                     break;
                 }
 
-                $user = $this->authenticationRepository->getUser($data['nickname']);
+                $user = $this->authenticationRepository->getUserByNickname($data['nickname']);
 
                 $newSessionId = hash('sha256', uniqid('sess_', true));
                 $sessionId = $newSessionId . "_" . $user["id"];
@@ -80,10 +88,111 @@ class AuthenticationController {
                 echo json_encode(['success' => true, 'message' => 'Logged in successfully!']);
                 break;
             }
+            case "is-password-valid": {
+                $data = (array)json_decode(file_get_contents("php://input"), true);
+
+                $errors = $this->getValidationErrors($data, false);
+
+                if (!empty($errors)) {
+                    http_response_code(401);
+                    echo json_encode(["success" => false, "errors" => $errors]);
+                    break;
+                }
+
+                echo json_encode(["success" => true, "message" => "Password valid"]);
+                break;
+            }
+            case "forgot-password": {
+                $data = (array)json_decode(file_get_contents("php://input"), true);
+
+                if (empty($data["email"])) {
+                    http_response_code(401);
+                    echo json_encode(["success" => false, "errors" => ["Email is required!"]]);
+                    break;
+                }
+
+                $user = $this->authenticationRepository->getUserByEmail($data["email"]);
+
+                if (!$user) {
+                    http_response_code(401);
+                    echo json_encode(["success" => false, "errors" => ["User not found!"]]);
+                    break;
+                }
+
+                try {
+
+                    $token = bin2hex(random_bytes(32));
+                    $this->authenticationRepository->storeResetPasswordToken($user["id"], $token);
+                    $resetLink = "https://605e-109-243-65-70.ngrok-free.app/php-small-social-service-app/CLIENT/pages/reset-password/resetPassword.php?token=" . urlencode($token);
+                    $mail = new PHPMailer(true);
+
+                    $mail->isSMTP();
+                    $mail->SMTPAuth = true;
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+                    $mail->Username = "maksymilian.leszczynski2020@gmail.com";
+                    $mail->Password = "mmzd lunr zndz nopv";
+                    $mail->setFrom("maksymilian.leszczynski2020@gmail.com", "Flickit Support");
+                    $mail->addAddress($user["email"]);
+                    $mail->isHTML();
+                    $mail->Subject = "Password Reset Request";
+
+                    $mailContent = "<p>Click the link below to reset your password:</p><a target='_self' href='$resetLink'>$resetLink</a>";
+
+                    $mail->Body = stripslashes($mailContent);
+
+                    if ($mail->send()) {
+                        echo json_encode(["success" => true, "message" => "Password reset link sent!"]);
+                    } else {
+                        http_response_code(500);
+                        echo json_encode(["success" => false, "errors" => ["Failed to send email."]]);
+                    }
+
+                    break;
+                } catch (RandomException|Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(["success" => false, "errors" => $e->getMessage()]);
+                    break;
+                }
+            }
+            case "reset-password": {
+                $data = (array)json_decode(file_get_contents("php://input"), true);
+
+                if (empty($data["token"]) || empty($data["password"])) {
+                    http_response_code(401);
+                    echo json_encode(["success" => false, "errors" => ["Token is required!", "New password is required!"]]);
+                    break;
+                }
+
+                $userId = $this->authenticationRepository->validateResetPasswordToken($data["token"]);
+
+                if (!$userId) {
+                    http_response_code(401);
+                    echo json_encode(["success" => false, "errors" => ["Invalid or expired token!"]]);
+                    break;
+                }
+
+                $this->authenticationRepository->updateUserPassword($userId, $data["password"]);
+                echo json_encode(["success" => true, "message" => "Password reset successfully!"]);
+                break;
+            }
             default: {
                 http_response_code(405);
                 header("Allow: sign-in, sign-up");
             }
+        }
+    }
+
+    private function processUpdatePasswordRequest(string $id): void {
+        $data = (array)json_decode(file_get_contents("php://input"), true);
+
+        if (empty($data["password"])) {
+            http_response_code(401);
+            echo json_encode(["success" => false, "errors" => ["New password is required!"]]);
+        } else {
+            $this->authenticationRepository->updateUserPassword($id, $data["password"]);
+            echo json_encode(["success" => true, "message" => "Password updated successfully!"]);
         }
     }
 
@@ -111,7 +220,7 @@ class AuthenticationController {
         if ($isSigningUp && !empty($data['email']) && $this->authenticationRepository->isEmailTaken($data['email'])) {
             $errors[] = "Email is already taken!";
         }
-        if (!$isSigningUp && !$this->authenticationRepository->checkCredentials($data["nickname"], $data["password"])) {
+        if (!$isSigningUp && !empty($data["nickname"]) && !empty($data["password"]) && !$this->authenticationRepository->checkCredentials($data["nickname"], $data["password"])) {
             $errors[] = "Invalid credentials!";
         }
 

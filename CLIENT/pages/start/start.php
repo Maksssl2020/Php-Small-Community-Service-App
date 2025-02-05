@@ -100,8 +100,9 @@ error_log($isSignedIn);
                 <div class="input-container">
                     <label for="signInPasswordInput">Enter your password to sign in:</label>
                     <input type="password" name="password" id="signInPasswordInput" placeholder="e-mail address">
-                </div>
 
+                    <label id="forgotPasswordLabel" class="forgot-password">Forgot password?</label>
+                </div>
                 <button disabled id="signInSubmitButton" type="submit" class="submit-button">Sign In</button>
             </form>
         </div>
@@ -132,6 +133,25 @@ error_log($isSignedIn);
                 </div>
 
                 <button disabled type="submit" class="submit-button" id="signUpSubmitButton">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="forgotPasswordModal" class="modal-container">
+        <div class="modal-content">
+            <div class="modal-title-with-icon-container">
+                <h3 class="modal-title">Flickit</h3>
+                <button id="returnToSignInModal" class="return-button">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+            </div>
+            <form class="authentication-form">
+                <div class="input-container">
+                    <label for="resetPasswordEmailInput">Enter your account e-mail:</label>
+                    <input type="email" name="email" id="resetPasswordEmailInput" placeholder="e-mail">
+                </div>
+
+                <button disabled type="submit" class="submit-button" id="forgotPasswordSubmitButton">Reset Password</button>
             </form>
         </div>
     </div>

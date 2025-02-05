@@ -328,3 +328,59 @@
     background: transparent;
     border: 2px solid var(--custom-gray-color-800);
 }
+
+.modal-content.change-data {
+    width: 450px !important;
+}
+
+.modal-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    font-family: "Montserrat", sans-serif;
+}
+
+.input-container {
+    width: 100%;
+    height: 65px;
+    background: transparent;
+
+    input {
+        background: transparent !important;
+        border: 1px solid var(--custom-gray-color-800) !important;
+    }
+
+    input:focus {
+        border: 1px solid var(--custom-gray-color-500) !important;
+    }
+}
+
+.password-modal-buttons-container {
+    display: flex;
+    width: 100%;
+    height: auto;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+
+    button {
+        width: auto;
+        height: 50px;
+        padding: 0 25px;
+        border-radius: 10px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    button.cancel {
+        background: transparent;
+        border: 2px solid var(--custom-gray-color-800);
+        color: var(--custom-gray-color-500);
+    }
+
+    button.submit {
+        background: var(--custom-pink-color-200);
+        border: 2px solid var(--custom-white-color-100);
+        color: var(--custom-white-color-100);
+    }
+}

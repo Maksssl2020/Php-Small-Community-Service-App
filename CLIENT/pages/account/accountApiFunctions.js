@@ -1,4 +1,13 @@
-import {getSignedInUserData, showToast} from "../../../index.js";
+import {getSignedInUserData} from "../../../indexApiFunctions.js";
+import {
+    avatarFileInput,
+    avatarUrlInput, currentPasswordInput, initialUserData, newPasswordInput,
+    uploadAvatarModal,
+    userAvatarInput,
+    userEmailInput,
+    userNicknameInput
+} from "./account.js";
+import {showToast} from "../../../indexUtils.js";
 
 export async function uploadUserAvatar() {
     const {userId} = await getSignedInUserData();
@@ -91,4 +100,52 @@ export async function updateUserData() {
             }
         })
         .catch(error => console.log(error))
+}
+
+export async function updatePassword() {
+    const {userId} = await getSignedInUserData();
+    const newPassword = newPasswordInput.value.trim();
+
+    fetch(`http://localhost/php-small-social-service-app/authentication/update-password/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            password:newPassword
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast("Password updated!", 'success');
+            }
+
+            showToast("Something went wrong!", 'error');
+        })
+        .catch(error => console.log(error));
+}
+
+export async function checkEnteredPassword() {
+    const {userNickname} = await getSignedInUserData();
+    const enteredPassword = currentPasswordInput.value;
+
+    return await fetch("http://localhost/php-small-social-service-app/authentication/is-password-valid", {
+        method: 'POST',
+        body: JSON.stringify({
+            nickname: userNickname,
+            password: enteredPassword
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        return data.success;
+    })
+    .catch(error => {
+        console.log(error);
+        return false;
+    })
 }

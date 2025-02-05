@@ -5,8 +5,9 @@ ini_set('session.use_only_cookies', 1);
 ini_set('session.use_strict_mode', 1);
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header("Access-Control-Allow-Origin: http://localhost:63342");
-    header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS, HEAD");
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS, HEAD, PUT");
     header("Access-Control-Allow-Headers: Content-Type, Authorization, Accept, Access-Control-Allow-Origin");
     header("Access-Control-Allow-Credentials: true");
     exit(0);
@@ -22,7 +23,6 @@ use Repositories\PostRepository;
 use Repositories\TagRepository;
 use Repositories\UserRepository;
 use Repositories\AuthenticationRepository;
-use Router\Router;
 
 spl_autoload_register(function ($class) {
     require __DIR__."/API/src/$class.php";
@@ -65,21 +65,6 @@ if ($resource === 'users') {
     $commentRepository = new CommentRepository($database);
     $controller = new CommentController($commentRepository);
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
-} elseif ($resource == "pages2323") {
-    $router = new Router();
-    $router->add("/php-small-social-service-app/pages/test", function () {
-        header("Content-Type: text/html");
-        include_once __DIR__."/views/test.php";
-    });
-
-    $router->add("/php-small-social-service-app/pages/dashboard/discover/{tag}", function ($tag){
-        header("Content-Type: text/html");
-
-        require __DIR__."/CLIENT/pages/dashboard/dashboard.php";
-    });
-
-
-    $router->dispatch($path);
 } else {
     http_response_code(404);
     echo json_encode(['status'=>404, 'errors'=>['Not Found!']]);

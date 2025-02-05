@@ -19,7 +19,7 @@ class AuthenticationRepository extends BaseRepository{
     }
 
     public function checkCredentials(string $nickname, string $password): bool {
-        $user = $this->getUser($nickname);
+        $user = $this->getUserByNickname($nickname);
 
         if ($user) {
             return password_verify($password, $user["password"]);
@@ -28,10 +28,19 @@ class AuthenticationRepository extends BaseRepository{
         }
     }
 
-    public function getUser(string $nickname): bool|array {
+    public function getUserByNickname(string $nickname): bool|array {
         $query = "SELECT * FROM `flickit-db`.users WHERE nickname = :nickname";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(':nickname', $nickname);
+        $statement->execute();
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getUserByEmail(string $email): bool|array {
+        $query = "SELECT * FROM `flickit-db`.users WHERE email = :email";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':email', $email);
         $statement->execute();
 
         return $statement->fetch(PDO::FETCH_ASSOC);
@@ -53,6 +62,46 @@ class AuthenticationRepository extends BaseRepository{
         $stmt->execute();
 
         return $stmt->fetchColumn() > 0;
+    }
+
+    public function updateUserPassword(string $userId, string $password): void {
+        $query = "UPDATE `flickit-db`.`users` SET password = :password WHERE id = :userId";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':password', $this->hashPassword($password));
+        $stmt->execute();
+    }
+
+    public function storeResetPasswordToken(string $userId, string $token): void {
+        $expiresAt = date("Y-m-d H:i:s", strtotime("+30 minutes"));
+
+        $query = "
+        INSERT INTO `flickit-db`.password_resets (userId, token, expiresAt) 
+        VALUES (:userId, :token, :expiresAt)
+        ON DUPLICATE KEY UPDATE token = :updatedToken, expiresAt = :updatedExpiresAt
+    ";
+
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':userId', $userId, PDO::PARAM_INT);
+
+        $hashedToken = password_hash($token, PASSWORD_BCRYPT);
+        $statement->bindParam(':token', $hashedToken);
+        $statement->bindParam(':updatedToken', $hashedToken);
+
+        $statement->bindParam(':expiresAt', $expiresAt);
+        $statement->bindParam(':updatedExpiresAt', $expiresAt);
+
+        $statement->execute();
+    }
+
+    public function validateResetPasswordToken(string $token): ?int {
+        $query = "SELECT userId FROM `flickit-db`.`password_resets` WHERE token = :token AND expiresAt > NOW()";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':token', $token);
+        $statement->execute();
+        $result = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $result ? (int) $result["userId"] : null;
     }
 
     private function hashPassword(string $password): string {

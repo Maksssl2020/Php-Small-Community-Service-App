@@ -78,3 +78,7 @@ export function getUserAvatar(avatarUrl, avatarImage) {
 
     return avatarSrc;
 }
+
+export function validateFormInput(input, isValid) {
+    input.style.border = isValid ? '2px solid #E9E1FF' : '2px solid #ff4d4f';
+}

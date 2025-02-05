@@ -7,8 +7,7 @@ use Repositories\UserRepository;
 readonly class UserController
 {
 
-    public function __construct(private UserRepository $userRepository)
-    {
+    public function __construct(private UserRepository $userRepository) {
     }
 
     public function processRequest(string $method, string $action, ?string $id): void

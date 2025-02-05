@@ -1,26 +1,45 @@
-import {calcPeriodFromDate, fetchUserData, getSignedInUserData} from "../../../index.js";
 import {updateUserData, uploadUserAvatar} from "./accountApiFunctions.js";
+import {fetchUserData, getSignedInUserData} from "../../../indexApiFunctions.js";
+import {
+    enableUserEmailChangeOnClick,
+    enableUserNicknameChangeOnClick,
+    restoreInitialUserData,
+    showAvatarPreviewFromFileOnChange,
+    showAvatarPreviewFromFileOnDrop,
+    showAvatarPreviewFromUrl
+} from "./accountEventListeners.js";
+import {checkForUserDataChange, populatePageWithUserData, validateAndUpdatePassword} from "./accountUtils.js";
 
-const userAvatarInput = document.getElementById('userAvatar');
-const userEmailInput = document.getElementById('userEmail');
-const userNicknameInput = document.getElementById('userNickname');
-const userPasswordInput = document.getElementById('userPassword');
-const createdAtDataLabel = document.getElementById('createdAtDataLabel');
-const createdAtPeriodLabel = document.getElementById('createdAtPeriodLabel');
+export const userAvatarInput = document.getElementById('userAvatar');
+export const userEmailInput = document.getElementById('userEmail');
+export const userNicknameInput = document.getElementById('userNickname');
+export const userPasswordInput = document.getElementById('userPassword');
+export const avatarFileInput = document.getElementById('avatarFileInput');
+export const avatarUrlInput = document.getElementById('avatarUrlInput');
+export const uploadAvatarModal = document.getElementById('uploadAvatarModal');
+export const updateAccountButtons = document.getElementById('updateAccountButtons');
+export const avatarPreviewDisplay = document.getElementById('avatarPreviewDisplay');
+
+export const createdAtDataLabel = document.getElementById('createdAtDataLabel');
+export const createdAtPeriodLabel = document.getElementById('createdAtPeriodLabel');
 const uploadAvatarButton  = document.getElementById('uploadAvatarButton');
-const uploadAvatarModal = document.getElementById('uploadAvatarModal');
 const modalCloseButton  = document.getElementById('modalCloseButton');
-const modalSubmitButton = document.getElementById('modalSubmitButton');
-const avatarFileInput = document.getElementById('avatarFileInput');
-const avatarUrlInput = document.getElementById('avatarUrlInput');
-const avatarPreviewDisplay = document.getElementById('avatarPreviewDisplay');
+export const modalSubmitButton = document.getElementById('modalSubmitButton');
 const changeUserNicknameIcon = document.getElementById('changeUserNicknameIcon');
 const changeUserEmailIcon = document.getElementById('changeUserEmailIcon');
-const updateAccountButtons = document.getElementById('updateAccountButtons');
+const changeUserPasswordIcon = document.getElementById("changeUserPasswordIcon");
 const cancelUpdateButton = document.getElementById('cancelUpdateButton');
-const avatarFileDropArea = document.getElementById('avatarFileDropArea');
+export const avatarFileDropArea = document.getElementById('avatarFileDropArea');
 
-let initialUserData = {};
+const changePasswordModal = document.getElementById('changePasswordModal');
+
+export const currentPasswordInput = document.getElementById("currentPasswordInput");
+export const newPasswordInput = document.getElementById("newPasswordInput");
+export const confirmNewPasswordInput = document.getElementById("confirmNewPasswordInput");
+export const changeUserPasswordButton  = document.getElementById('changeUserPasswordButton');
+export const cancelChangePasswordButton = document.getElementById('cancelChangePasswordButton');
+
+export let initialUserData = {};
 
 window.addEventListener('DOMContentLoaded', async () => {
     let userData;
@@ -37,53 +56,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 })
 
-async function populatePageWithUserData(userData) {
-    const {id, userNickname, userEmail, avatarUrl, avatarImage, createdAt} = userData;
-
-    userNicknameInput.value = userNickname;
-    userEmailInput.value = userEmail;
-    userPasswordInput.value = '1234567890';
-    createdAtDataLabel.textContent = new Date(createdAt.date).toLocaleString('pl-PL');
-    createdAtPeriodLabel.textContent = calcPeriodFromDate(createdAt.date);
-
-    console.log(userData)
-
-    if (avatarUrl) {
-        userAvatarInput.src = avatarUrl;
-    } else if (avatarImage) {
-        userAvatarInput.src = `data:image/jpg;charset=utf-8;base64, ${avatarImage}`;
-    } else {
-        userAvatarInput.src = '../../assets/ghost_icon.jpeg';
-    }
-}
-
 function setInitialUserData(userData) {
     initialUserData = {...userData};
-}
-
-function checkForUserDataChange() {
-    const currentUserData = {
-        userNickname: userNicknameInput.value.trim(),
-        userEmail: userEmailInput.value.trim(),
-    };
-
-    const isChanged = Object.keys(currentUserData).some(key => {
-            return initialUserData[key] !== currentUserData[key]
-        }
-    );
-
-    updateAccountButtons.style.display = isChanged ? 'flex' : 'none';
 }
 
 [userNicknameInput, userEmailInput].forEach(input => {
     input.addEventListener('change', checkForUserDataChange);
 })
 
-cancelUpdateButton.addEventListener('click', () => {
-    userNicknameInput.value = initialUserData.userNickname;
-    userEmailInput.value = initialUserData.userEmail;
-    updateAccountButtons.style.display = 'none';
-})
+cancelUpdateButton.addEventListener('click', restoreInitialUserData);
 
 uploadAvatarButton.onclick = async () => {
     uploadAvatarModal.style.display = 'block';
@@ -93,21 +74,7 @@ modalCloseButton.onclick = () => {
     uploadAvatarModal.style.display = 'none';
 }
 
-avatarUrlInput.addEventListener('change', (e) => {
-    if (e.target.value.length > 0) {
-        avatarPreviewDisplay.src = e.target.value;
-        avatarPreviewDisplay.style.display = 'block';
-    } else {
-        avatarPreviewDisplay.src = '';
-        avatarPreviewDisplay.style.display = 'none';
-    }
-
-    if (avatarFileInput.files.length > 0) {
-        avatarFileInput.value = '';
-    }
-
-    validateUploadAvatarModalForm();
-})
+avatarUrlInput.addEventListener('change', showAvatarPreviewFromUrl)
 
 avatarFileDropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -118,75 +85,35 @@ avatarFileDropArea.addEventListener('dragleave', () => {
     avatarFileDropArea.classList.remove("dragover")
 })
 
-avatarFileDropArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    avatarFileDropArea.classList.remove("dragover")
+avatarFileDropArea.addEventListener('drop', showAvatarPreviewFromFileOnDrop)
+avatarFileInput.addEventListener('change', showAvatarPreviewFromFileOnChange)
+changeUserNicknameIcon.onclick = () => enableUserNicknameChangeOnClick;
+changeUserEmailIcon.onclick = () => enableUserEmailChangeOnClick;
 
-    const file = e.dataTransfer.files[0];
-    addImageFile(file)
-    avatarFileInput.files = e.dataTransfer.files;
-
-    validateUploadAvatarModalForm();
-})
-
-avatarFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    addImageFile(file)
-    avatarFileInput.files = e.target.files;
-
-    validateUploadAvatarModalForm();
-})
-
-function addImageFile(file) {
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            avatarPreviewDisplay.src = reader.result;
-            avatarPreviewDisplay.style.display = 'block';
-        }
-
-        reader.readAsDataURL(file);
-    } else {
-        avatarPreviewDisplay.src = '';
-        avatarPreviewDisplay.style.display = 'none';
-    }
-
-    if (avatarUrlInput.value.length > 0) {
-        avatarUrlInput.value = '';
-    }
-}
-
-changeUserNicknameIcon.onclick = () => {
-    userNicknameInput.removeAttribute('readonly');
-    userNicknameInput.focus();
-
-    userNicknameInput.addEventListener('blur', () => {
-        userNicknameInput.setAttribute('readonly', 'readonly');
-    }, {once: true});
-}
-
-changeUserEmailIcon.onclick = () => {
-    userEmailInput.removeAttribute('readonly');
-    userEmailInput.focus();
-
-    userEmailInput.addEventListener('blur', () => {
-        userEmailInput.setAttribute('readonly', 'readonly');
-    }, {once: true});
-}
-
-function validateUploadAvatarModalForm() {
-    const isValid = avatarUrlInput.value.length > 0 || avatarFileInput.files.length > 0;
-    modalSubmitButton.disabled = !isValid;
+changeUserPasswordIcon.onclick = () => {
+    changePasswordModal.style.display = 'block';
 }
 
 window.addEventListener('click', (event) => {
     if (event.target === uploadAvatarModal) {
         uploadAvatarModal.style.display = 'none';
     }
+
+    if (event.target === changePasswordModal) {
+        changePasswordModal.style.display = 'none';
+    }
 })
 
 modalSubmitButton.onclick = async () => {
     await uploadUserAvatar();
+}
+
+changeUserPasswordButton.onclick = async () => {
+    await validateAndUpdatePassword();
+}
+
+cancelChangePasswordButton.onclick = async () => {
+    changePasswordModal.style.display = 'none';
 }
 
 updateAccountButtons.addEventListener('submit', async event => {

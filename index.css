@@ -144,6 +144,7 @@
         padding: 0 10px;
         color: var(--custom-white-color-100);
         font-size: 16px;
+        box-sizing: border-box;
 
         &:focus {
             border-color: var(--custom-purple-color-25);

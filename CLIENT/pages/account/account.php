@@ -88,7 +88,7 @@
                     <div class="text-option-container">
                         <label for="userPassword">Password</label>
                         <input class="change-text-data-input" type="password" id="userPassword" readonly/>
-                        <i class="bi bi-pencil-fill"></i>
+                        <i id="changeUserPasswordIcon" class="bi bi-pencil-fill"></i>
                     </div>
                     <div class="user-info-container">
                         <label class="info-label">Created At</label>
@@ -96,7 +96,6 @@
                         <label id="createdAtPeriodLabel" class="period-label">Password</label>
                     </div>
                 </div>
-
                 <form id="updateAccountButtons" class="update-account-buttons">
                     <button id="cancelUpdateButton" class="cancel-update-button">Cancel</button>
                     <button type="submit" class="submit-update-button">Update</button>
@@ -126,6 +125,28 @@
             <div class="modal-buttons-container">
                 <button id="modalCloseButton" class="modal-submit-button">Cancel</button>
                 <button id="modalSubmitButton" disabled class="modal-submit-button">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="changePasswordModal" class="modal-container">
+        <div class="modal-content change-data">
+            <label class="modal-title">Change your password</label>
+            <div class="input-container">
+                <label for="currentPasswordInput">Current password</label>
+                <input id="currentPasswordInput" type="password"/>
+            </div>
+            <div class="input-container">
+                <label for="newPasswordInput">New password</label>
+                <input id="newPasswordInput" type="password"/>
+            </div>
+            <div class="input-container">
+                <label for="confirmNewPasswordInput">Confirm new password</label>
+                <input id="confirmNewPasswordInput" type="password"/>
+            </div>
+            <div class="password-modal-buttons-container">
+                <button id="cancelChangePasswordButton" type="button" class="cancel">Cancel</button>
+                <button id="changeUserPasswordButton" type="submit" class="submit">Change password</button>
             </div>
         </div>
     </div>
