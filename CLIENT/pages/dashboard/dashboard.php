@@ -68,12 +68,32 @@
         </div>
         <div id="dashboardMiddleContainer" class="dashboard-container">
             <header id="dashboardHeader" class="dashboard-header"></header>
-            <div class="dashboard-content-container" id="dashboardContentContainer"></div>
+            <div class="dashboard-content-container scrollbar" id="dashboardContentContainer"></div>
+            <footer class="dashboard-footer" id="dashboardFooter">
+                <button style="padding-right: 8px" class="pagination-arrow">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <div id="paginationNumbers" class="pagination-numbers">
+                </div>
+                <button style="padding-left: 8px" class="pagination-arrow">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </footer>
         </div>
         <div id="rightColumn" class="right-column">
             <div class="searchbar">
                 <i class="bi bi-search"></i>
                 <input class="searchbar-input" type="text" placeholder="Search on Flickit"/>
+            </div>
+
+            <div class="random-tags-container">
+                <h2>Check out these tags</h2>
+                <div id="randomTagsContainer"></div>
+            </div>
+
+            <div class="random-post-container">
+                <h2>Radar</h2>
+                <div id="randomPostContainer"></div>
             </div>
         </div>
     </div>

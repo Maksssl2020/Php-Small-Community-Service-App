@@ -7,14 +7,15 @@ import {
     isPostLikedByUser
 } from "./indexApiFunctions.js";
 
-export async function createDiscoverPost(postData, isLoggedIn = true) {
+export async function createDiscoverPost(postData, isLoggedIn = true, isRadarPost = false) {
     const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = postData;
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
     let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
+    const postId = isRadarPost ? `radar-post-${id}` : `post-${id}`;
 
     const postDiv = document.createElement('div');
     postDiv.classList.add("discover-post-card");
-    postDiv.setAttribute('id', `post-${id}`);
+    postDiv.setAttribute('id', postId);
 
     const postHeader = await createPostHeader(id, userId, avatarSrc, userNickname, createdAt, isLoggedIn);
     const postContentDiv = await createPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks, isLoggedIn);
@@ -95,6 +96,8 @@ export async function createPostContentContainer(postType, postTitle, postConten
 }
 
 export function createPostTags(postTags, isLoggedIn) {
+    console.log(isLoggedIn)
+
     if (isLoggedIn) {
         return postTags.map(tag => `<a href="../dashboard/dashboard.php?section=discover&tag=${tag.name}">#${tag.name}</a>`).join('');
     } else {

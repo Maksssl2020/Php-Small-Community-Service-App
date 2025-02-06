@@ -103,8 +103,6 @@ export async function showCommentManagementOptions(event) {
     const userCommentSettingsButton = event.target;
 
     if (userCommentSettingsButton.id === "commentSettingsButton") {
-        console.log(event)
-
         const commentId = userCommentSettingsButton.getAttribute("commentId");
         const commentSettingsDropdown = document.getElementById(`userCommentSettingsDropdown-${commentId}`)
 
@@ -157,13 +155,17 @@ export async function confirmPostDeleteEventListener() {
         await deletePostById(postId);
 
         const postToDelete = document.getElementById(`post-${postId}`);
-        dashboardContentContainer.removeChild(postToDelete)
+        if (postToDelete) {
+            postToDelete.remove();
+        }
         cancelDeleteEventListener();
     } else if (commentId !== undefined && commentId > 0) {
         await deleteComment(commentId);
 
         const commentToDelete = document.getElementById(`comment-${commentId}`);
-        dashboardContentContainer.removeChild(commentToDelete)
+        if (commentToDelete) {
+            commentToDelete.remove();
+        }
         cancelDeleteEventListener();
     }
 }

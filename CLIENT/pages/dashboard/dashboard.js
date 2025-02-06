@@ -1,4 +1,8 @@
-import {populateDashboardContentPosts, populateDiscoverContentPosts} from "./dashboardPostRender.js";
+import {
+    fetchRandomPostForRadarInDashboard,
+    populateDashboardContentPosts,
+    populateDiscoverContentPosts
+} from "./dashboardPostRender.js";
 import {
     fetchController,
     fetchPostsForUserDiscoverSection,
@@ -26,7 +30,7 @@ import {
     showPostManagementOptions,
     unfollowTagEventListener
 } from "./dashboardEventListeners.js";
-import {autoResize} from "../../../indexApiFunctions.js";
+import {autoResize, getSignedInUserData} from "../../../indexApiFunctions.js";
 import {showDiscoverPostAndLikesStatisticsContainer} from "../../../indexEventListeners.js";
 
 
@@ -60,6 +64,8 @@ const searchNewTagsToFollowInput = document.getElementById("searchNewTagsToFollo
 const resetTagsSearchbarIcon = document.getElementById("resetTagsSearchbar");
 const closeManageFollowedTagsModalIcon = document.getElementById("closeManageFollowedTagsModal");
 
+export const randomPostContainer = document.getElementById("randomPostContainer");
+
 const dashboardHeaderMainButtons = [{name: 'For You', id: 'dashboardForYou'}, {name: 'Your Tags', id: 'yourTags'}];
 const dashboardHeaderDiscoverButtonsWithSpecifiedTag =  [{name: 'Recent', id: 'recent'}, {name: 'The best', id: 'theBest'}];
 const dashboardHeaderDiscoverButtonsWithoutSpecifiedTag =  [{name: 'Popular', id: 'popular'}, {name: 'Recent for you', id: 'recentForYou'}];
@@ -75,7 +81,7 @@ const sectionSelectors = {
     topics: topicsSelector,
 };
 
-document.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const section = urlParams.get("section");
     const tag = urlParams.get("tag");
@@ -90,6 +96,7 @@ Object.entries(sectionSelectors).forEach(([section, selector]) => {
 })
 
 async function handleSectionChange(chosenSection, fetchController, specifiedTag = "") {
+    let pageNumber = 1;
     sectionSelectors[currentActiveSection].style.color = "#ACACAC"
     sectionSelectors[chosenSection].style.color = "#FFFFFF"
     currentActiveSection = chosenSection;
@@ -97,19 +104,24 @@ async function handleSectionChange(chosenSection, fetchController, specifiedTag 
     fetchController.abort();
     fetchController = new AbortController();
 
+
+
     if (chosenSection === "dashboard" || chosenSection === "myPosts") {
         dashboardContentContainer.innerHTML = '';
 
-        leftColumn.classList.remove("discover");
-        dashboardMiddleContainer.classList.remove("discover");
-        rightColumn.classList.remove("discover");
+        leftColumn.classList.replace("discover", "dashboard");
+        dashboardMiddleContainer.classList.replace("discover", "dashboard");
+        rightColumn.classList.replace("discover", "dashboard");
 
-        leftColumn.classList.add("dashboard");
-        dashboardMiddleContainer.classList.add("dashboard");
-        rightColumn.classList.add("dashboard");
+        if (chosenSection === "dashboard" && dashboardContentContainer.classList.contains("discover")) {
+            dashboardContentContainer.classList.replace("discover", "dashboard");
+        } else if (chosenSection === "dashboard" && dashboardContentContainer.classList.contains("user-posts")) {
+            dashboardContentContainer.classList.replace("user-posts", "dashboard")
+        } else {
+            dashboardContentContainer.classList.replace("discover", "user-posts");
+        }
 
-        dashboardContentContainer.classList.remove("discover");
-        dashboardContentContainer.classList.add("dashboard");
+        await fetchRandomPostForRadarInDashboard();
     }
 
     if (chosenSection !== "dashboard" && chosenSection !== "myPosts") {
@@ -127,7 +139,15 @@ async function handleSectionChange(chosenSection, fetchController, specifiedTag 
 
     if (chosenSection === 'myPosts') {
         dashboardHeader.style.display = 'none';
-        await fetchUserPosts(fetchController.signal);
+
+        if (!localStorage.getItem("userPostsPaginationNumber")) {
+            localStorage.setItem("userPostsPaginationNumber", "1");
+            pageNumber = 1;
+        } else {
+            pageNumber = parseInt(localStorage.getItem("userPostsPaginationNumber"));
+        }
+
+        await fetchUserPosts(pageNumber);
     } else {
         dashboardHeader.style.display = 'block';
     }
@@ -157,7 +177,14 @@ async function handleSectionChange(chosenSection, fetchController, specifiedTag 
             createHeaderButtons(button, dashboardHeaderMainButtons, fetchController.signal);
         })
 
-        await fetchRandomPostsForUser(fetchController.signal);
+        if (!localStorage.getItem("dashboardPaginationNumber")) {
+            localStorage.setItem("dashboardPaginationNumber", "1");
+            pageNumber = 1;
+        } else {
+            pageNumber = parseInt(localStorage.getItem("dashboardPaginationNumber"));
+        }
+
+        await fetchRandomPostsForUser(pageNumber);
     }
 
     console.log(chosenSection)
@@ -360,6 +387,12 @@ if (dashboardContentContainer) {
     dashboardContentContainer.addEventListener('click', showPostManagementOptions);
     dashboardContentContainer.addEventListener("click", showDeletePostWarningModal);
     dashboardContentContainer.addEventListener("click", showDeleteCommentWarningModal);
+    dashboardContentContainer.addEventListener("click", showCommentManagementOptions);
+}
+
+if (rightColumn) {
+    rightColumn.addEventListener('click', likeOrUnlikePostEventListener);
+    rightColumn.addEventListener('click', showDiscoverPostAndLikesStatisticsContainer);
 }
 
 if (closeStatisticsModalIcon) {

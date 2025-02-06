@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 error_log(print_r($_SESSION, true));
 
@@ -16,7 +15,6 @@ if ($role == 'admin') {
 }
 
 error_log($isSignedIn);
-
 ?>
 
 <!doctype html>

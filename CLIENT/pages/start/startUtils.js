@@ -3,7 +3,7 @@ import {fetchMainTagsForStartPage, getPostsForNonLoggedInUser} from "./startApiF
 import {createDiscoverPost} from "../../../index.js";
 import {
     forgotPasswordSubmitButton,
-    mainTagsContainer, resetPasswordEmailInput, signInNicknameInput, signInPasswordInput, signInSubmitButton,
+    mainTagsContainer, signInNicknameInput, signInPasswordInput, signInSubmitButton,
     signUpEmailInput,
     signUpNicknameInput,
     signUpPasswordInput,

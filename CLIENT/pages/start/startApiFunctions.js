@@ -1,10 +1,13 @@
 import {
-    mainTagsContainer, resetPasswordEmailInput,
     signInForm,
     signInModal,
     signInNicknameInput,
-    signInPasswordInput, signUpEmailInput, signUpForm,
-    signUpModal, signUpNicknameInput, signUpPasswordInput
+    signInPasswordInput,
+    signUpEmailInput,
+    signUpForm,
+    signUpModal,
+    signUpNicknameInput,
+    signUpPasswordInput
 } from "./start.js";
 import {showToast} from "../../../indexUtils.js";
 
@@ -128,30 +131,6 @@ export async function logout() {
         if (data.success) {
             showToast(data.message, 'success');
             window.location = "../start/start.php";
-        } else {
-            showToast('Something went wrong. Please try again.', 'error')
-        }
-    })
-    .catch(errors => {
-        console.log(errors)
-        showToast('Something went wrong. Please try again.', 'error')
-    })
-}
-
-export async function forgotPassword() {
-    fetch("http://localhost/php-small-social-service-app/authentication/forgot-password", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            email: resetPasswordEmailInput.value.trim(),
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
         } else {
             showToast('Something went wrong. Please try again.', 'error')
         }

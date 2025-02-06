@@ -1,4 +1,9 @@
-import {newPasswordInput} from "./resetPassword.js";
+import {
+    newPasswordInput,
+    passwordResetSuccessInformation,
+    resendEmailMessageContainer,
+    resetPasswordContainer
+} from "./resetPassword.js";
 import {showToast} from "../../../indexUtils.js";
 
 export async function resetUserPassword(token) {
@@ -18,11 +23,12 @@ export async function resetUserPassword(token) {
     .then(data => {
         if (data.success) {
             showToast(data.message, "success");
-            setTimeout(() => {
-                window.location = "../dashboard/dashboard.php?section=dashboard";
-            }, 1000);
+            resetPasswordContainer.classList.replace("visible", "hidden")
+            passwordResetSuccessInformation.classList.replace("hidden", "visible")
         } else {
-            showToast("Something went wrong!", "error");
+            showToast(data.message, "error");
+            resetPasswordContainer.classList.replace("visible", "hidden")
+            resendEmailMessageContainer.classList.replace("hidden", "visible");
         }
     })
     .catch(error => {

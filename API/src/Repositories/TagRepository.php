@@ -97,10 +97,9 @@ class TagRepository extends BaseRepository {
     }
 
     public function addNewTagByUser(array $data): void {
-        $query = "INSERT INTO `flickit-db`.tags (name, isMain, tagType) VALUES (:name, 'user', :isMain)";
+        $query = "INSERT INTO `flickit-db`.tags (name, isMain, tagType) VALUES (:name, false, 'user')";
         $statement = $this->connection->prepare($query);
-        $statement->bindParam(':name', $data['name']);
-        $statement->bindParam(':isMain', $data['isMain']);
+        $statement->bindParam(':name', $data['tagName']);
         $statement->execute();
     }
 

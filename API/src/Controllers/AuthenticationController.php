@@ -1,7 +1,6 @@
 <?php
 
 namespace Controllers;
-
 require("vendor/autoload.php");
 
 use PHPMailer\PHPMailer\Exception;
@@ -119,11 +118,21 @@ class AuthenticationController {
                     break;
                 }
 
-                try {
+                $ngrokUrl = file_get_contents("http://127.0.0.1:4040/api/tunnels");
+                $ngrokData = json_decode($ngrokUrl, true);
 
+                if (!isset($ngrokData["tunnels"][0]["public_url"])) {
+                    http_response_code(500);
+                    echo json_encode(["success" => false, "errors" => ["Failed to retrieve Ngrok URL!"]]);
+                    break;
+                }
+
+                $publicUrl = $ngrokData["tunnels"][0]["public_url"];
+
+                try {
                     $token = bin2hex(random_bytes(32));
                     $this->authenticationRepository->storeResetPasswordToken($user["id"], $token);
-                    $resetLink = "https://605e-109-243-65-70.ngrok-free.app/php-small-social-service-app/CLIENT/pages/reset-password/resetPassword.php?token=" . urlencode($token);
+                    $resetLink = "$publicUrl/php-small-social-service-app/CLIENT/pages/reset-password/resetPassword.php?token=" . urlencode($token);
                     $mail = new PHPMailer(true);
 
                     $mail->isSMTP();

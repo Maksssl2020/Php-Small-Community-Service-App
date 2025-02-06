@@ -2,6 +2,10 @@ import {validateFormInput} from "../../../indexUtils.js";
 import {resetUserPassword} from "./resetPasswordApiFunctions.js";
 
 export const newPasswordInput = document.getElementById("newPassword");
+export const resetPasswordContainer = document.getElementById("resetPasswordContainer");
+export const passwordResetSuccessInformation = document.getElementById("passwordResetSuccessInformation");
+export const resendEmailMessageContainer = document.getElementById("resendEmailMessageContainer");
+
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const resetPasswordButton = document.getElementById("resetPasswordButton");
 

@@ -3,8 +3,7 @@ import {
     addNewLinkPost,
     addNewQuotePost,
     addNewTextPost,
-    addNewUserTag,
-    fetchAllTags
+    addNewUserTag, fetchAllTags,
 } from "./dashboardApiFunctions.js";
 import {postOptionsModal} from "./dashboard.js";
 import {autoResize, fetchSiteData} from "../../../indexApiFunctions.js";
@@ -23,8 +22,8 @@ const selectOptions = document.getElementById("selectOptions");
 const tagsFilter = document.getElementById("tagsFilter");
 const addedTagsContainer = document.getElementById("addedTagsContainer");
 
-let availableTags = [];
-let chosenTags = [];
+export let availableTags = [];
+export let chosenTags = [];
 
 
 const addNewPostButton = document.getElementById("addNewPostButton");
@@ -47,7 +46,7 @@ if (addTextPostButton) {
         addNewPostModal.style.display = "block";
 
         generateAddTextPostModal();
-        await fetchAllTags();
+        await populateTagSelect([]);
 
         addNewPostButton.onclick = async (e) => {
             await addNewTextPost(e);
@@ -61,7 +60,7 @@ if (addImagePostButton) {
         addNewPostModal.style.display = "block";
 
         generateAddImagePostModal();
-        await fetchAllTags();
+        await populateTagSelect([]);
 
         addNewPostButton.onclick = async (e) => {
             await addNewImagePost(e);
@@ -75,7 +74,7 @@ if (addQuotePostButton) {
         addNewPostModal.style.display = "block";
 
         generateAddQuotePostModal();
-        await fetchAllTags();
+        await populateTagSelect([]);
 
         addNewPostButton.onclick = (e) => {
             addNewQuotePost(e);
@@ -89,7 +88,7 @@ if (addLinkPostButton) {
         addNewPostModal.style.display = "block";
 
         generateAddLinkPostModal();
-        await fetchAllTags();
+        await populateTagSelect([]);
 
         addNewPostButton.onclick = (e) => {
             addNewLinkPost(e);
@@ -104,11 +103,11 @@ if (addNewPostModalCloseButton) {
     }
 }
 if (tagsFilter) {
-    tagsFilter.addEventListener('keyup', (e) => {
+    tagsFilter.addEventListener('keyup', async (e) => {
         const filterValue = e.target.value.toLowerCase();
         const filteredTags = availableTags.filter(tag => tag.name.toLowerCase().includes(filterValue));
 
-        populateTagSelect(filteredTags.slice(0, 8));
+        await populateTagSelect(filteredTags.slice(0, 8), true);
         focus();
     })
 }
@@ -117,7 +116,9 @@ if (tagsFilter) {
     tagsFilter.addEventListener('keypress', (e) => {
         const inputValue = e.target.value.trim();
 
-        if (e.key === "Enter" && availableTags.every(tag => tag.name.toLowerCase() !== inputValue.toLowerCase()) ) {
+        if (e.key === "Enter" &&
+            availableTags.every(tag => tag.name.toLowerCase() !== inputValue.toLowerCase()) &&
+            chosenTags.every(tag => tag.toLowerCase() !== inputValue.toLowerCase()) ) {
             e.preventDefault();
 
             if (inputValue) {
@@ -277,10 +278,29 @@ function addPhotoUrlToTheList(url, addedLinksList) {
     addedLinksList.append(urlListItem);
 }
 
-function populateTagSelect(tags) {
+export async function populateTagSelect(tags = [], isFiltered = false) {
+    let tagsToPopulate;
+
+    if (tags.length === 0 && !isFiltered) {
+        const foundTags = await fetchAllTags();
+        availableTags = [];
+
+        foundTags.forEach((tag) => {
+            availableTags.push(tag);
+        })
+
+        tagsToPopulate = availableTags.slice(0, 8);
+    } else {
+        tagsToPopulate = tags;
+    }
+
+
+    console.log(tagsToPopulate);
+    console.log(tags);
+
     selectOptions.innerHTML = "";
 
-    tags.forEach(tag => {
+    tagsToPopulate.forEach(tag => {
         const selectOptionDiv = document.createElement("div");
         selectOptionDiv.classList.add("select-option");
 
@@ -302,7 +322,7 @@ function populateTagSelect(tags) {
     });
 }
 
-function addTag(tagName) {
+export async function addTag(tagName) {
     const tagCardDiv = document.createElement("div");
     tagCardDiv.classList.add("tag-card");
 
@@ -324,14 +344,14 @@ function addTag(tagName) {
     chosenTags.push(tagName);
     availableTags = availableTags.filter((tag) => tag.name !== tagName);
     const remainingTags = availableTags.slice(0, 8);
-    populateTagSelect(remainingTags);
+    await populateTagSelect(remainingTags);
 }
 
-function removeTag(tagName, tagElement) {
+async function removeTag(tagName, tagElement) {
     addedTagsContainer.removeChild(tagElement);
     availableTags.push({name: tagName});
     chosenTags = chosenTags.filter((tag) => tag.name !== tagName);
-    populateTagSelect(availableTags.slice(0, 8));
+    await populateTagSelect(availableTags.slice(0, 8));
 }
 
 function validateTextPostForm() {
@@ -355,10 +375,10 @@ function validateLinkPostForm() {
     addNewPostButton.disabled = !isLinkListValid;
 }
 
-async function resetFormData() {
+export async function resetFormData() {
     addPostModalFormContainer.reset();
     chosenTags = [];
     addedTagsContainer.innerHTML = "";
-    await fetchAllTags();
+    await populateTagSelect();
 }
 

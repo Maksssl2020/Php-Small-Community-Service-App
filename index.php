@@ -4,12 +4,27 @@ declare(strict_types=1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.use_strict_mode', 1);
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+$ngrokUrl = file_get_contents("http://127.0.0.1:4040/api/tunnels");
+$ngrokData = json_decode($ngrokUrl, true);
+$publicUrl = $ngrokData["tunnels"][0]["public_url"] ?? "http://localhost:63342";
+
+$allowedOrigins = [
+    "http://localhost:63342",
+    $publicUrl
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $origin");
-    header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS, HEAD, PUT");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization, Accept, Access-Control-Allow-Origin");
-    header("Access-Control-Allow-Credentials: true");
+} else {
+    header("Access-Control-Allow-Origin: http://localhost:63342");
+}
+
+header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS, HEAD, PUT");
+header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, Accept");
+header("Access-Control-Allow-Credentials: true");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 

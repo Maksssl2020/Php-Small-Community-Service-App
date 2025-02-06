@@ -5,29 +5,34 @@ import {
 import {populateDashboardContentPosts, updatePostAfterLikeOrUnlike} from "./dashboardPostRender.js";
 import {showToast} from "../../../indexUtils.js";
 import {getSignedInUserData} from "../../../indexApiFunctions.js";
+import {
+    addPostModalFormContainer, addTag,
+    availableTags,
+    chosenTags,
+    populateTagSelect,
+    resetFormData
+} from "./dashboardAddNewPosts.js";
+import {updatePagination} from "./dashboardUtils.js";
 
 export let fetchController = new AbortController();
 
-export async function fetchRandomPostsForUser(signal) {
+export async function fetchRandomPostsForUser(pageNumber) {
     const {userId} = await getSignedInUserData();
 
-    fetchController.abort();
-    fetchController = new AbortController();
-
     try {
-        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-for-user/${userId}`, {
+        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-for-user/${userId}?page=${pageNumber}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
             },
-            signal: signal,
         });
 
         const data = await response.json();
 
         if (data.success) {
             dashboardContentContainer.innerHTML = "";
-            await populateDashboardContentPosts(data.data);
+            await updatePagination(pageNumber, data.data.totalPages, "dashboardPosts")
+            await populateDashboardContentPosts(data.data.posts);
         } else {
             console.log(data.errors);
             showToast("Something went wrong... Please try again later.", 'error')
@@ -39,9 +44,6 @@ export async function fetchRandomPostsForUser(signal) {
 
 export async function fetchPostsWithUserFollowedTags(signal) {
     const {userId} = await getSignedInUserData();
-
-    fetchController.abort();
-    fetchController = new AbortController();
 
     try {
         const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}`, {
@@ -66,26 +68,27 @@ export async function fetchPostsWithUserFollowedTags(signal) {
     }
 }
 
-export async function fetchUserPosts(signal) {
+export async function fetchUserPosts(pageNumber) {
     const {userId} = await getSignedInUserData();
 
     fetchController.abort();
     fetchController = new AbortController();
 
     try {
-        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-user-posts/${userId}`, {
+        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-user-posts/${userId}?page=${pageNumber}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
             },
-            signal: signal,
         });
 
         const data = await response.json();
 
         if (data.success) {
             dashboardContentContainer.innerHTML = "";
-            await populateDashboardContentPosts(data.data);
+
+            await updatePagination(data.data.totalPages, pageNumber, "userPosts");
+            await populateDashboardContentPosts(data.data.posts);
         } else {
             showToast("Something went wrong... Please try again later.", 'error')
         }
@@ -322,7 +325,7 @@ export async function getAmountOfUserFollowedTags() {
 }
 
 export async function fetchAllTags() {
-    fetch('http://localhost/php-small-social-service-app/tags/get-all-tags', {
+    return await fetch('http://localhost/php-small-social-service-app/tags/get-all-tags', {
         method: 'GET',
         headers: {
             "Content-Type": "application/json"
@@ -330,20 +333,18 @@ export async function fetchAllTags() {
     })
         .then(res => res.json())
         .then(data => {
+            console.log(data)
+
             if (data.success) {
-                availableTags = [];
-
-                data.data.forEach((tag) => {
-                    availableTags.push(tag);
-                })
-
-                const popularTags = availableTags.slice(0, 8);
-                populateTagSelect(popularTags);
-            } else {
-                console.log("Error: No tags found.");
+                return data.data;
             }
+
+            return [];
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+            console.log(err);
+            return [];
+        });
 }
 
 export async function addNewTextPost() {
@@ -605,19 +606,46 @@ export async function deleteComment(commentId) {
     .catch(err => console.log(err));
 }
 
-export async function test($path) {
-    fetch(`http://localhost/php-small-social-service-app/pages/${$path}`, {
+export async function getPostAuthorId(postId) {
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-post-author-id/${postId}`, {
         method: 'GET',
         headers: {
             "Content-Type": "application/json"
         }
     })
-        .then(res => {
-            console.log(res);
-            console.log(res.text());
-        })
+    .then(res => res.json())
     .then(data => {
+        if (data.success) {
+            return data.data;
+        }
 
+        return 0;
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+        console.log(err);
+        return 0;
+    });
+}
+
+export async function getRandomPostForUserRadar() {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-random-post-for-user-radar/${userId}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return null;
+    })
+    .catch(err => {
+        console.log(err);
+        return null;
+    });
 }

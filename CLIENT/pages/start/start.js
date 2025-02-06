@@ -1,4 +1,4 @@
-import {forgotPassword, logout, signIn, signUp} from "./startApiFunctions.js";
+import {logout, signIn, signUp} from "./startApiFunctions.js";
 import {showDiscoverPostAndLikesStatisticsContainer} from "../../../indexEventListeners.js";
 import {
     fillPageWithMainTagCards,
@@ -7,6 +7,7 @@ import {
     validateSignUpForm
 } from "./startUtils.js";
 import {validateFormInput} from "../../../indexUtils.js";
+import {forgotPassword} from "../../../indexApiFunctions.js";
 
 export const signUpModal = document.getElementById('signUpModal');
 export const signInModal = document.getElementById('signInModal');
@@ -20,7 +21,7 @@ const headerTitle = document.getElementById('headerTitle');
 const forgotPasswordLabel = document.getElementById('forgotPasswordLabel');
 const forgotPasswordModal = document.getElementById('forgotPasswordModal');
 const returnToSignInModalButton = document.getElementById('returnToSignInModal');
-export const resetPasswordEmailInput = document.getElementById('resetPasswordEmailInput');
+const resetPasswordEmailInput = document.getElementById('resetPasswordEmailInput');
 export const forgotPasswordSubmitButton  = document.getElementById('forgotPasswordSubmitButton');
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -34,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fillPageWithMainTagCards();
     }
 })
-
 
 mainTagsContainer.addEventListener('click', showDiscoverPostAndLikesStatisticsContainer);
 
@@ -119,7 +119,7 @@ if (returnToSignInModalButton) {
 if (forgotPasswordSubmitButton) {
     forgotPasswordSubmitButton.onclick = async (e) => {
         e.preventDefault();
-        await forgotPassword();
+        await forgotPassword(resetPasswordEmailInput.value.trim());
         forgotPasswordModal.style.display = 'none';
     }
 }

@@ -11,8 +11,14 @@ use Models\Tag;
 use PDO;
 
 class PostRepository extends BaseRepository {
+    private int $rowsPerPage = 6;
+
     public function __construct(Database $database, private readonly TagRepository $tagRepository) {
         parent::__construct($database);
+    }
+
+    private function calculateStartIndexForPagination(int $pageNumber): int {
+        return ($pageNumber - 1) * $this->rowsPerPage;
     }
 
     public function postExists(string $postId): bool {
@@ -24,19 +30,50 @@ class PostRepository extends BaseRepository {
         return $statement->fetchColumn() > 0;
     }
 
-    public function getUserPosts(string $userId): array {
-        $query = "SELECT * FROM `flickit-db`.posts WHERE userId = :userId";
+    public function getUserPosts(string $userId, int $pageNumber): array {
+        $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+
+        $query = "SELECT * FROM `flickit-db`.posts WHERE userId = :userId LIMIT :startIndex, :rowsPerPage";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(":userId", $userId);
+        $statement->bindParam(":startIndex", $startIndex, PDO::PARAM_INT);
+        $statement->bindParam(":rowsPerPage", $this->rowsPerPage, PDO::PARAM_INT);
         $statement->execute();
         $posts = $statement->fetchAll();
+        $totalPosts = $this->countUserPosts($userId);
+        $totalPages = ceil($totalPosts / $this->rowsPerPage);
 
         if (empty($posts)) {
             return [];
         }
 
+        return [
+            'posts' => $this->getPostsData($posts),
+            'totalPages' => $totalPages,
+        ];
+    }
 
-        return $this->getPostsData($posts);
+    public function getDashboardPostsForUser(string $userId, int $pageNumber): array {
+        $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+
+        $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId LIMIT :startIndex, :rowsPerPage";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":userId", $userId);
+        $statement->bindParam(":startIndex", $startIndex, PDO::PARAM_INT);
+        $statement->bindParam(":rowsPerPage", $this->rowsPerPage, PDO::PARAM_INT);
+        $statement->execute();
+        $posts = $statement->fetchAll();
+        $totalPosts = $this->countDashboardPostsForUser($userId);
+        $totalPages = ceil($totalPosts / $this->rowsPerPage);
+
+        if (empty($posts)) {
+            return [];
+        }
+
+        return [
+            'posts' => $this->getPostsData($posts),
+            'totalPages' => $totalPages,
+        ];
     }
 
     public function getDiscoveredPostsBasedOnChosenTag(string $specifiedTag): array {
@@ -59,9 +96,9 @@ class PostRepository extends BaseRepository {
         return $this->getPostsData($posts);
     }
 
-    public function getDiscoverPostsForUser(string $userId, bool $recent): array {
+    public function getDiscoverPostsForUser(string $userId, bool $recent, $pageNumber): array {
         if ($recent) {
-            $posts = $this->getDashboardPostsForUser($userId);
+            $posts = $this->getDashboardPostsForUser($userId, $pageNumber);
 
             usort($posts, function (Post $a, Post $b) {
                 return $b->getCreatedAt() <=> $a->getCreatedAt();
@@ -141,18 +178,18 @@ class PostRepository extends BaseRepository {
         return $statement->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public function getDashboardPostsForUser(string $userId): array {
-        $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId";
+    public function getRandomPostForUserRadar(string $userId): ?Post {
+        $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId ORDER BY RAND() LIMIT 1";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(":userId", $userId);
         $statement->execute();
-        $posts = $statement->fetchAll();
+        $post = $statement->fetch();
 
-        if (empty($posts)) {
-            return [];
+        if (empty($post)) {
+            return null;
         }
 
-        return $this->getPostsData($posts);
+        return $this->getPostsData(array($post))[0];
     }
 
     public function getDashboardPostsByFollowedTags(string $userId): array {
@@ -312,6 +349,33 @@ class PostRepository extends BaseRepository {
         $statement = $this->connection->prepare($query);
         $statement->bindParam(":postId", $postId, PDO::PARAM_INT);
         $statement->execute();
+    }
+
+    public function getPostAuthorId(string $postId): int {
+        $query = "SELECT `userId` FROM `flickit-db`.posts WHERE id = :postId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":postId", $postId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchColumn();
+    }
+
+    private function countUserPosts(string $userId): int {
+        $query = "SELECT COUNT(*) FROM `flickit-db`.posts WHERE userId = :userId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":userId", $userId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchColumn();
+    }
+
+    private function countDashboardPostsForUser(string $userId): int {
+        $query = "SELECT COUNT(*) FROM `flickit-db`.posts WHERE userId != :userId";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(":userId", $userId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchColumn();
     }
 
     private function getPostsData(array $posts): array {

@@ -1,3 +1,5 @@
+import {showToast} from "./indexUtils.js";
+
 export async function fetchUserData(userId) {
     return await fetch(`http://localhost/php-small-social-service-app/users/get-user-data/${userId}`, {
         method: 'GET',
@@ -121,4 +123,28 @@ export async function isPostLikedByUser(postId) {
             console.log(err);
             return false;
         });
+}
+
+export async function forgotPassword(userEmail) {
+    fetch("http://localhost/php-small-social-service-app/authentication/forgot-password", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: userEmail.trim(),
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+            } else {
+                showToast('Something went wrong. Please try again.', 'error')
+            }
+        })
+        .catch(errors => {
+            console.log(errors)
+            showToast('Something went wrong. Please try again.', 'error')
+        })
 }

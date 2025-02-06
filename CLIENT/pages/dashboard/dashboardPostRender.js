@@ -1,5 +1,5 @@
-import {dashboardContentContainer} from "./dashboard.js";
-import {countPostComments} from "./dashboardApiFunctions.js";
+import {dashboardContentContainer, randomPostContainer} from "./dashboard.js";
+import {countPostComments, getPostAuthorId, getRandomPostForUserRadar} from "./dashboardApiFunctions.js";
 import {createDiscoverPost, createPostContentContainer, createPostFooter, createPostHeader} from "../../../index.js";
 import {
     fetchPostAmountOfLikes,
@@ -8,6 +8,15 @@ import {
     isPostLikedByUser
 } from "../../../indexApiFunctions.js";
 import {calcPeriodFromDate, getUserAvatar} from "../../../indexUtils.js";
+
+export async function fetchRandomPostForRadarInDashboard() {
+    randomPostContainer.innerHTML = '';
+
+    const postData = await getRandomPostForUserRadar();
+    const discoverPost = await createDiscoverPost(postData, true, true);
+
+    randomPostContainer.appendChild(discoverPost);
+}
 
 export async function populateDashboardContentPosts(posts) {
     for (const post of posts) {
@@ -59,7 +68,7 @@ async function createDashboardPost(postData) {
     postDiv.setAttribute('id', `post-${id}`);
 
     const postHeader = await createPostHeader(id, userId, avatarSrc, userNickname, createdAt, true);
-    const postContentDiv = await createPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks);
+    const postContentDiv = await createPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks, true);
     const postFooter = await createPostFooter(id, userId,false, true);
     const postStatisticsContainer = await createDashboardPostStatisticsContainer(id);
 
@@ -166,16 +175,19 @@ export async function fillLikesSection(postId, likes, isDiscoverPost = false) {
 
 async function createPostCommentCard(commentData) {
     const {id, postId, userId, content, createdAt} = commentData;
+    const postAuthorId = await getPostAuthorId(postId);
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
     let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
     let isUserCommentAuthor = false;
+    let isUserPostAuthor = false;
 
     if (await getSignedInUserData()) {
         const {userId: signedInUserId} =await getSignedInUserData()
         isUserCommentAuthor = userId === signedInUserId;
+        isUserPostAuthor = postAuthorId === signedInUserId;
     }
 
-    const settingsContainerClass = isUserCommentAuthor ? "visible" : "hidden";
+    const settingsContainerClass = isUserCommentAuthor || isUserPostAuthor ? "visible" : "hidden";
 
     return `
     <div id="comment-${id}" class="comment-card">
@@ -219,26 +231,35 @@ async function createLikeCard(likeData) {
 export async function updatePostAfterLikeOrUnlike(postId) {
     const updatedLikes = await fetchPostAmountOfLikes(postId);
     const isLikedByUser = await isPostLikedByUser(postId);
-    const postElement = document.getElementById(`post-${postId}`);
-    const statisticsSection = postElement.querySelector(".post-comments-likes-container");
+    const postElementInMainContainer = document.getElementById(`post-${postId}`);
+    const postElementInRadarContainer = document.getElementById(`radar-post-${postId}`);
+    const statisticsSection = postElementInMainContainer.querySelector(".post-comments-likes-container");
 
+    if (postElementInMainContainer) {
+        updateLikesAmountInContainer(postElementInMainContainer, updatedLikes, isLikedByUser);
 
-    if (postElement) {
-        const likesContainer = postElement.querySelector('.post-likes-container span:first-child');
-        if (likesContainer) likesContainer.textContent = updatedLikes;
+    }
 
-        const likeIcon = postElement.querySelector('i.bi-heart, i.bi-heart-fill');
-        if (likeIcon) {
-            likeIcon.className = isLikedByUser ? 'bi bi-heart-fill liked' : 'bi bi-heart';
-        }
+    if (postElementInRadarContainer) {
+        updateLikesAmountInContainer(postElementInRadarContainer, updatedLikes, isLikedByUser);
     }
 
     if (statisticsSection) {
         const likesStatisticInfo = document.getElementById(`likesStatistic-${postId}`)
 
         if (likesStatisticInfo) {
-            likesStatisticInfo.querySelector("span").textContent = updatedLikes;
+            likesStatisticInfo.querySelector("span").textContent = `${updatedLikes}`;
         }
+    }
+}
+
+function updateLikesAmountInContainer(container, updatedLikes, isLikedByUser) {
+    const likesContainer = container.querySelector('.post-likes-container span:first-child');
+    if (likesContainer) likesContainer.textContent = `${updatedLikes}`;
+
+    const likeIcon = container.querySelector('i.bi-heart, i.bi-heart-fill');
+    if (likeIcon) {
+        likeIcon.className = isLikedByUser ? 'bi bi-heart-fill liked' : 'bi bi-heart';
     }
 }
 
@@ -258,6 +279,7 @@ export async function updatePostAfterAddCommentOrRemoveComment(postId, isDiscove
         if (commentsCountInfo) commentsCountInfo.textContent = `${updatedCommentsCount}`;
     }
 }
+
 
 export async function addCommentCardToPost(commentId, postId, userId, content, createdAt, isDiscoverPost = false) {
     let postContainer;

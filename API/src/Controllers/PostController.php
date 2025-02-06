@@ -11,17 +11,19 @@ readonly class PostController {
     }
 
     public function processRequest(string $method, string $action, ?string $id): void{
+        $pageNumber = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
         if ($method == 'GET' && !empty($id)) {
 
             if (str_contains($action, 'get-discovered-posts')) {
                 $data = $this->explodeActionStringForRequestWithUserId($action);
 
                 count($data) == 2 ?
-                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts-with-tag", $id, $data) :
-                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts", $id, $data);
+                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts-with-tag", $id, $data, $pageNumber) :
+                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts", $id, $data, $pageNumber);
             }
 
-            $this->processCollectionGetRequestWithId($action, $id);
+            $this->processResourceGetRequestWithId($action, $id, $pageNumber);
         } elseif ($method == "GET" && empty($id)) {
             if (str_contains($action, 'get-discovered-posts')) {
                 $data = $this->explodeActionStringForRequestWithoutUserId($action);
@@ -64,10 +66,10 @@ readonly class PostController {
         }
     }
 
-    private function processCollectionGetRequestWithIdAndAdditionalData(string $action, string $id, array $data): void {
+    private function processCollectionGetRequestWithIdAndAdditionalData(string $action, string $id, array $data, int $pageNumber): void {
         switch ($action) {
             case "get-discovered-posts": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUser($id, $data[0] == "recent")]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUser($id, $data[0] == "recent", $pageNumber)]);
                 break;
             }
             case "get-discovered-posts-with-tag": {
@@ -227,7 +229,7 @@ readonly class PostController {
         }
     }
 
-    public function processCollectionGetRequestWithId(string $action, string $id): void{
+    public function processResourceGetRequestWithId(string $action, string $id, string $pageNumber): void{
         switch ($action) {
             case 'get-user-posts': {
                 if (!$this->userRepository->userExists($id)) {
@@ -236,11 +238,11 @@ readonly class PostController {
                     return;
                 }
 
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getUserPosts($id)]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getUserPosts($id, $pageNumber)]);
                 break;
             }
             case "get-dashboard-posts-for-user": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsForUser($id)]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsForUser($id, $pageNumber)]);
                 break;
             }
             case "get-dashboard-posts-by-followed-tags": {
@@ -269,6 +271,14 @@ readonly class PostController {
             }
             case "get-post-creator-id": {
                 echo json_encode(['success'=>true, 'data' => $this->postRepository->getPostCreatorId($id)]);
+                break;
+            }
+            case "get-post-author-id": {
+                echo json_encode(["success" => true, "data" => $this->postRepository->getPostAuthorId($id)]);
+                break;
+            }
+            case "get-random-post-for-user-radar": {
+                echo json_encode(['success'=>true, 'data' => $this->postRepository->getRandomPostForUserRadar($id)]);
                 break;
             }
         }
