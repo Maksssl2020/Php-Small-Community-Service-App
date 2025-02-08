@@ -22,7 +22,7 @@
 <body class="body-container" id="dashboardBody">
 <div id="toastContainer"></div>
     <div class="main-container">
-        <div id="leftColumn" class="left-column">
+        <div id="leftColumn" class="left-column dashboard">
             <div class="left-sidebar">
                 <div class="logo-container">
                     <h1>Flickit</h1>
@@ -66,21 +66,21 @@
                 </button>
             </div>
         </div>
-        <div id="dashboardMiddleContainer" class="dashboard-container">
+        <div id="dashboardMiddleContainer" class="dashboard-container dashboard">
             <header id="dashboardHeader" class="dashboard-header"></header>
             <div class="dashboard-content-container scrollbar" id="dashboardContentContainer"></div>
             <footer class="dashboard-footer" id="dashboardFooter">
-                <button style="padding-right: 8px" class="pagination-arrow">
+                <button id="paginationLeftArrow" style="padding-right: 8px" class="pagination-arrow">
                     <i class="bi bi-chevron-left"></i>
                 </button>
                 <div id="paginationNumbers" class="pagination-numbers">
                 </div>
-                <button style="padding-left: 8px" class="pagination-arrow">
+                <button id="paginationRightArrow" style="padding-left: 8px" class="pagination-arrow">
                     <i class="bi bi-chevron-right"></i>
                 </button>
             </footer>
         </div>
-        <div id="rightColumn" class="right-column">
+        <div id="rightColumn" class="right-column scrollbar dashboard">
             <div class="searchbar">
                 <i class="bi bi-search"></i>
                 <input class="searchbar-input" type="text" placeholder="Search on Flickit"/>
@@ -89,6 +89,7 @@
             <div class="random-tags-container">
                 <h2>Check out these tags</h2>
                 <div id="randomTagsContainer"></div>
+                <a href="../dashboard/dashboard.php?section=discover">Discover on all Flickit</a>
             </div>
 
             <div class="random-post-container">

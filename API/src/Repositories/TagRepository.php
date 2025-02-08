@@ -41,6 +41,27 @@ class TagRepository extends BaseRepository {
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getFewRandomTagsForUser(int $userId): array {
+        $followedTags = $this->findUserFollowedTagsData($userId);
+
+        if (empty($followedTags)) {
+            return $this->getAllTags();
+        }
+
+        $tagIds = array_column($followedTags, 'tagId');
+        $query = "
+            SELECT name FROM `flickit-db`.tags 
+            WHERE id 
+            NOT IN (" . implode(',', array_fill(0, count($tagIds), '?')) . ")
+            ORDER BY RAND()
+            LIMIT 4
+            ";
+        $statement = $this->connection->prepare($query);
+        $statement->execute(array_values($tagIds));
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getUserFollowedTags(string $userId): array {
         $followedTags = $this->findUserFollowedTagsData($userId);
 
@@ -80,6 +101,21 @@ class TagRepository extends BaseRepository {
 
     public function getAllTags(): array {
         $query = "SELECT name FROM `flickit-db`.tags ORDER BY name DESC";
+        $statement = $this->connection->prepare($query);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getPopularTags(): array {
+        $query = "    
+            SELECT t.name, COUNT(*) AS totalUse
+            FROM `flickit-db`.post_tags pt
+            JOIN `flickit-db`.tags t ON pt.tagId = t.id
+            GROUP BY  pt.tagId, t.name
+            ORDER BY totalUse DESC
+            LIMIT 8;
+        ";
         $statement = $this->connection->prepare($query);
         $statement->execute();
 

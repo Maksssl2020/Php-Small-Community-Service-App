@@ -81,7 +81,7 @@ error_log($isSignedIn);
                     <?php endif; ?>
                 </div>
             </header>
-            <div id="mainTags" class="main-tags-container main-tags">
+            <div id="mainTags" class="main-tags-container main-tags scrollbar">
             </div>
         </div>
     </div>

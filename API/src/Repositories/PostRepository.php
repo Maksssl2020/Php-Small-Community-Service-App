@@ -11,14 +11,15 @@ use Models\Tag;
 use PDO;
 
 class PostRepository extends BaseRepository {
-    private int $rowsPerPage = 6;
+    private int $dashboardRowsPerPage = 6;
+    private int $discoverRowsPerPage = 12;
 
     public function __construct(Database $database, private readonly TagRepository $tagRepository) {
         parent::__construct($database);
     }
 
     private function calculateStartIndexForPagination(int $pageNumber): int {
-        return ($pageNumber - 1) * $this->rowsPerPage;
+        return ($pageNumber - 1) * $this->dashboardRowsPerPage;
     }
 
     public function postExists(string $postId): bool {
@@ -32,16 +33,15 @@ class PostRepository extends BaseRepository {
 
     public function getUserPosts(string $userId, int $pageNumber): array {
         $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+        $rowsPerPage = $this->dashboardRowsPerPage;
 
-        $query = "SELECT * FROM `flickit-db`.posts WHERE userId = :userId LIMIT :startIndex, :rowsPerPage";
+        $query = "SELECT * FROM `flickit-db`.posts WHERE userId = :userId LIMIT $startIndex, $rowsPerPage";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(":userId", $userId);
-        $statement->bindParam(":startIndex", $startIndex, PDO::PARAM_INT);
-        $statement->bindParam(":rowsPerPage", $this->rowsPerPage, PDO::PARAM_INT);
         $statement->execute();
         $posts = $statement->fetchAll();
         $totalPosts = $this->countUserPosts($userId);
-        $totalPages = ceil($totalPosts / $this->rowsPerPage);
+        $totalPages = ceil($totalPosts / $this->dashboardRowsPerPage);
 
         if (empty($posts)) {
             return [];
@@ -53,109 +53,145 @@ class PostRepository extends BaseRepository {
         ];
     }
 
-    public function getDashboardPostsForUser(string $userId, int $pageNumber): array {
+    public function getPostsForUser(string $userId, int $pageNumber, bool $isDashboard = true): array {
         $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+        $rowsPerPage = $isDashboard ? $this->dashboardRowsPerPage : $this->discoverRowsPerPage;
 
-        $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId LIMIT :startIndex, :rowsPerPage";
+        $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId LIMIT $startIndex, $rowsPerPage";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(":userId", $userId);
-        $statement->bindParam(":startIndex", $startIndex, PDO::PARAM_INT);
-        $statement->bindParam(":rowsPerPage", $this->rowsPerPage, PDO::PARAM_INT);
         $statement->execute();
         $posts = $statement->fetchAll();
         $totalPosts = $this->countDashboardPostsForUser($userId);
-        $totalPages = ceil($totalPosts / $this->rowsPerPage);
+        $totalPages = ceil($totalPosts / $this->dashboardRowsPerPage);
 
-        if (empty($posts)) {
-            return [];
-        }
-
-        return [
+        return empty($posts) ? [
+            'posts' => [],
+            'totalPages' => $totalPages,
+        ] : [
             'posts' => $this->getPostsData($posts),
             'totalPages' => $totalPages,
         ];
     }
 
-    public function getDiscoveredPostsBasedOnChosenTag(string $specifiedTag): array {
+    public function getDiscoveredPostsBasedOnChosenTag(string $specifiedTag, int $pageNumber): array {
         $postsIds = $this->getPostsIdsBasedOnChosenTag($specifiedTag);
 
         if (empty($postsIds)) {
-            return [];
+            return [
+                'posts' => [],
+                'totalPages' => 0,
+            ];
         }
+
+        $inQuery = implode(',', array_fill(0, count($postsIds), '?'));
+        $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+        $rowsPerPage = $this->dashboardRowsPerPage;
 
         $fetchPostsQuery = "
             SELECT * 
             FROM `flickit-db`.posts 
-            WHERE id IN (" . implode(',', array_fill(0, count($postsIds), '?')) . ")
+            WHERE id IN ($inQuery)
+            LIMIT $startIndex, $rowsPerPage
         ";
+
 
         $statement = $this->connection->prepare($fetchPostsQuery);
         $statement->execute($postsIds);
         $posts = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $totalPosts = count($postsIds);
+        $totalPages = ceil($totalPosts / $this->dashboardRowsPerPage);
 
-        return $this->getPostsData($posts);
+        return [
+            'posts' => $this->getPostsData($posts),
+            'totalPages' => $totalPages,
+        ];
     }
 
-    public function getDiscoverPostsForUser(string $userId, bool $recent, $pageNumber): array {
+    public function getDiscoverPostsForUser(string $userId, bool $recent, int $pageNumber): array {
         if ($recent) {
-            $posts = $this->getDashboardPostsForUser($userId, $pageNumber);
+            $posts = $this->getPostsForUser($userId, $pageNumber, false);
 
-            usort($posts, function (Post $a, Post $b) {
+            usort($posts['posts'], function (Post $a, Post $b) {
                 return $b->getCreatedAt() <=> $a->getCreatedAt();
             });
 
             return $posts;
         } else {
+            $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+            $rowsPerPage = $this->discoverRowsPerPage;
+
             $query = "
                 SELECT p.*, 
                 (SELECT COUNT(*) FROM `flickit-db`.likes WHERE postId = p.id) AS like_count
                 FROM `flickit-db`.posts p
                 WHERE p.userId != :userId
                 ORDER BY like_count DESC
+                Limit $startIndex, $rowsPerPage
             ";
             $statement = $this->connection->prepare($query);
             $statement->bindParam(":userId", $userId, PDO::PARAM_INT);
             $statement->execute();
             $posts = $statement->fetchAll();
+            $totalPosts = $this->countDashboardPostsForUser($userId);
+            $totalPages = ceil($totalPosts / $this->discoverRowsPerPage);
 
-            return $this->getPostsData($posts);
+            return [
+                "posts" => $this->getPostsData($posts),
+                "totalPages" => $totalPages,
+            ];
         }
     }
 
-    public function getDiscoverPostsForUserBasedOnChosenTag(string $userId, string $specifiedTag, bool $recent): array {
+    public function getDiscoverPostsForUserBasedOnChosenTag(string $userId, string $specifiedTag, bool $recent, int $pageNumber): array {
         $postsIds = $this->getPostsIdsBasedOnChosenTag($specifiedTag);
 
         if (empty($postsIds)) {
-            return [];
+            return [
+                'posts' => [],
+                'totalPages' => 0,
+            ];
         }
+
+        $inQuery = implode(',', array_fill(0, count($postsIds), '?'));
+        $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+        $rowsPerPage = $this->dashboardRowsPerPage;
 
         $fetchPostsQuery = "
             SELECT p.*, 
             (SELECT COUNT(*) FROM `flickit-db`.likes WHERE postId = p.id) AS like_count
             FROM `flickit-db`.posts p
-            WHERE p.id IN (" . implode(',', array_fill(0, count($postsIds), '?')) . ")
+            WHERE p.id IN ($inQuery)
             AND p.userId != ?
             ORDER BY like_count DESC
+            LIMIT ?, ?
         ";
 
         $statement = $this->connection->prepare($fetchPostsQuery);
-        $params = array_merge($postsIds, [$userId]);
+        $params = array_merge($postsIds, [$userId, $startIndex, $rowsPerPage]);
         $statement->execute($params);
-        $posts = $statement->fetchAll();
 
-        if (empty($posts)) {
-            return [];
+        $posts = $statement->fetchAll();
+        $totalPosts = $this->countDashboardPostsForUser($userId);
+        $totalPages = ceil($totalPosts / $this->dashboardRowsPerPage);
+
+        if (!empty($posts)) {
+            $postsModels = $this->getPostsData($posts);
         }
 
-        $postsModels = $this->getPostsData($posts);
-
-        if ($recent) {
+        if ($recent && !empty($posts)) {
             usort($postsModels, function (Post $a, Post $b) {
                 return $b->getCreatedAt() <=> $a->getCreatedAt();
             });
         }
 
-        return $postsModels;
+        return empty($posts) ? [
+            'posts' => [],
+            'totalPages' => $totalPages,
+        ] : [
+            "posts" => $postsModels,
+            "totalPages" => $totalPages,
+        ];
     }
 
     private function getPostsIdsBasedOnChosenTag(string $specifiedTag): array {
@@ -192,11 +228,14 @@ class PostRepository extends BaseRepository {
         return $this->getPostsData(array($post))[0];
     }
 
-    public function getDashboardPostsByFollowedTags(string $userId): array {
+    public function getDashboardPostsByFollowedTags(string $userId, int $pageNumber): array {
         $followedTags = $this->tagRepository->findUserFollowedTagsData($userId);
 
         if (empty($followedTags)) {
-            return [];
+            return [
+                "posts" => [],
+                "totalPages" => 0,
+            ];
         }
 
         $tagIds = array_column($followedTags, 'tagId');
@@ -212,24 +251,36 @@ class PostRepository extends BaseRepository {
         $postsIds = $statement->fetchAll(PDO::FETCH_COLUMN);
 
         if (empty($postsIds)) {
-            return [];
+            return [
+                "posts" => [],
+                "totalPages" => 0,
+            ];
         }
+
+        $startIndex = $this->calculateStartIndexForPagination($pageNumber);
+        $rowsPerPage = $this->dashboardRowsPerPage;
+        $inQuery = implode(',', array_fill(0, count($postsIds), '?'));
 
         $fetchPostsQuery = "
             SELECT * 
             FROM `flickit-db`.posts 
-            WHERE id IN (" . implode(',', array_fill(0, count($postsIds), '?')) . ")
+            WHERE id IN ($inQuery)
+            LIMIT $startIndex, $rowsPerPage
         ";
 
         $statement = $this->connection->prepare($fetchPostsQuery);
         $statement->execute($postsIds);
         $posts = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $totalPosts = $this->countDashboardPostsForUser($userId);
+        $totalPages = ceil($totalPosts / $this->dashboardRowsPerPage);
 
-        if (empty($posts)) {
-            return [];
-        }
-
-        return $this->getPostsData($posts);
+        return empty($posts) ? [
+            'posts' => [],
+            'totalPages' => $totalPages,
+        ] : [
+            'posts' => $this->getPostsData($posts),
+            'totalPages' => $totalPages,
+        ];
     }
 
     public function getPostCreatorId(string $postId): int {
@@ -438,8 +489,6 @@ class PostRepository extends BaseRepository {
         foreach ($results as $row) {
             $tagObject = new Tag($row['id'], $row['name']);
             $tagsByPostId[$row['postId']][] = $tagObject;
-
-            error_log($tagObject);
         }
 
         return $tagsByPostId;

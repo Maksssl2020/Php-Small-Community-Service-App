@@ -4,9 +4,23 @@ declare(strict_types=1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.use_strict_mode', 1);
 
-$ngrokUrl = file_get_contents("http://127.0.0.1:4040/api/tunnels");
-$ngrokData = json_decode($ngrokUrl, true);
-$publicUrl = $ngrokData["tunnels"][0]["public_url"] ?? "http://localhost:63342";
+$publicUrl = "http://localhost:63342";
+$ngrokApiUrl = "http://127.0.0.1:4040/api/tunnels";
+
+$context = stream_context_create([
+    'http' => [
+        'timeout' => 0.5,
+    ]
+]);
+$ngrokResponse = @file_get_contents($ngrokApiUrl, false, $context);
+
+if ($ngrokResponse) {
+    $ngrokData = json_decode($ngrokResponse, true);
+
+    if (isset( $ngrokData["tunnels"][0]["public_url"])) {
+        $publicUrl =  $ngrokData["tunnels"][0]["public_url"];
+    }
+}
 
 $allowedOrigins = [
     "http://localhost:63342",

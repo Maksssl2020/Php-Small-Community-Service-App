@@ -41,6 +41,10 @@ readonly class TagController {
                 echo json_encode(['success' => true, 'data'=>$this->tagRepository->countUserFollowedTags($id)]);
                 break;
             }
+            case "get-few-random-tags-for-user": {
+                echo json_encode(['success' => true, 'data'=>$this->tagRepository->getFewRandomTagsForUser($id)]);
+                break;
+            }
         }
     }
 
@@ -125,6 +129,10 @@ readonly class TagController {
             }
             case 'get-all-tags': {
                 echo json_encode(["success" => true, "data" => $this->tagRepository->getAllTags()]);
+                break;
+            }
+            case "get-popular-tags": {
+                echo json_encode(["success" => true, "data" => $this->tagRepository->getPopularTags()]);
                 break;
             }
         }

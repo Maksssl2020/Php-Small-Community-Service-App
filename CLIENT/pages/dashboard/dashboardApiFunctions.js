@@ -1,20 +1,9 @@
-import {
-    dashboardContentContainer,
-    populateDashboardContentWithPostsThatContainFollowedTags
-} from "./dashboard.js";
+import {dashboardContentContainer, populateDashboardContentWithPostsThatContainFollowedTags} from "./dashboard.js";
 import {populateDashboardContentPosts, updatePostAfterLikeOrUnlike} from "./dashboardPostRender.js";
 import {showToast} from "../../../indexUtils.js";
 import {getSignedInUserData} from "../../../indexApiFunctions.js";
-import {
-    addPostModalFormContainer, addTag,
-    availableTags,
-    chosenTags,
-    populateTagSelect,
-    resetFormData
-} from "./dashboardAddNewPosts.js";
+import {addPostModalFormContainer, addTag, chosenTags, resetFormData} from "./dashboardAddNewPosts.js";
 import {updatePagination} from "./dashboardUtils.js";
-
-export let fetchController = new AbortController();
 
 export async function fetchRandomPostsForUser(pageNumber) {
     const {userId} = await getSignedInUserData();
@@ -30,9 +19,10 @@ export async function fetchRandomPostsForUser(pageNumber) {
         const data = await response.json();
 
         if (data.success) {
+            const {posts, totalPages} = data.data;
             dashboardContentContainer.innerHTML = "";
-            await updatePagination(pageNumber, data.data.totalPages, "dashboardPosts")
-            await populateDashboardContentPosts(data.data.posts);
+            await updatePagination(totalPages, pageNumber, "dashboardForYouPosts")
+            await populateDashboardContentPosts(posts);
         } else {
             console.log(data.errors);
             showToast("Something went wrong... Please try again later.", 'error')
@@ -42,23 +32,24 @@ export async function fetchRandomPostsForUser(pageNumber) {
     }
 }
 
-export async function fetchPostsWithUserFollowedTags(signal) {
+export async function fetchPostsWithUserFollowedTags(pageNumber) {
     const {userId} = await getSignedInUserData();
 
     try {
-        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}`, {
+        const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-dashboard-posts-by-followed-tags/${userId}?page=${pageNumber}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
             },
-            signal: signal,
         });
 
         const data = await response.json();
 
         if (data.success) {
+            const {posts, totalPages} = data.data;
             dashboardContentContainer.innerHTML = "";
-            await populateDashboardContentWithPostsThatContainFollowedTags(data.data);
+            await updatePagination(totalPages, pageNumber, "dashboardYourTagsPosts")
+            await populateDashboardContentWithPostsThatContainFollowedTags(posts);
         } else {
             console.log(data.errors);
             showToast("Something went wrong... Please try again later.", 'error')
@@ -71,9 +62,6 @@ export async function fetchPostsWithUserFollowedTags(signal) {
 export async function fetchUserPosts(pageNumber) {
     const {userId} = await getSignedInUserData();
 
-    fetchController.abort();
-    fetchController = new AbortController();
-
     try {
         const response = await fetch(`http://localhost/php-small-social-service-app/posts/get-user-posts/${userId}?page=${pageNumber}`, {
             method: "GET",
@@ -85,10 +73,10 @@ export async function fetchUserPosts(pageNumber) {
         const data = await response.json();
 
         if (data.success) {
+            const {posts, totalPages} = data.data;
             dashboardContentContainer.innerHTML = "";
-
-            await updatePagination(data.data.totalPages, pageNumber, "userPosts");
-            await populateDashboardContentPosts(data.data.posts);
+            await updatePagination(totalPages, pageNumber, "userPosts");
+            await populateDashboardContentPosts(posts);
         } else {
             showToast("Something went wrong... Please try again later.", 'error')
         }
@@ -97,28 +85,29 @@ export async function fetchUserPosts(pageNumber) {
     }
 }
 
-export async function fetchPostsForUserDiscoverSection(signal, type, specifiedTag = "") {
+export async function fetchPostsForUserDiscoverSection(type, pageNumber, specifiedTag = "") {
     const {userId} = await getSignedInUserData();
+
     let url;
     switch (type) {
         case "recent": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent-${specifiedTag}/${userId}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent-${specifiedTag}/${userId}?page=${pageNumber}`;
             break;
         }
         case "theBest": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-best-${specifiedTag}/${userId}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-best-${specifiedTag}/${userId}?page=${pageNumber}`;
             break;
         }
         case "popular": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-popular/${userId}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-popular/${userId}?page=${pageNumber}`;
             break;
         }
         case "recentForYou": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}?page=${pageNumber}`;
             break;
         }
         default: {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}?page=${pageNumber}`;
             break;
         }
     }
@@ -129,12 +118,13 @@ export async function fetchPostsForUserDiscoverSection(signal, type, specifiedTa
         headers: {
             "Content-Type": "application/json"
         },
-        signal: signal,
     })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                return data.data;
+                const {posts, totalPages} = data.data;
+                updatePagination(totalPages, pageNumber, type)
+                return posts;
             }
 
             return [];
@@ -172,15 +162,11 @@ export async function getUserFollowedTags() {
 export async function getUserNotFollowedTags() {
     const {userId} = await getSignedInUserData();
 
-    fetchController.abort();
-    fetchController = new AbortController();
-
     return await fetch(`http://localhost/php-small-social-service-app/tags/get-user-not-followed-tags/${userId}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
         },
-        signal: fetchController.signal,
     })
         .then( res => res.json())
         .then(async data => {
@@ -462,7 +448,7 @@ export async function addNewLinkPost() {
         .catch(err => console.log(err));
 }
 
-export function addNewUserTag(tagName) {
+export async function addNewUserTag(tagName) {
     fetch('http://localhost/php-small-social-service-app/tags/add-new-tag-by-user', {
         method: 'POST',
         body: JSON.stringify({
@@ -474,9 +460,9 @@ export function addNewUserTag(tagName) {
         }
     })
         .then(res => res.json())
-        .then(data => {
+        .then(async data => {
             if (data.success) {
-                addTag(tagName);
+                await addTag(tagName);
             } else {
                 showToast("Failed to add a new tag.", "error");
             }
@@ -648,4 +634,43 @@ export async function getRandomPostForUserRadar() {
         console.log(err);
         return null;
     });
+}
+
+export async function getFewRandomTagsThatUserNotFollow() {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/get-few-random-tags-for-user/${userId}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return [];
+    })
+    .catch(err => {
+        console.log(err);
+        return [];
+    })
+}
+
+export async function getPopularTags() {
+    return await fetch("http://localhost/php-small-social-service-app/tags/get-popular-tags")
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                return data.data;
+            }
+
+            return [];
+        })
+        .catch(err => {
+            console.log(err);
+            return [];
+        })
 }

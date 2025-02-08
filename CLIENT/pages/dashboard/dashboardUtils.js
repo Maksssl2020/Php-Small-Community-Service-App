@@ -1,4 +1,10 @@
-import {fetchRandomPostsForUser, fetchUserPosts} from "./dashboardApiFunctions.js";
+import {
+    fetchPostsForUserDiscoverSection,
+    fetchPostsWithUserFollowedTags,
+    fetchRandomPostsForUser,
+    fetchUserPosts
+} from "./dashboardApiFunctions.js";
+import {paginationLeftArrow, paginationRightArrow} from "./dashboard.js";
 
 export function getPostIdFromIdAttribute(id) {
     const splitId = id.split('-');
@@ -10,35 +16,77 @@ export function getPostIdFromIdAttribute(id) {
     return id;
 }
 
-export function updatePagination(totalPages, currentPage, typeOfData) {
+export function updatePagination(totalPages, currentPage, typeOfData, specifiedTag = "") {
     const paginationNumbersContainer = document.getElementById('paginationNumbers');
     paginationNumbersContainer.innerHTML = '';
+
+    paginationRightArrow.replaceWith(paginationRightArrow.cloneNode(true));
+    paginationLeftArrow.replaceWith(paginationLeftArrow.cloneNode(true));
+    const newPaginationRightArrow = document.getElementById('paginationRightArrow');
+    const newPaginationLeftArrow = document.getElementById('paginationLeftArrow');
+
+    console.log(currentPage)
+
+    newPaginationRightArrow.addEventListener("click", async () => {
+        if (currentPage < totalPages) {
+            await fetchDataDependsOnTypeOfData(typeOfData, currentPage + 1, specifiedTag);
+        }
+    })
+
+    newPaginationLeftArrow.addEventListener("click", async () => {
+        if (currentPage > 1) {
+            await fetchDataDependsOnTypeOfData(typeOfData, currentPage - 1, specifiedTag);
+        }
+    })
 
     for (let i = 1; i <= totalPages; i++) {
         const button = document.createElement('button');
         button.className = i === currentPage ? "pagination-number active" : "pagination-number non-active";
         button.textContent = `${i}`;
 
-        setClickEventListenerDependsOnButtonTypeOfData(button, i, typeOfData);
+        button.onclick = async () => {
+            await fetchDataDependsOnTypeOfData(typeOfData, i, specifiedTag);
+        }
 
         paginationNumbersContainer.appendChild(button);
     }
 }
 
-function setClickEventListenerDependsOnButtonTypeOfData(button, pageNumber, typeOfData) {
+async function fetchDataDependsOnTypeOfData(typeOfData, pageNumber, specifiedTag = "") {
     switch (typeOfData) {
         case "userPosts": {
-            button.onclick = async () => {
-                await fetchUserPosts(pageNumber);
-                localStorage.setItem("userPostsPaginationNumber", `${pageNumber}`);
-            }
+            await fetchUserPosts(pageNumber);
+            localStorage.setItem("myPostsPaginationNumber", `${pageNumber}`);
             break;
         }
-        case "dashboardPaginationNumber": {
-            button.onclick = async () => {
-                await fetchRandomPostsForUser(pageNumber);
-                localStorage.setItem("dashboardPaginationNumber", `${pageNumber}`);
-            }
+        case "dashboardForYouPosts": {
+            await fetchRandomPostsForUser(pageNumber);
+            localStorage.setItem("dashboardForYouPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "dashboardYourTagsPosts": {
+            await fetchPostsWithUserFollowedTags(pageNumber);
+            localStorage.setItem("dashboardYourTagsPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "recent": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber, specifiedTag);
+            localStorage.setItem(`discoverRecent${specifiedTag}PaginationNumber`, `${pageNumber}`);
+            break;
+        }
+        case "theBest": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber, specifiedTag);
+            localStorage.setItem(`discoverTheBest${specifiedTag}PaginationNumber`, `${pageNumber}`);
+            break;
+        }
+        case "popular": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber);
+            localStorage.setItem("discoverPopularPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "recentForYou": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber);
+            localStorage.setItem("discoverRecentForYousPaginationNumber", `${pageNumber}`);
             break;
         }
     }

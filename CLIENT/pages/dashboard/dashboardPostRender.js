@@ -1,5 +1,11 @@
-import {dashboardContentContainer, randomPostContainer} from "./dashboard.js";
-import {countPostComments, getPostAuthorId, getRandomPostForUserRadar} from "./dashboardApiFunctions.js";
+import {dashboardContentContainer, randomPostContainer, randomTagsContainer} from "./dashboard.js";
+import {
+    countPostComments,
+    getFewRandomTagsThatUserNotFollow,
+    getPopularTags,
+    getPostAuthorId,
+    getRandomPostForUserRadar
+} from "./dashboardApiFunctions.js";
 import {createDiscoverPost, createPostContentContainer, createPostFooter, createPostHeader} from "../../../index.js";
 import {
     fetchPostAmountOfLikes,
@@ -18,6 +24,31 @@ export async function fetchRandomPostForRadarInDashboard() {
     randomPostContainer.appendChild(discoverPost);
 }
 
+export async function fetchRandomTagsForUser() {
+    randomTagsContainer.innerHTML = '';
+
+    const tagsData = await getFewRandomTagsThatUserNotFollow();
+    for (const tag of tagsData) {
+        const tagCard = createTagCard(tag.name);
+        randomTagsContainer.innerHTML += tagCard;
+    }
+}
+
+function createTagCard(tagName) {
+    return `
+    <div class="tag-suggestion-card">
+        <div class="tag-link-container">
+            <a href="../dashboard/dashboard.php?section=discover&tag=${tagName}">
+                <span>
+                    #${tagName}
+                </span>
+            </a>
+        </div>
+        <button>Follow</button>
+    </div>
+    `
+}
+
 export async function populateDashboardContentPosts(posts) {
     for (const post of posts) {
         const createdPost = await createDashboardPost(post);
@@ -28,6 +59,25 @@ export async function populateDashboardContentPosts(posts) {
 export async function populateDiscoverContentPosts(posts) {
     dashboardContentContainer.innerHTML = '';
 
+    const containerWithPopularTags = document.createElement('div');
+    containerWithPopularTags.classList.add("popular-tags-container")
+    const popularTagsData = await getPopularTags();
+
+    for (let i = 0; i < popularTagsData.length; i++) {
+
+        if (i % 2 !== 0 && i !== 0) {
+            console.log(i)
+            const firstTag = createPopularTagCard(popularTagsData[i-1], i);
+            const secondTag = createPopularTagCard(popularTagsData[i], i+1);
+            const twoTagsCard = createTwoPopularTagsContainer(firstTag, secondTag);
+
+            containerWithPopularTags.appendChild(twoTagsCard);
+        }
+    }
+
+    const dividedContainerForDiscoverPosts = document.createElement('div');
+    dividedContainerForDiscoverPosts.classList.add("discover-container")
+
     const container1 = document.createElement("div");
     container1.setAttribute("id", "container1");
     container1.classList.add("discover-posts-container-column");
@@ -35,7 +85,9 @@ export async function populateDiscoverContentPosts(posts) {
     container2.setAttribute("id", "container2");
     container2.classList.add("discover-posts-container-column");
 
-    dashboardContentContainer.append(container1 , container2)
+    dividedContainerForDiscoverPosts.append(container1, container2);
+
+    dashboardContentContainer.append(containerWithPopularTags, dividedContainerForDiscoverPosts)
 
     let counter = 1;
 
@@ -56,6 +108,36 @@ export async function populateDiscoverContentPosts(posts) {
             counter = 1;
         }
     }
+}
+
+function createTwoPopularTagsContainer(firstTag, secondTag) {
+    const container = document.createElement("div");
+    container.classList.add("two-popular-tags-container");
+    container.innerHTML += firstTag;
+    container.innerHTML += secondTag;
+
+    return container;
+}
+
+function createPopularTagCard(tagData, number) {
+    const {name, totalUse} = tagData;
+
+    const colors = [
+        "#FF6B6B", "#FFA94D", "#FFD43B", "#74C0FC",
+        "#63E6BE", "#845EF7", "#FF8787", "#4D908E"
+    ];
+
+    return `
+     <div style="background: ${colors[number - 1]}" class="popular-tag-card">
+           <div class="smoke-effect"></div>
+           <a href="../dashboard/dashboard.php?section=discover&tag=${name}"></a> 
+           <div class="number-with-name">
+             <p style="background: ${colors[number - 1]}" class="number">${number}</p>
+             <p>#${name}</p>
+           </div>
+           <p class="total-uses">${totalUse} posts</p>
+     </div>
+    `;
 }
 
 async function createDashboardPost(postData) {

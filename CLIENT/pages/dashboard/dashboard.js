@@ -1,10 +1,9 @@
 import {
-    fetchRandomPostForRadarInDashboard,
+    fetchRandomPostForRadarInDashboard, fetchRandomTagsForUser,
     populateDashboardContentPosts,
     populateDiscoverContentPosts
 } from "./dashboardPostRender.js";
 import {
-    fetchController,
     fetchPostsForUserDiscoverSection,
     fetchPostsWithUserFollowedTags,
     fetchRandomPostsForUser,
@@ -30,7 +29,7 @@ import {
     showPostManagementOptions,
     unfollowTagEventListener
 } from "./dashboardEventListeners.js";
-import {autoResize, getSignedInUserData} from "../../../indexApiFunctions.js";
+import {autoResize} from "../../../indexApiFunctions.js";
 import {showDiscoverPostAndLikesStatisticsContainer} from "../../../indexEventListeners.js";
 
 
@@ -65,12 +64,16 @@ const resetTagsSearchbarIcon = document.getElementById("resetTagsSearchbar");
 const closeManageFollowedTagsModalIcon = document.getElementById("closeManageFollowedTagsModal");
 
 export const randomPostContainer = document.getElementById("randomPostContainer");
+export const randomTagsContainer = document.getElementById("randomTagsContainer");
 
-const dashboardHeaderMainButtons = [{name: 'For You', id: 'dashboardForYou'}, {name: 'Your Tags', id: 'yourTags'}];
-const dashboardHeaderDiscoverButtonsWithSpecifiedTag =  [{name: 'Recent', id: 'recent'}, {name: 'The best', id: 'theBest'}];
-const dashboardHeaderDiscoverButtonsWithoutSpecifiedTag =  [{name: 'Popular', id: 'popular'}, {name: 'Recent for you', id: 'recentForYou'}];
+export const paginationLeftArrow = document.getElementById("paginationLeftArrow");
+export const paginationRightArrow = document.getElementById("paginationRightArrow");
 
-let currentActiveHeaderButton = 'forYou';
+const dashboardHeaderMainButtons = [{name: 'For You', id: 'dashboardForYou'}, {name: 'Your Tags', id: 'dashboardYourTags'}];
+const dashboardHeaderDiscoverButtonsWithSpecifiedTag =  [{name: 'Recent', id: 'discoverRecent'}, {name: 'The best', id: 'discoverTheBest'}];
+const dashboardHeaderDiscoverButtonsWithoutSpecifiedTag =  [{name: 'Popular', id: 'discoverPopular'}, {name: 'Recent for you', id: 'discoverRecentForYou'}];
+
+let currentActiveHeaderButton = 'dashboardForYou';
 let currentActiveSection = 'dashboard';
 
 const sectionSelectors = {
@@ -81,152 +84,148 @@ const sectionSelectors = {
     topics: topicsSelector,
 };
 
-window.addEventListener("DOMContentLoaded", async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get("section");
-    const tag = urlParams.get("tag");
+document.addEventListener("DOMContentLoaded", async () => {
+    if (window.location.pathname.includes("dashboard.php")) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const section = urlParams.get("section");
+        const tag = urlParams.get("tag");
 
-    await handleSectionChange(section, fetchController, tag);
+        await handleSectionChange(section, tag);
+    }
 })
 
 Object.entries(sectionSelectors).forEach(([section, selector]) => {
     if (selector) {
-        selector.onclick = () => handleSectionChange(section, fetchController)
+        selector.onclick = () => handleSectionChange(section)
     }
 })
 
-async function handleSectionChange(chosenSection, fetchController, specifiedTag = "") {
-    let pageNumber = 1;
+async function handleSectionChange(chosenSection, specifiedTag = "") {
+    let pageNumber = getStoredPageNumber(chosenSection, specifiedTag);
+
+    updateActiveSectionStyle(chosenSection);
+    updateDashboardContainerClasses(chosenSection);
+
+    if (chosenSection === 'myPosts') {
+        dashboardContentContainer.classList.remove("dashboard");
+        dashboardContentContainer.classList.remove("discover");
+        dashboardContentContainer.classList.add("user-posts");
+
+        dashboardContentContainer.innerHTML = '';
+        dashboardHeader.style.display = "none";
+        await fetchUserPosts(pageNumber);
+    } else {
+        dashboardHeader.style.display = "block";
+    }
+
+    if (chosenSection === "dashboard") {
+        dashboardContentContainer.classList.remove("user-posts");
+        dashboardContentContainer.classList.remove("discover");
+        dashboardContentContainer.classList.add("dashboard");
+
+        dashboardContentContainer.innerHTML = '';
+        updateDashboardHeader(dashboardHeaderMainButtons, pageNumber);
+        await fetchRandomPostsForUser(pageNumber);
+    } else if (chosenSection === "discover") {
+        dashboardContentContainer.classList.remove("dashboard");
+        dashboardContentContainer.classList.remove("user-posts");
+        dashboardContentContainer.classList.add("discover");
+
+        updateDashboardHeader(
+            specifiedTag ? dashboardHeaderDiscoverButtonsWithSpecifiedTag : dashboardHeaderDiscoverButtonsWithoutSpecifiedTag,
+            pageNumber,
+            specifiedTag
+        );
+        const posts = await fetchPostsForUserDiscoverSection(
+            specifiedTag ? "recent" : "popular",
+            pageNumber,
+            specifiedTag
+        );
+
+        await populateDiscoverContentPosts(posts);
+    }
+
+    await fetchRandomTagsForUser();
+    await fetchRandomPostForRadarInDashboard();
+}
+
+function updateActiveSectionStyle(chosenSection) {
     sectionSelectors[currentActiveSection].style.color = "#ACACAC"
     sectionSelectors[chosenSection].style.color = "#FFFFFF"
     currentActiveSection = chosenSection;
-
-    fetchController.abort();
-    fetchController = new AbortController();
-
-
-
-    if (chosenSection === "dashboard" || chosenSection === "myPosts") {
-        dashboardContentContainer.innerHTML = '';
-
-        leftColumn.classList.replace("discover", "dashboard");
-        dashboardMiddleContainer.classList.replace("discover", "dashboard");
-        rightColumn.classList.replace("discover", "dashboard");
-
-        if (chosenSection === "dashboard" && dashboardContentContainer.classList.contains("discover")) {
-            dashboardContentContainer.classList.replace("discover", "dashboard");
-        } else if (chosenSection === "dashboard" && dashboardContentContainer.classList.contains("user-posts")) {
-            dashboardContentContainer.classList.replace("user-posts", "dashboard")
-        } else {
-            dashboardContentContainer.classList.replace("discover", "user-posts");
-        }
-
-        await fetchRandomPostForRadarInDashboard();
-    }
-
-    if (chosenSection !== "dashboard" && chosenSection !== "myPosts") {
-        leftColumn.classList.remove("dashboard");
-        dashboardMiddleContainer.classList.remove("dashboard");
-        rightColumn.classList.remove("dashboard");
-
-        leftColumn.classList.add("discover");
-        dashboardMiddleContainer.classList.add("discover");
-        rightColumn.classList.add("discover");
-
-        dashboardContentContainer.classList.remove("dashboard");
-        dashboardContentContainer.classList.add("discover");
-    }
-
-    if (chosenSection === 'myPosts') {
-        dashboardHeader.style.display = 'none';
-
-        if (!localStorage.getItem("userPostsPaginationNumber")) {
-            localStorage.setItem("userPostsPaginationNumber", "1");
-            pageNumber = 1;
-        } else {
-            pageNumber = parseInt(localStorage.getItem("userPostsPaginationNumber"));
-        }
-
-        await fetchUserPosts(pageNumber);
-    } else {
-        dashboardHeader.style.display = 'block';
-    }
-
-    if (currentActiveSection === 'discover' && specifiedTag === "") {
-        dashboardHeader.innerHTML = ''
-        dashboardHeaderDiscoverButtonsWithoutSpecifiedTag.forEach(button => {
-            createHeaderButtons(button, dashboardHeaderDiscoverButtonsWithoutSpecifiedTag, fetchController.signal);
-        })
-
-        const posts = await fetchPostsForUserDiscoverSection(fetchController.signal, "popular");
-        await populateDiscoverContentPosts(posts);
-    }
-    if (currentActiveSection === 'discover' && specifiedTag !== "") {
-        dashboardHeader.innerHTML = ''
-        dashboardHeaderDiscoverButtonsWithSpecifiedTag.forEach(button => {
-            createHeaderButtons(button, dashboardHeaderDiscoverButtonsWithSpecifiedTag, fetchController.signal, specifiedTag);
-        })
-
-        const posts = await fetchPostsForUserDiscoverSection(fetchController.signal, "recent", specifiedTag);
-        await populateDiscoverContentPosts(posts);
-    }
-
-    if (currentActiveSection === 'dashboard') {
-        dashboardHeader.innerHTML = ''
-        dashboardHeaderMainButtons.forEach(button => {
-            createHeaderButtons(button, dashboardHeaderMainButtons, fetchController.signal);
-        })
-
-        if (!localStorage.getItem("dashboardPaginationNumber")) {
-            localStorage.setItem("dashboardPaginationNumber", "1");
-            pageNumber = 1;
-        } else {
-            pageNumber = parseInt(localStorage.getItem("dashboardPaginationNumber"));
-        }
-
-        await fetchRandomPostsForUser(pageNumber);
-    }
-
-    console.log(chosenSection)
 }
 
-function createHeaderButtons(button, buttonsCollection, signal, specifiedTag = "") {
+function updateDashboardContainerClasses(chosenSection) {
+    const isDiscover = chosenSection !== "dashboard" && chosenSection !== "myPosts";
+
+    ["leftColumn", "dashboardMiddleContainer", "rightColumn"].forEach((el) => {
+        window[el].classList.toggle("discover", isDiscover);
+        window[el].classList.toggle("dashboard", !isDiscover);
+    });
+}
+
+function updateDashboardHeader(buttonsCollection, pageNumber, specifiedTag = "") {
+    dashboardHeader.innerHTML = "";
+    buttonsCollection.forEach(button => createHeaderButtons(button, buttonsCollection, pageNumber, specifiedTag));
+}
+
+function getStoredPageNumber(section, tag = "") {
+    let key;
+
+    if (section === "myPosts") {
+        key = "myPostsPaginationNumber";
+    } else if (section === "dashboard") {
+        key = `${currentActiveHeaderButton}PaginationNumber`;
+    } else if (section === "discover") {
+        key = `${currentActiveHeaderButton}${tag}PaginationNumber`;
+    }
+
+    return parseInt(localStorage.getItem(key)) || 1;
+}
+
+function createHeaderButtons(button, buttonsCollection, pageNumber, specifiedTag = "") {
     const headerButton = document.createElement('button');
-    headerButton.setAttribute('id', button.id);
-    headerButton.setAttribute('type', 'button');
+    headerButton.id = button.id;
+    headerButton.type = "button";
     headerButton.textContent = button.name;
     headerButton.classList.add('header-button');
-    currentActiveHeaderButton = buttonsCollection[0].id;
 
-    if (button.id === currentActiveHeaderButton) {
+    if (button.id === buttonsCollection[0].id) {
         headerButton.classList.add('active');
+        currentActiveHeaderButton = button.id;
     }
 
     headerButton.onclick = async function () {
         handleHeaderButtonChange(this);
-
         dashboardContentContainer.innerHTML = '';
 
-        if (button.id === 'dashboardForYou') {
-            await fetchRandomPostsForUser(signal);
-        } else if (button.id === 'yourTags') {
-            await fetchPostsWithUserFollowedTags(signal);
-        } else if (button.id === 'recent') {
-            const posts = await fetchPostsForUserDiscoverSection(signal, "recent", specifiedTag);
+        if (button.id.includes("discover")) {
+            const sectionType = getDiscoverSectionType(button.id);
+            let pageNumber = getStoredPageNumber(sectionType, specifiedTag);
+
+            const posts = await fetchPostsForUserDiscoverSection(sectionType, pageNumber, specifiedTag);
             await populateDiscoverContentPosts(posts);
-        } else if (button.id === 'theBest') {
-            const posts = await fetchPostsForUserDiscoverSection(signal, "theBest", specifiedTag);
-            await populateDiscoverContentPosts(posts);
-        } else if (button.id === 'popular') {
-            const posts = await fetchPostsForUserDiscoverSection(signal, "popular");
-            await populateDiscoverContentPosts(posts);
-        } else if (button.id === 'recentForYou') {
-            const posts =await fetchPostsForUserDiscoverSection(signal, "recentForYou");
-            await populateDiscoverContentPosts(posts)
+        } else if (button.id === "dashboardForYou") {
+            let pageNumber = getStoredPageNumber("dashboard");
+            await fetchRandomPostsForUser(pageNumber);
+        } else if (button.id === "dashboardYourTags") {
+            let pageNumber = getStoredPageNumber("yourTags");
+            await fetchPostsWithUserFollowedTags(pageNumber);
         }
     }
 
     dashboardHeader.appendChild(headerButton);
+}
+
+function getDiscoverSectionType(buttonId) {
+    const mappings = {
+        "discoverRecent": "recent",
+        "discoverTheBest": "theBest",
+        "discoverPopular": "popular",
+        "discoverRecentForYou": "recentForYou"
+    };
+
+    return mappings[buttonId] || "popular";
 }
 
 const handleHeaderButtonChange = (button) => {

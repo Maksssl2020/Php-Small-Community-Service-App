@@ -29,7 +29,7 @@ readonly class PostController {
                 $data = $this->explodeActionStringForRequestWithoutUserId($action);
 
                 if (count($data) != 0) {
-                    $this->processCollectionGetRequestWithoutIdAndWithSpecifiedTag($data[0]);
+                    $this->processCollectionGetRequestWithoutIdAndWithSpecifiedTag($data[0], $pageNumber);
                 }
             }
         } elseif ($method == 'POST' && !empty($id)) {
@@ -73,14 +73,14 @@ readonly class PostController {
                 break;
             }
             case "get-discovered-posts-with-tag": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUserBasedOnChosenTag($id, $data[1], $data[0] == "recent")]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUserBasedOnChosenTag($id, $data[1], $data[0] == "recent", $pageNumber)]);
                 break;
             }
         }
     }
 
-    private function processCollectionGetRequestWithoutIdAndWithSpecifiedTag(string $specifiedTag): void {
-        echo json_encode(["success"=>true, "data" => $this->postRepository->getDiscoveredPostsBasedOnChosenTag($specifiedTag)]);
+    private function processCollectionGetRequestWithoutIdAndWithSpecifiedTag(string $specifiedTag, int $pageNumber): void {
+        echo json_encode(["success"=>true, "data" => $this->postRepository->getDiscoveredPostsBasedOnChosenTag($specifiedTag, $pageNumber)]);
     }
 
     public function processResourcePostRequestWithoutId(string $action): void {
@@ -242,11 +242,11 @@ readonly class PostController {
                 break;
             }
             case "get-dashboard-posts-for-user": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsForUser($id, $pageNumber)]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getPostsForUser($id, $pageNumber)]);
                 break;
             }
             case "get-dashboard-posts-by-followed-tags": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsByFollowedTags($id)]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDashboardPostsByFollowedTags($id, $pageNumber)]);
                 break;
             }
             case "count-post-likes": {
