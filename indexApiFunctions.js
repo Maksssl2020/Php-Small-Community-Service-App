@@ -30,16 +30,19 @@ export function autoResize() {
 }
 
 export async function fetchSiteData(url) {
-    return await fetch('/utils/ogp/get_ogp_from_link.php', {
+    return await fetch('http://localhost/php-small-social-service-app/ogp/get-ogp-data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `url=${encodeURIComponent(url)}`
+        body: JSON.stringify({
+            url: url,
+        })
     })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                console.log(data)
                 return data.data;
             } else {
                 data.errors.forEach(error => {

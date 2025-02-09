@@ -48,6 +48,7 @@ export async function fillPageWithPostsRelatedToSpecifiedTag(specifiedTag) {
     const container1 = document.createElement("div");
     container1.setAttribute("id", "container1");
     container1.classList.add("discover-posts-container-column");
+
     const container2 = document.createElement("div");
     container2.setAttribute("id", "container2");
     container2.classList.add("discover-posts-container-column");

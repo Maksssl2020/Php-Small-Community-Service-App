@@ -292,10 +292,6 @@ readonly class PostController {
             $errors[] = 'User ID is required!';
         }
 
-        if ($action == 'create-text-post' && empty($data['title'])) {
-            $errors[] = 'Title is required!';
-        }
-
         if ($action == 'create-text-post' && empty($data['content'])) {
             $errors[] = 'Content is required!';
         }

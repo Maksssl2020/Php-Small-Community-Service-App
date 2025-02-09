@@ -250,9 +250,9 @@
 }
 
 .searchbar {
-    max-width: 250px;
+    max-width: 350px;
     min-width: 200px;
-    height: 45px;
+    min-height: 45px;
     display: flex;
     gap: 1rem;
     border: 2px solid transparent;
@@ -261,6 +261,7 @@
     border-radius: 20px;
     padding: 0 10px;
     align-items: center;
+    position: relative;
 
     i {
         font-size: 20px;
@@ -280,6 +281,58 @@
     border-bottom-right-radius: 20px;
     outline: none;
     color: var(--custom-white-color-100);
+    font-size: 16px;
+}
+
+.searchbar-dropdown {
+    position: absolute;
+    top: 75px;
+    right: 0;
+    width: 100%;
+    height: 300px;
+    background-color: var(--custom-gray-color-300);
+    border-radius: 10px;
+    flex-direction: column;
+    overflow-y: auto;
+
+    &.hidden {
+        display: none;
+    }
+
+    &.visible {
+        display: flex;
+    }
+}
+
+.searchbar-tag-card {
+    width: 100%;
+    height: 65px;
+    display: flex;
+    background: transparent;
+    padding: 10px;
+    box-sizing: border-box;
+
+    &:hover {
+        background-color: var(--custom-gray-color-800);
+    }
+
+    a {
+        text-decoration: none;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+}
+
+.searchbar-tag-name {
+    color: var(--custom-white-color-100);
+    font-size: 18px;
+}
+
+.searchbar-tag-followers {
+    color: var(--custom-gray-color-700);
     font-size: 16px;
 }
 
@@ -492,6 +545,7 @@ h1 {
     line-height: 30px;
     font-family: "Montserrat", serif;
     box-sizing: border-box;
+    white-space: pre-line;
 }
 
 .post-images-container {

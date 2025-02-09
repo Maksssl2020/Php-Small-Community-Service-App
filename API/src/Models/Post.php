@@ -80,8 +80,6 @@ class Post implements JsonSerializable
         return $this->images;
     }
 
-
-
     public function __toString(): string
     {
         return $this->postTitle . ' - ' . $this->postContent . ' - ' . $this->createdAt->format('Y-m-d H:i:s') . ' - ' . implode($this->tags) . ' - ';

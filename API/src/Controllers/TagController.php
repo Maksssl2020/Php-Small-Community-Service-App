@@ -45,6 +45,16 @@ readonly class TagController {
                 echo json_encode(['success' => true, 'data'=>$this->tagRepository->getFewRandomTagsForUser($id)]);
                 break;
             }
+            case "get-tag-data": {
+                $decodedTagName = urldecode($id);
+                echo json_encode(["success"=>true, "data"=>$this->tagRepository->getTagDataByName($decodedTagName)]);
+                break;
+            }
+            case "is-tag-followed-by-user": {
+                $tagName = $_GET['tagName'];
+                echo json_encode(["success"=>true, "data"=>$this->tagRepository->isTagFollowedByUser($id, $tagName)]);
+                break;
+            }
         }
     }
 

@@ -674,3 +674,48 @@ export async function getPopularTags() {
             return [];
         })
 }
+
+export async function getTagDataByTagName(tagName) {
+    const encodedTagName = encodeURIComponent(tagName);
+    return await fetch(`http://localhost/php-small-social-service-app/tags/get-tag-data/${encodedTagName}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                return data.data;
+            }
+
+            return null;
+        })
+        .catch(err => {
+            console.log(err);
+            return null;
+        })
+}
+
+export async function isTagFollowedByUser(tagName) {
+    const {userId} = await getSignedInUserData();
+
+    return await fetch(`http://localhost/php-small-social-service-app/tags/is-tag-followed-by-user/${userId}?tagName=${tagName}`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return false;
+    })
+    .catch(err => {
+        console.log(err);
+        return false;
+    })
+}

@@ -320,7 +320,7 @@
 }
 
 .submit-update-button {
-    background: var(--custom-pink-color-200);
+    background: var(--custom-purple-color-400);
     border:  2px solid var(--custom-white-color-100);
 }
 
@@ -379,7 +379,7 @@
     }
 
     button.submit {
-        background: var(--custom-pink-color-200);
+        background: var(--custom-purple-color-400);
         border: 2px solid var(--custom-white-color-100);
         color: var(--custom-white-color-100);
     }

@@ -39,6 +39,10 @@ export function updatePagination(totalPages, currentPage, typeOfData, specifiedT
         }
     })
 
+    if (totalPages === 0) {
+        totalPages = 1;
+    }
+
     for (let i = 1; i <= totalPages; i++) {
         const button = document.createElement('button');
         button.className = i === currentPage ? "pagination-number active" : "pagination-number non-active";

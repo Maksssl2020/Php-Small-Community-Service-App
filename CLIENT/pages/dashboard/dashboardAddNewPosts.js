@@ -5,9 +5,10 @@ import {
     addNewTextPost,
     addNewUserTag, fetchAllTags,
 } from "./dashboardApiFunctions.js";
-import {postOptionsModal} from "./dashboard.js";
-import {autoResize, fetchSiteData} from "../../../indexApiFunctions.js";
-import {showToast} from "../../../indexUtils.js";
+import { postOptionsModal} from "./dashboard.js";
+import {autoResize, fetchSiteData, fetchUserData, getSignedInUserData} from "../../../indexApiFunctions.js";
+import {getUserAvatar, showToast} from "../../../indexUtils.js";
+import {createSiteCard} from "../../../index.js";
 
 const addTextPostButton = document.getElementById("addTextPostButton");
 const addImagePostButton = document.getElementById("addImagePostButton");
@@ -44,7 +45,7 @@ if (addTextPostButton) {
     addTextPostButton.onclick =  async () => {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
-
+        await setUserDataIntoAddPostModal();
         generateAddTextPostModal();
         await populateTagSelect([]);
 
@@ -58,7 +59,7 @@ if (addImagePostButton) {
     addImagePostButton.onclick = async () => {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
-
+        await setUserDataIntoAddPostModal();
         generateAddImagePostModal();
         await populateTagSelect([]);
 
@@ -72,7 +73,7 @@ if (addQuotePostButton) {
     addQuotePostButton.onclick = async () => {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
-
+        await setUserDataIntoAddPostModal();
         generateAddQuotePostModal();
         await populateTagSelect([]);
 
@@ -86,7 +87,7 @@ if (addLinkPostButton) {
     addLinkPostButton.onclick = async () => {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
-
+        await setUserDataIntoAddPostModal();
         generateAddLinkPostModal();
         await populateTagSelect([]);
 
@@ -113,36 +114,44 @@ if (tagsFilter) {
 }
 
 if (tagsFilter) {
-    tagsFilter.addEventListener('keypress', (e) => {
+    tagsFilter.addEventListener('keypress', async (e) => {
         const inputValue = e.target.value.trim();
 
         if (e.key === "Enter" &&
             availableTags.every(tag => tag.name.toLowerCase() !== inputValue.toLowerCase()) &&
-            chosenTags.every(tag => tag.toLowerCase() !== inputValue.toLowerCase()) ) {
+            chosenTags.every(tag => tag.toLowerCase() !== inputValue.toLowerCase())) {
             e.preventDefault();
 
             if (inputValue) {
-                addNewUserTag(inputValue);
+                await addNewUserTag(inputValue);
                 tagsFilter.value = '';
             }
         }
     })
 }
 
+async function setUserDataIntoAddPostModal() {
+    const {userId} = await getSignedInUserData();
+    const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId)
+    const userAvatarImg = document.getElementById("addNewPostModalUserAvatar");
+    const userNicknameP = document.getElementById("addNewPostModalUserNickname");
+
+    const avatarSrc = getUserAvatar(avatarUrl, avatarImage);
+
+    userNicknameP.textContent = `${userNickname}`;
+    userAvatarImg.src = avatarSrc;
+
+}
+
 function generateAddTextPostModal() {
     const addTextPostForm = `
-        <input id="textPostTitle" name="postTitle" class="text-post-title-input" placeholder="Title"/>
-        <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+        <input spellcheck="false" autocomplete="off" id="textPostTitle" name="postTitle" class="text-post-title-input" placeholder="Title"/>
+        <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input scrollbar" placeholder="Common, enter something :)"></textarea>
     `;
 
     addPostModalFormContainer.innerHTML += addTextPostForm;
 
     const textPostContentInput = document.getElementById("textPostContent");
-    const textPostTitleInput = document.getElementById("textPostTitle");
-
-    textPostTitleInput.addEventListener("change", () => {
-        validateTextPostForm();
-    })
 
     textPostContentInput.addEventListener("change", () => {
         validateTextPostForm();
@@ -153,10 +162,10 @@ function generateAddImagePostModal() {
     const addImagePostForm = `
               <ul id="addedLinksList" class="added-links-list"></ul>
               <div class="add-photo-url-container">
-                <input autocomplete="off" id="photoLinkInput" type="url" placeholder="Enter photo URL and press ENTER :)"/>
+                <input spellcheck="false" autocomplete="off" id="photoLinkInput" type="url" placeholder="Enter photo URL and press ENTER :)"/>
                 <label>You could add max 5 links of photos!</label>
               </div>
-              <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+              <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
     `
 
     addPostModalFormContainer.innerHTML += addImagePostForm;
@@ -181,7 +190,7 @@ function generateAddImagePostModal() {
 
 function generateAddQuotePostModal() {
     const addQuotePostForm = `
-        <textarea id="quoteTextarea" name="postContent" class="post-quote-textarea" spellcheck="false" placeholder="Something that someone once told someone..."></textarea>
+        <textarea spellcheck="false" autocomplete="off" id="quoteTextarea" name="postContent" class="post-quote-textarea" placeholder="Something that someone once told someone..."></textarea>
     `
 
     addPostModalFormContainer.innerHTML += addQuotePostForm;
@@ -199,10 +208,10 @@ function generateAddLinkPostModal() {
     const addLinkPostForm = `
               <ul id="addedLinksList" class="added-links-list"></ul>
               <div class="add-photo-url-container">
-                <input autocomplete="off" id="siteLinkInput" type="url" placeholder="Enter site URL and press ENTER :)"/>
+                <input spellcheck="false" autocomplete="off" id="siteLinkInput" type="url" placeholder="Enter site URL and press ENTER :)"/>
                 <label>You could add max 5 links of sites!</label>
               </div>
-              <textarea id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+              <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
     `
 
     addPostModalFormContainer.innerHTML += addLinkPostForm;
@@ -355,9 +364,8 @@ async function removeTag(tagName, tagElement) {
 }
 
 function validateTextPostForm() {
-    const isTextPostTitleValid = document.getElementById("textPostTitle").value.length > 0;
     const isTextPostContentValid = document.getElementById("textPostContent").value.length > 0;
-    addNewPostButton.disabled = !(isTextPostTitleValid && isTextPostContentValid);
+    addNewPostButton.disabled = !(isTextPostContentValid);
 }
 
 function validateImagePostForm() {

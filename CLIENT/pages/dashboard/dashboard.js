@@ -1,9 +1,14 @@
 import {
-    fetchRandomPostForRadarInDashboard, fetchRandomTagsForUser,
+    createSearchbarTagCard,
+    fetchChosenTagData,
+    fetchRandomPostForRadarInDashboard,
+    fetchRandomTagsForUser,
+    fetchUserFollowedTagsData,
     populateDashboardContentPosts,
     populateDiscoverContentPosts
 } from "./dashboardPostRender.js";
 import {
+    fetchAllTags,
     fetchPostsForUserDiscoverSection,
     fetchPostsWithUserFollowedTags,
     fetchRandomPostsForUser,
@@ -22,6 +27,7 @@ import {
     fillStatisticsWithCommentsOrLikesEventListener,
     followTagEventListener,
     likeOrUnlikePostEventListener,
+    openFollowedTagsModalEventListener,
     showCommentManagementOptions,
     showDashboardPostAndLikesStatisticsContainer,
     showDeleteCommentWarningModal,
@@ -37,6 +43,8 @@ const leftColumn = document.getElementById("leftColumn");
 const dashboardMiddleContainer = document.getElementById("dashboardMiddleContainer");
 const rightColumn = document.getElementById("rightColumn");
 
+const tagsSearchBar = document.getElementById("tagsSearchbar");
+const searchbarDropdown = document.getElementById("searchbarDropdown");
 const createPostButton = document.getElementById("createPostButton");
 const postTextAreas = document.querySelectorAll(".post-text");
 const myPostsSelector = document.getElementById("myPostsTopicItem");
@@ -64,7 +72,11 @@ const resetTagsSearchbarIcon = document.getElementById("resetTagsSearchbar");
 const closeManageFollowedTagsModalIcon = document.getElementById("closeManageFollowedTagsModal");
 
 export const randomPostContainer = document.getElementById("randomPostContainer");
+export const randomPostInformationContainer = document.getElementById("randomPostInformationContainer");
 export const randomTagsContainer = document.getElementById("randomTagsContainer");
+export const userFollowedTagsList = document.getElementById("userFollowedTagsList");
+export const userFollowedTagsInformationContainer = document.getElementById("userFollowedTagsInformationContainer");
+export const chosenTagDataContainer = document.getElementById("chosenTagDataContainer");
 
 export const paginationLeftArrow = document.getElementById("paginationLeftArrow");
 export const paginationRightArrow = document.getElementById("paginationRightArrow");
@@ -106,6 +118,20 @@ async function handleSectionChange(chosenSection, specifiedTag = "") {
     updateActiveSectionStyle(chosenSection);
     updateDashboardContainerClasses(chosenSection);
 
+    if (chosenSection === "dashboard" || chosenSection === "myPosts") {
+        if (randomPostInformationContainer.classList.contains("hidden")) {
+            randomPostInformationContainer.classList.replace("hidden", "visible");
+        }
+        if (chosenTagDataContainer.classList.contains("visible")) {
+            chosenTagDataContainer.classList.replace("visible", "hidden");
+        }
+        if (userFollowedTagsInformationContainer.classList.contains("visible")) {
+            userFollowedTagsInformationContainer.classList.replace("visible", "hidden");
+        }
+
+        await fetchRandomPostForRadarInDashboard();
+    }
+
     if (chosenSection === 'myPosts') {
         dashboardContentContainer.classList.remove("dashboard");
         dashboardContentContainer.classList.remove("discover");
@@ -142,11 +168,37 @@ async function handleSectionChange(chosenSection, specifiedTag = "") {
             specifiedTag
         );
 
+        if (specifiedTag) {
+            await fetchChosenTagData(specifiedTag)
+
+            if (randomPostInformationContainer.classList.contains("visible")) {
+                randomPostInformationContainer.classList.replace("visible", "hidden");
+            }
+            if (chosenTagDataContainer.classList.contains("hidden")) {
+                chosenTagDataContainer.classList.replace("hidden", "visible");
+            }
+            if (userFollowedTagsInformationContainer.classList.contains("visible")) {
+                userFollowedTagsInformationContainer.classList.replace("visible", "hidden");
+            }
+
+        } else {
+            await fetchUserFollowedTagsData();
+
+            if (randomPostInformationContainer.classList.contains("visible")) {
+                randomPostInformationContainer.classList.replace("visible", "hidden");
+            }
+            if (chosenTagDataContainer.classList.contains("visible")) {
+                chosenTagDataContainer.classList.replace("visible", "hidden");
+            }
+            if (userFollowedTagsInformationContainer.classList.contains("hidden")) {
+                userFollowedTagsInformationContainer.classList.replace("hidden", "visible");
+            }
+        }
+
         await populateDiscoverContentPosts(posts);
     }
 
     await fetchRandomTagsForUser();
-    await fetchRandomPostForRadarInDashboard();
 }
 
 function updateActiveSectionStyle(chosenSection) {
@@ -270,24 +322,12 @@ export async function populateDashboardContentWithPostsThatContainFollowedTags(p
     dashboardContentContainer.innerHTML += followedTagsContainer;
 
     const openFollowedTagsModalButton = document.getElementById('openFollowedTagsModal');
-    openFollowedTagsModalButton.addEventListener('click', async function () {
-        followedTagsModal.style.display = "block";
-
-        const followedTags = await getUserFollowedTags();
-        const notFollowedTags = await getUserNotFollowedTags();
-
-        if (followedTags.length === 0) {
-            populateFollowedTagsModalListWithTags(notFollowedTags, false);
-        } else {
-            populateFollowedTagsModalListWithTags(followedTags, true);
-        }
-
-    })
+    openFollowedTagsModalButton.addEventListener('click', openFollowedTagsModalEventListener)
 
     await populateDashboardContentPosts(posts);
 }
 
-function populateFollowedTagsModalListWithTags(tags, areFollowed) {
+export function populateFollowedTagsModalListWithTags(tags, areFollowed) {
     followedTagsModalList.innerHTML = "";
 
     if (areFollowed) {
@@ -304,7 +344,7 @@ function createFollowedTagsListElements(tags) {
             <div class="followed-tags-modal-list-element followed">
                 <p>#${tag.name}</p>
                 <div class="followed-tags-list-element-buttons-container">
-                    <button id="${tag.name}" class="go-to-tag-button">Go to tag</button>
+                    <button id="${tag.name}" class="go-to-tag-button" onclick="window.location.href='../dashboard/dashboard.php?section=discover&tag=${tag.name}'">Go to tag</button>
                     <button id="${tag.name}" class="follow-option-button unfollow">Unfollow</button>
                 </div>
             </div>
@@ -406,46 +446,29 @@ if (cancelDeleteButton) {
     cancelDeleteButton.addEventListener('click', cancelDeleteEventListener);
 }
 
-async function createSiteCard(url, siteData) {
-    const listItem = document.createElement('li');
-    listItem.classList.add('link-item-container');
+if (tagsSearchBar) {
+    tagsSearchBar.addEventListener("input", async (e) => {
+        const searchBarValue = e.target.value;
 
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'site-preview';
+        if (searchBarValue.length > 0) {
+            searchbarDropdown.innerHTML = "";
+            const allTags = await fetchAllTags();
+            const filteredTags = allTags.filter(tag => tag.name.toLowerCase().includes(searchBarValue.toLowerCase()));
 
-    const itemLink = document.createElement('a');
-    itemLink.href = url;
-    itemLink.target = '_blank';
+            filteredTags.forEach(tag => {
+                const tagCard = createSearchbarTagCard(tag);
+                searchbarDropdown.innerHTML += tagCard;
+            })
+        }
+    })
 
-    itemDiv.appendChild(itemLink);
+    tagsSearchBar.addEventListener("focus", () => {
+        searchbarDropdown.classList.replace("hidden", "visible");
+    })
 
-    if (siteData.image) {
-        const img = document.createElement('img');
-        img.src = siteData.image;
-        img.alt = 'Preview Image';
-        img.classList.add('site-preview-image');
-
-        itemDiv.appendChild(img);
-    }
-
-    const siteInfoDiv = document.createElement('div');
-    siteInfoDiv.classList.add('site-preview-info');
-
-    if (siteData.title) {
-        const titleH3 = document.createElement('h3');
-        titleH3.textContent = siteData.title;
-        siteInfoDiv.appendChild(titleH3);
-    }
-
-    if (siteData.description) {
-        const descriptionP = document.createElement('P');
-        descriptionP.textContent = siteData.description;
-        siteInfoDiv.appendChild(descriptionP);
-    }
-
-    itemDiv.appendChild(siteInfoDiv);
-    listItem.appendChild(itemDiv);
-    listItem.id = url;
-
-    return listItem;
+    tagsSearchBar.addEventListener("blur", async () => {
+        setTimeout(() => {
+            searchbarDropdown.classList.replace("visible", "hidden");
+        }, 200)
+    })
 }

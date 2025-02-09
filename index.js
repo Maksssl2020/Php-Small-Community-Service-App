@@ -69,6 +69,8 @@ export async function createPostContentContainer(postType, postTitle, postConten
                 <div class="post-tags">${createPostTags(postTags, isLoggedIn)}</div>
             </div>`;
     } else if (postType === 'image') {
+        console.log(images)
+
         postContentDiv = `
             <div class="post-content">
                 <div class="post-images-container">${createPostImages(images)}</div>
@@ -150,4 +152,48 @@ export async function createPostFooter(postId, userId, isDiscoverPost = false, i
             </div>
         </footer>
     `;
+}
+
+export async function createSiteCard(url, siteData) {
+    const listItem = document.createElement('li');
+    listItem.classList.add('link-item-container');
+
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'site-preview';
+
+    const itemLink = document.createElement('a');
+    itemLink.href = url;
+    itemLink.target = '_blank';
+
+    itemDiv.appendChild(itemLink);
+
+    if (siteData.image) {
+        const img = document.createElement('img');
+        img.src = siteData.image;
+        img.alt = 'Preview Image';
+        img.classList.add('site-preview-image');
+
+        itemDiv.appendChild(img);
+    }
+
+    const siteInfoDiv = document.createElement('div');
+    siteInfoDiv.classList.add('site-preview-info');
+
+    if (siteData.title) {
+        const titleH3 = document.createElement('h3');
+        titleH3.textContent = siteData.title;
+        siteInfoDiv.appendChild(titleH3);
+    }
+
+    if (siteData.description) {
+        const descriptionP = document.createElement('P');
+        descriptionP.textContent = siteData.description;
+        siteInfoDiv.appendChild(descriptionP);
+    }
+
+    itemDiv.appendChild(siteInfoDiv);
+    listItem.appendChild(itemDiv);
+    listItem.id = url;
+
+    return listItem;
 }

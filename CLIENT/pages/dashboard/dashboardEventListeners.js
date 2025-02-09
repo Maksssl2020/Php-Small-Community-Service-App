@@ -1,14 +1,23 @@
-import {dashboardContentContainer, followedTagsModal, postOptionsModal} from "./dashboard.js";
+import {
+    dashboardContentContainer,
+    followedTagsModal,
+    populateFollowedTagsModalListWithTags,
+    postOptionsModal
+} from "./dashboard.js";
 import {
     addComment,
     deleteComment,
     deletePostById,
     followTag,
-    getAmountOfUserFollowedTags, getPostCreatorId,
+    getAmountOfUserFollowedTags, getPostCreatorId, getUserFollowedTags, getUserNotFollowedTags,
     likeOrUnlikePost,
     unfollowTag
 } from "./dashboardApiFunctions.js";
-import {addCommentCardToPost, updatePostAfterAddCommentOrRemoveComment} from "./dashboardPostRender.js";
+import {
+    addCommentCardToPost,
+    populateDashboardContentPosts,
+    updatePostAfterAddCommentOrRemoveComment
+} from "./dashboardPostRender.js";
 import {getPostIdFromIdAttribute} from "./dashboardUtils.js";
 import {getCommentsAndFillSection, getLikesAndFillSection} from "../../../indexEventListeners.js";
 import {showToast} from "../../../indexUtils.js";
@@ -43,8 +52,7 @@ export async function followTagEventListener() {
     const success = await followTag(tagName);
 
     if (success) {
-        this.classList.remove('follow');
-        this.classList.add('unfollow');
+        this.classList.replace('follow', 'unfollow');
         this.textContent = 'Unfollow';
 
         this.removeEventListener('click', followTagEventListener);
@@ -62,8 +70,7 @@ export async function unfollowTagEventListener() {
         const success = await unfollowTag(tagName);
 
         if (success) {
-            this.classList.remove('unfollow');
-            this.classList.add('follow');
+            this.classList.replace('unfollow', 'follow');
             this.textContent = 'Follow';
 
             this.removeEventListener('click', unfollowTagEventListener);
@@ -71,6 +78,30 @@ export async function unfollowTagEventListener() {
         }
     } else {
         showToast("Cannot unfollow that tag! You have to follow at least 1 tag!", "error");
+    }
+}
+
+export async function followOrUnfollowTagByUser() {
+    const tagName = this.getAttribute('tagName');
+    const tagFollowersSpan = document.getElementById("tagFollowers")
+    const currentTagFollowers = parseInt(tagFollowersSpan.textContent);
+
+    if (this.classList.contains("follow")) {
+        const success = await followTag(tagName)
+
+        if (success) {
+            tagFollowersSpan.textContent = `${currentTagFollowers+1}`;
+            this.classList.replace('follow', 'unfollow');
+            this.textContent = 'Unfollow';
+        }
+    } else if (this.classList.contains("unfollow")) {
+        const success = await unfollowTag(tagName)
+
+        if (success) {
+            tagFollowersSpan.textContent = `${currentTagFollowers-1}`;
+            this.classList.replace('unfollow', 'follow');
+            this.textContent = 'Follow';
+        }
     }
 }
 
@@ -287,6 +318,19 @@ export async function addPostCommentEventListener(event) {
             addCommentButton.classList.remove("available");
             addCommentButton.disabled = true;
         }
+    }
+}
+
+export async function openFollowedTagsModalEventListener() {
+    followedTagsModal.style.display = "block";
+
+    const followedTags = await getUserFollowedTags();
+    const notFollowedTags = await getUserNotFollowedTags();
+
+    if (followedTags.length === 0) {
+        populateFollowedTagsModalListWithTags(notFollowedTags, false);
+    } else {
+        populateFollowedTagsModalListWithTags(followedTags, true);
     }
 }
 

@@ -1,10 +1,19 @@
-import {dashboardContentContainer, randomPostContainer, randomTagsContainer} from "./dashboard.js";
+import {
+    chosenTagDataContainer,
+    dashboardContentContainer,
+    randomPostContainer,
+    randomTagsContainer,
+    userFollowedTagsList
+} from "./dashboard.js";
 import {
     countPostComments,
     getFewRandomTagsThatUserNotFollow,
     getPopularTags,
     getPostAuthorId,
-    getRandomPostForUserRadar
+    getRandomPostForUserRadar,
+    getTagDataByTagName,
+    getUserFollowedTags,
+    isTagFollowedByUser
 } from "./dashboardApiFunctions.js";
 import {createDiscoverPost, createPostContentContainer, createPostFooter, createPostHeader} from "../../../index.js";
 import {
@@ -14,6 +23,7 @@ import {
     isPostLikedByUser
 } from "../../../indexApiFunctions.js";
 import {calcPeriodFromDate, getUserAvatar} from "../../../indexUtils.js";
+import {followOrUnfollowTagByUser, openFollowedTagsModalEventListener} from "./dashboardEventListeners.js";
 
 export async function fetchRandomPostForRadarInDashboard() {
     randomPostContainer.innerHTML = '';
@@ -28,10 +38,101 @@ export async function fetchRandomTagsForUser() {
     randomTagsContainer.innerHTML = '';
 
     const tagsData = await getFewRandomTagsThatUserNotFollow();
+    console.log(tagsData);
     for (const tag of tagsData) {
         const tagCard = createTagCard(tag.name);
         randomTagsContainer.innerHTML += tagCard;
     }
+}
+
+export async function fetchUserFollowedTagsData() {
+    userFollowedTagsList.innerHTML = '';
+
+    const tagsData = await getUserFollowedTags();
+    console.log(tagsData);
+    for (const tag of tagsData) {
+        const createdTagCard = createUserFollowedTagCard(tag);
+        userFollowedTagsList.innerHTML += createdTagCard;
+    }
+
+    const manageButton = document.getElementById("userFollowedTagsManageButton");
+    manageButton.addEventListener("click", openFollowedTagsModalEventListener);
+}
+
+export async function fetchChosenTagData(specifiedTag) {
+    chosenTagDataContainer.innerHTML = "";
+
+    const tagData = await getTagDataByTagName(specifiedTag);
+
+    console.log(tagData);
+    console.log(specifiedTag);
+
+    const tagCard = await createChosenTagCard(tagData[0]);
+
+    chosenTagDataContainer.innerHTML += tagCard;
+
+    const followUnfollowButtonInChosenTagCard = document.getElementById("followUnfollowButtonInChosenTagCard");
+    console.log(followUnfollowButtonInChosenTagCard);
+    if (followUnfollowButtonInChosenTagCard) {
+        followUnfollowButtonInChosenTagCard.addEventListener('click', followOrUnfollowTagByUser)
+    }
+}
+
+async function createChosenTagCard(tagData) {
+    const {name, latestCreatedPosts, tagFollowers} = tagData;
+    const isFollowedByUser = await isTagFollowedByUser(name);
+    let button;
+
+    if (isFollowedByUser) {
+        button = `<button tagName="${name}" id="followUnfollowButtonInChosenTagCard" class="unfollow">Unfollow</button>`
+    } else {
+        button = `<button tagName="${name}" id="followUnfollowButtonInChosenTagCard" class="follow">Follow</button>`
+    }
+
+    return `
+    <div class="chosen-tag-card">
+        <h2>#${name}</h2>
+        <div>
+            <span id="tagFollowers" style="font-weight: bold">${tagFollowers}</span> followers / <span style="font-weight: bold">${latestCreatedPosts}</span> latest posts
+        </div>
+        <div>
+            ${button}
+        </div>
+    </div>
+    `
+}
+
+export function createSearchbarTagCard(tagData) {
+    const {name, tagFollowers} = tagData;
+
+    return `
+    <div class="searchbar-tag-card">
+        <a href="../dashboard/dashboard.php?section=discover&tag=${name}">
+            <span class="searchbar-tag-name">
+                    #${name}
+            </span>
+            <span class="searchbar-tag-followers">${tagFollowers} followers</span>
+        </a>
+    </div>
+    
+    `
+}
+
+function createUserFollowedTagCard(tagData) {
+    const {name, latestCreatedPosts} = tagData;
+
+    return `
+    <div class="user-followed-tag-with-additional-info">
+        <div class="followed-tag-link">
+            <a href="../dashboard/dashboard.php?section=discover&tag=${name}">
+                <span class="tag-name">
+                    #${name}
+                </span>
+                <span class="tag-latest-posts">${latestCreatedPosts} latest posts</span>
+            </a>
+        </div>
+    </div>
+    `
 }
 
 function createTagCard(tagName) {
@@ -144,6 +245,8 @@ async function createDashboardPost(postData) {
     const {id, images, postContent, postTitle, postSitesLinks, postType, tags, userId, createdAt} = postData;
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
     let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
+
+    console.log(postData)
 
     const postDiv = document.createElement('div');
     postDiv.classList.add("dashboard-post-card");

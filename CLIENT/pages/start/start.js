@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await handleSectionChange(tag);
     } else {
         headerTitle.textContent = "Browse Topics";
+        console.log("TE")
         await fillPageWithMainTagCards();
     }
 })

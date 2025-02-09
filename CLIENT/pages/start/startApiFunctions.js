@@ -43,7 +43,8 @@ export async function getPostsForNonLoggedInUser(specifiedTag) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            return data.data;
+            const {posts, totalPages} = data.data;
+            return posts;
         }
 
         return [];
@@ -129,6 +130,7 @@ export async function logout() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            localStorage.clear();
             showToast(data.message, 'success');
             window.location = "../start/start.php";
         } else {

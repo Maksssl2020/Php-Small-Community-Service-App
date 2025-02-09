@@ -445,7 +445,7 @@ class PostRepository extends BaseRepository {
             $foundPostImages = ($postType === 'image') ? ($allImages[$postId] ?? []) : [];
             $foundPostLinks = ($postType === 'link') ? ($allLinks[$postId] ?? []) : [];
 
-            $dashboardPost = $this->createPostModel($post, $foundTags, $foundPostImages, $foundPostLinks);
+            $dashboardPost = $this->createPostModel($post, $foundTags, $foundPostLinks, $foundPostImages);
 
             $dashboardPosts[] = $dashboardPost;
         }

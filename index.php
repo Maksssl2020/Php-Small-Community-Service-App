@@ -9,7 +9,7 @@ $ngrokApiUrl = "http://127.0.0.1:4040/api/tunnels";
 
 $context = stream_context_create([
     'http' => [
-        'timeout' => 0.5,
+        'timeout' => 0.01,
     ]
 ]);
 $ngrokResponse = @file_get_contents($ngrokApiUrl, false, $context);
@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 use Controllers\AuthenticationController;
 use Controllers\CommentController;
+use Controllers\OgpController;
 use Controllers\PostController;
 use Controllers\TagController;
 use Controllers\UserController;
@@ -93,6 +94,9 @@ if ($resource === 'users') {
 } elseif($resource == "comments") {
     $commentRepository = new CommentRepository($database);
     $controller = new CommentController($commentRepository);
+    $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
+} elseif ($resource == "ogp") {
+    $controller = new OgpController();
     $controller->processRequest($_SERVER['REQUEST_METHOD'], $action, $id);
 } else {
     http_response_code(404);

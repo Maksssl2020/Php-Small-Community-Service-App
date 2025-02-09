@@ -83,16 +83,33 @@
         <div id="rightColumn" class="right-column scrollbar dashboard">
             <div class="searchbar">
                 <i class="bi bi-search"></i>
-                <input class="searchbar-input" type="text" placeholder="Search on Flickit"/>
+                <input id="tagsSearchbar" class="searchbar-input" type="text" placeholder="Search on Flickit"/>
+
+                <div id="searchbarDropdown" class="searchbar-dropdown scrollbar hidden"></div>
+            </div>
+
+            <div id="chosenTagDataContainer" class="chosen-tag-data-container hidden">
+            </div>
+
+            <div id="userFollowedTagsInformationContainer" class="user-followed-tags-container hidden">
+                <header>
+                    <h2>Followed</h2>
+                    <button id="userFollowedTagsManageButton">Manage</button>
+                </header>
+                <div class="user-followed-tags-list scrollbar" id="userFollowedTagsList"></div>
             </div>
 
             <div class="random-tags-container">
-                <h2>Check out these tags</h2>
+                <header>
+                    <h2>Check out these tags</h2>
+                </header>
                 <div id="randomTagsContainer"></div>
-                <a href="../dashboard/dashboard.php?section=discover">Discover on all Flickit</a>
+                <footer>
+                    <a href="../dashboard/dashboard.php?section=discover">Discover all on Flickit</a>
+                </footer>
             </div>
 
-            <div class="random-post-container">
+            <div id="randomPostInformationContainer" class="random-post-container hidden">
                 <h2>Radar</h2>
                 <div id="randomPostContainer"></div>
             </div>
@@ -131,11 +148,8 @@
     <div id="addNewPostModal" class="modal-container">
         <div class="modal-content">
             <header class="add-post-modal-header">
-                <p id="userNickname">
-                    <?php
-                        echo $userNickname;
-                    ?>
-                </p>
+                <img id="addNewPostModalUserAvatar" src="" alt="user_avatar"/>
+                <p id="addNewPostModalUserNickname"></p>
             </header>
             <form class="add-post-modal-main" id="addPostModalFormContainer"></form>
             <div class="add-post-modal-tags-options" >
@@ -154,7 +168,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="addedTagsContainer" class="chosen-tags-container">
+                <div id="addedTagsContainer" class="chosen-tags-container scrollbar">
                 </div>
             </div>
             <footer class="add-post-modal-footer">
