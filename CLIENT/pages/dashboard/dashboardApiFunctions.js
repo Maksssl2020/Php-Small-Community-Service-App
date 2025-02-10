@@ -1,9 +1,12 @@
 import {dashboardContentContainer, populateDashboardContentWithPostsThatContainFollowedTags} from "./dashboard.js";
-import {populateDashboardContentPosts, updatePostAfterLikeOrUnlike} from "./dashboardPostRender.js";
-import {showToast} from "../../../indexUtils.js";
+import {
+    populateDashboardContentPosts,
+    populateDiscoverContentPosts,
+    updatePostAfterLikeOrUnlike
+} from "./dashboardPostRender.js";
+import {showToast, updatePagination} from "../../../indexUtils.js";
 import {getSignedInUserData} from "../../../indexApiFunctions.js";
-import {addPostModalFormContainer, addTag, chosenTags, resetFormData} from "./dashboardAddNewPosts.js";
-import {updatePagination} from "./dashboardUtils.js";
+import {addNewPostModal, addPostModalFormContainer, addTag, chosenTags, resetFormData} from "./dashboardAddNewPosts.js";
 
 export async function fetchRandomPostsForUser(pageNumber) {
     const {userId} = await getSignedInUserData();
@@ -21,7 +24,7 @@ export async function fetchRandomPostsForUser(pageNumber) {
         if (data.success) {
             const {posts, totalPages} = data.data;
             dashboardContentContainer.innerHTML = "";
-            await updatePagination(totalPages, pageNumber, "dashboardForYouPosts")
+            await updatePagination(totalPages, pageNumber, "dashboard", "dashboardForYouPosts")
             await populateDashboardContentPosts(posts);
         } else {
             console.log(data.errors);
@@ -48,7 +51,7 @@ export async function fetchPostsWithUserFollowedTags(pageNumber) {
         if (data.success) {
             const {posts, totalPages} = data.data;
             dashboardContentContainer.innerHTML = "";
-            await updatePagination(totalPages, pageNumber, "dashboardYourTagsPosts")
+            await updatePagination(totalPages, pageNumber, "dashboard","dashboardYourTagsPosts")
             await populateDashboardContentWithPostsThatContainFollowedTags(posts);
         } else {
             console.log(data.errors);
@@ -75,7 +78,7 @@ export async function fetchUserPosts(pageNumber) {
         if (data.success) {
             const {posts, totalPages} = data.data;
             dashboardContentContainer.innerHTML = "";
-            await updatePagination(totalPages, pageNumber, "userPosts");
+            await updatePagination(totalPages, pageNumber, "dashboard", "userPosts");
             await populateDashboardContentPosts(posts);
         } else {
             showToast("Something went wrong... Please try again later.", 'error')
@@ -91,23 +94,23 @@ export async function fetchPostsForUserDiscoverSection(type, pageNumber, specifi
     let url;
     switch (type) {
         case "recent": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent-${specifiedTag}/${userId}?page=${pageNumber}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts/${userId}?page=${pageNumber}&tag=${specifiedTag}&recent=1`;
             break;
         }
         case "theBest": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-best-${specifiedTag}/${userId}?page=${pageNumber}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts/${userId}?page=${pageNumber}&tag=${specifiedTag}&recent=0`;
             break;
         }
         case "popular": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-popular/${userId}?page=${pageNumber}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts/${userId}?page=${pageNumber}&recent=0`;
             break;
         }
         case "recentForYou": {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}?page=${pageNumber}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts/${userId}?page=${pageNumber}&recent=1`;
             break;
         }
         default: {
-            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts-recent/${userId}?page=${pageNumber}`;
+            url = `http://localhost/php-small-social-service-app/posts/get-discovered-posts/${userId}?page=${pageNumber}&recent=1`;
             break;
         }
     }
@@ -123,8 +126,8 @@ export async function fetchPostsForUserDiscoverSection(type, pageNumber, specifi
         .then(data => {
             if (data.success) {
                 const {posts, totalPages} = data.data;
-                updatePagination(totalPages, pageNumber, type)
-                return posts;
+                updatePagination(totalPages, pageNumber, "dashboard", type, specifiedTag)
+                populateDiscoverContentPosts(posts);
             }
 
             return [];
@@ -319,8 +322,6 @@ export async function fetchAllTags() {
     })
         .then(res => res.json())
         .then(data => {
-            console.log(data)
-
             if (data.success) {
                 return data.data;
             }
@@ -347,10 +348,10 @@ export async function addNewTextPost() {
         }),
     })
         .then(res => res.json())
-        .then(data => {
+        .then(async data => {
             if (data.success) {
                 showToast(data.message, "success");
-                resetFormData();
+                await resetFormData();
             } else {
                 showToast("Failed to add a new post!", "error");
             }
@@ -377,11 +378,11 @@ export async function addNewImagePost() {
         }
     })
         .then(res => res.json())
-        .then(data => {
+        .then(async data => {
             if (data.success) {
                 showToast(data.message, "success");
                 addedLinksList.innerHTML = "";
-                resetFormData();
+                await resetFormData();
             } else {
                 showToast("Failed to add a new post!", "error");
             }
@@ -406,10 +407,10 @@ export async function addNewQuotePost() {
         }
     })
         .then(res => res.json())
-        .then(data => {
+        .then(async data => {
             if (data.success) {
                 showToast(data.message, "success");
-                resetFormData();
+                await resetFormData();
             }
         })
         .catch(err => console.log(err));
@@ -718,4 +719,51 @@ export async function isTagFollowedByUser(tagName) {
         console.log(err);
         return false;
     })
+}
+
+export async function getPostData(postId) {
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-post-data/${postId}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            return data.data;
+        }
+
+        return null;
+    })
+    .catch(err => {
+        console.log(err);
+        return null;
+    })
+}
+
+export async function updatePostData(postId, postData) {
+    const {userId} = await getSignedInUserData();
+    postData.userId = userId;
+
+
+    fetch(`http://localhost/php-small-social-service-app/posts/update-post-data/${postId}`, {
+        method: 'PATCH',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            ...postData
+        })
+    })
+        .then(res => res.json())
+        .then(async data => {
+            if (data.success) {
+                await resetFormData();
+                addNewPostModal.style.display = "none";
+                showToast("Post has been updated!", "success");
+                await fetchUserPosts(localStorage.getItem("myPostsPaginationNumber") ?? 1)
+            } else {
+                showToast("Something went wrong... Please try again later!", "error");
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            showToast("Something went wrong... Please try again later!", "error");
+        })
 }

@@ -1,28 +1,23 @@
-import {
-    dashboardContentContainer,
-    followedTagsModal,
-    populateFollowedTagsModalListWithTags,
-    postOptionsModal
-} from "./dashboard.js";
+import {followedTagsModal, populateFollowedTagsModalListWithTags, postOptionsModal} from "./dashboard.js";
 import {
     addComment,
     deleteComment,
     deletePostById,
     followTag,
-    getAmountOfUserFollowedTags, getPostCreatorId, getUserFollowedTags, getUserNotFollowedTags,
+    getAmountOfUserFollowedTags,
+    getPostCreatorId,
+    getPostData,
+    getUserFollowedTags,
+    getUserNotFollowedTags,
     likeOrUnlikePost,
     unfollowTag
 } from "./dashboardApiFunctions.js";
-import {
-    addCommentCardToPost,
-    populateDashboardContentPosts,
-    updatePostAfterAddCommentOrRemoveComment
-} from "./dashboardPostRender.js";
+import {addCommentCardToPost, updatePostAfterAddCommentOrRemoveComment} from "./dashboardPostRender.js";
 import {getPostIdFromIdAttribute} from "./dashboardUtils.js";
 import {getCommentsAndFillSection, getLikesAndFillSection} from "../../../indexEventListeners.js";
 import {showToast} from "../../../indexUtils.js";
 import {getSignedInUserData} from "../../../indexApiFunctions.js";
-import {addNewPostModal, addPostModalFormContainer} from "./dashboardAddNewPosts.js";
+import {addNewPostModal, addPostModalFormContainer, editPostData} from "./dashboardAddNewPosts.js";
 
 export async function showDashboardPostAndLikesStatisticsContainer(event) {
     const target = event.target;
@@ -105,6 +100,21 @@ export async function followOrUnfollowTagByUser() {
     }
 }
 
+export async function followUnfollowTagInSuggestion(event) {
+    if (event.target.id === "followUnfollowTagFromSuggestionCard") {
+        const followUnfollowButton = event.target;
+        const tagName = followUnfollowButton.getAttribute('tagName');
+
+        if (followUnfollowButton.classList.contains("follow")) {
+            const success = await followTag(tagName)
+
+            if (success) {
+                followUnfollowButton.remove();
+            }
+        }
+    }
+}
+
 export async function likeOrUnlikePostEventListener(event)  {
     const likeIcon = event.target;
 
@@ -153,6 +163,18 @@ export function showDeletePostWarningModal(event) {
 
         deleteWarningModal.style.display = "block";
         deleteWarningModal.setAttribute("postId", postId);
+    }
+}
+
+export async function openEditPostModalEventListener(event) {
+    const editPostButton = event.target;
+    console.log(event)
+
+    if (editPostButton.id === "editPost") {
+        const postId = editPostButton.getAttribute("postId");
+        const postType = editPostButton.getAttribute("postType");
+        const postData = await getPostData(postId);
+        await editPostData(postData[0], postType, postId);
     }
 }
 

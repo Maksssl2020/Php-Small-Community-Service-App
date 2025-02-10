@@ -26,7 +26,7 @@ import {
     fetchCommentsOrLikesDataInDiscoverPostEventListener,
     fillStatisticsWithCommentsOrLikesEventListener,
     followTagEventListener,
-    likeOrUnlikePostEventListener,
+    likeOrUnlikePostEventListener, openEditPostModalEventListener,
     openFollowedTagsModalEventListener,
     showCommentManagementOptions,
     showDashboardPostAndLikesStatisticsContainer,
@@ -35,7 +35,7 @@ import {
     showPostManagementOptions,
     unfollowTagEventListener
 } from "./dashboardEventListeners.js";
-import {autoResize} from "../../../indexApiFunctions.js";
+import {autoResize, logout} from "../../../indexApiFunctions.js";
 import {showDiscoverPostAndLikesStatisticsContainer} from "../../../indexEventListeners.js";
 
 
@@ -52,6 +52,7 @@ const dashboardSelector = document.getElementById("dashboardItem");
 const discoverSelector = document.getElementById("discoverItem");
 const topicsSelector = document.getElementById("topicsItem");
 const accountSelector = document.getElementById("accountItem");
+const logoutSelector = document.getElementById("logoutItem");
 const dashboardHeader = document.getElementById("dashboardHeader");
 
 const confirmDeleteButton = document.getElementById("confirmDelete");
@@ -162,7 +163,7 @@ async function handleSectionChange(chosenSection, specifiedTag = "") {
             pageNumber,
             specifiedTag
         );
-        const posts = await fetchPostsForUserDiscoverSection(
+        await fetchPostsForUserDiscoverSection(
             specifiedTag ? "recent" : "popular",
             pageNumber,
             specifiedTag
@@ -194,8 +195,6 @@ async function handleSectionChange(chosenSection, specifiedTag = "") {
                 userFollowedTagsInformationContainer.classList.replace("hidden", "visible");
             }
         }
-
-        await populateDiscoverContentPosts(posts);
     }
 
     await fetchRandomTagsForUser();
@@ -254,9 +253,7 @@ function createHeaderButtons(button, buttonsCollection, pageNumber, specifiedTag
         if (button.id.includes("discover")) {
             const sectionType = getDiscoverSectionType(button.id);
             let pageNumber = getStoredPageNumber(sectionType, specifiedTag);
-
-            const posts = await fetchPostsForUserDiscoverSection(sectionType, pageNumber, specifiedTag);
-            await populateDiscoverContentPosts(posts);
+            await fetchPostsForUserDiscoverSection(sectionType, pageNumber, specifiedTag);
         } else if (button.id === "dashboardForYou") {
             let pageNumber = getStoredPageNumber("dashboard");
             await fetchRandomPostsForUser(pageNumber);
@@ -298,6 +295,10 @@ postTextAreas.forEach((textArea) => {
     textArea.addEventListener("input", autoResize);
     autoResize.call(textArea);
 })
+
+if (logoutSelector) {
+    logoutSelector.addEventListener("click", logout);
+}
 
 export async function populateDashboardContentWithPostsThatContainFollowedTags(posts) {
     const amountOfFollowedUserTags = await getAmountOfUserFollowedTags();
@@ -425,6 +426,7 @@ if (dashboardContentContainer) {
     dashboardContentContainer.addEventListener('click', fillStatisticsWithCommentsOrLikesEventListener);
     dashboardContentContainer.addEventListener('click', showPostManagementOptions);
     dashboardContentContainer.addEventListener("click", showDeletePostWarningModal);
+    dashboardContentContainer.addEventListener("click", openEditPostModalEventListener);
     dashboardContentContainer.addEventListener("click", showDeleteCommentWarningModal);
     dashboardContentContainer.addEventListener("click", showCommentManagementOptions);
 }

@@ -43,7 +43,8 @@ async function createMainTagCard(mainTag) {
 }
 
 export async function fillPageWithPostsRelatedToSpecifiedTag(specifiedTag) {
-    const postsData = await getPostsForNonLoggedInUser(specifiedTag)
+    const pageNumber = localStorage.getItem(`startPageDiscover${specifiedTag}PaginationNumber`) ?? 1;
+    const postsData = await getPostsForNonLoggedInUser(specifiedTag, pageNumber)
 
     const container1 = document.createElement("div");
     container1.setAttribute("id", "container1");

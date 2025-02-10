@@ -83,6 +83,16 @@ error_log($isSignedIn);
             </header>
             <div id="mainTags" class="main-tags-container main-tags scrollbar">
             </div>
+            <footer id="startFooter" class="pagination-footer hidden">
+                <button id="startPaginationLeftArrow" style="padding-right: 8px" class="pagination-arrow">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <div id="startPaginationNumbers" class="pagination-numbers">
+                </div>
+                <button id="startPaginationRightArrow" style="padding-left: 8px" class="pagination-arrow">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </footer>
         </div>
     </div>
 

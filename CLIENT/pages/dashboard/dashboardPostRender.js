@@ -23,7 +23,11 @@ import {
     isPostLikedByUser
 } from "../../../indexApiFunctions.js";
 import {calcPeriodFromDate, getUserAvatar} from "../../../indexUtils.js";
-import {followOrUnfollowTagByUser, openFollowedTagsModalEventListener} from "./dashboardEventListeners.js";
+import {
+    followOrUnfollowTagByUser,
+    followUnfollowTagInSuggestion,
+    openFollowedTagsModalEventListener
+} from "./dashboardEventListeners.js";
 
 export async function fetchRandomPostForRadarInDashboard() {
     randomPostContainer.innerHTML = '';
@@ -35,14 +39,17 @@ export async function fetchRandomPostForRadarInDashboard() {
 }
 
 export async function fetchRandomTagsForUser() {
+    randomTagsContainer.removeEventListener("click", followUnfollowTagInSuggestion);
     randomTagsContainer.innerHTML = '';
 
     const tagsData = await getFewRandomTagsThatUserNotFollow();
-    console.log(tagsData);
+
     for (const tag of tagsData) {
         const tagCard = createTagCard(tag.name);
         randomTagsContainer.innerHTML += tagCard;
     }
+
+    randomTagsContainer.addEventListener("click", followUnfollowTagInSuggestion);
 }
 
 export async function fetchUserFollowedTagsData() {
@@ -63,16 +70,11 @@ export async function fetchChosenTagData(specifiedTag) {
     chosenTagDataContainer.innerHTML = "";
 
     const tagData = await getTagDataByTagName(specifiedTag);
-
-    console.log(tagData);
-    console.log(specifiedTag);
-
     const tagCard = await createChosenTagCard(tagData[0]);
 
     chosenTagDataContainer.innerHTML += tagCard;
 
     const followUnfollowButtonInChosenTagCard = document.getElementById("followUnfollowButtonInChosenTagCard");
-    console.log(followUnfollowButtonInChosenTagCard);
     if (followUnfollowButtonInChosenTagCard) {
         followUnfollowButtonInChosenTagCard.addEventListener('click', followOrUnfollowTagByUser)
     }
@@ -145,7 +147,7 @@ function createTagCard(tagName) {
                 </span>
             </a>
         </div>
-        <button>Follow</button>
+        <button tagName="${tagName}" id="followUnfollowTagFromSuggestionCard" class="follow">Follow</button>
     </div>
     `
 }
@@ -246,13 +248,11 @@ async function createDashboardPost(postData) {
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
     let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
 
-    console.log(postData)
-
     const postDiv = document.createElement('div');
     postDiv.classList.add("dashboard-post-card");
     postDiv.setAttribute('id', `post-${id}`);
 
-    const postHeader = await createPostHeader(id, userId, avatarSrc, userNickname, createdAt, true);
+    const postHeader = await createPostHeader(id, postType, userId, avatarSrc, userNickname, createdAt, true);
     const postContentDiv = await createPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks, true);
     const postFooter = await createPostFooter(id, userId,false, true);
     const postStatisticsContainer = await createDashboardPostStatisticsContainer(id);

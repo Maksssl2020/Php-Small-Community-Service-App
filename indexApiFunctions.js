@@ -151,3 +151,27 @@ export async function forgotPassword(userEmail) {
             showToast('Something went wrong. Please try again.', 'error')
         })
 }
+
+export async function logout() {
+    fetch("http://localhost/php-small-social-service-app/authentication/logout", {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.clear();
+                showToast(data.message, 'success');
+                window.location = "../start/start.php";
+            } else {
+                showToast('Something went wrong. Please try again.', 'error')
+            }
+        })
+        .catch(errors => {
+            console.log(errors)
+            showToast('Something went wrong. Please try again.', 'error')
+        })
+}

@@ -1,3 +1,11 @@
+import {
+    fetchPostsForUserDiscoverSection,
+    fetchPostsWithUserFollowedTags,
+    fetchRandomPostsForUser,
+    fetchUserPosts
+} from "./CLIENT/pages/dashboard/dashboardApiFunctions.js";
+import {getPostsForNonLoggedInUser} from "./CLIENT/pages/start/startApiFunctions.js";
+
 export function showToast(message, type = 'error') {
     const toastContainer = document.getElementById('toastContainer')
     const toast = document.createElement('div');
@@ -81,4 +89,93 @@ export function getUserAvatar(avatarUrl, avatarImage) {
 
 export function validateFormInput(input, isValid) {
     input.style.border = isValid ? '2px solid #E9E1FF' : '2px solid #ff4d4f';
+}
+
+export function updatePagination(totalPages, currentPage, pageName, typeOfData, specifiedTag = "") {
+    const paginationNumbersContainer = document.getElementById(`${pageName}PaginationNumbers`);
+    paginationNumbersContainer.innerHTML = '';
+
+    const paginationRightArrow = document.getElementById(`${pageName}PaginationRightArrow`);
+    const paginationLeftArrow = document.getElementById(`${pageName}PaginationLeftArrow`);
+
+    paginationRightArrow.replaceWith(paginationRightArrow.cloneNode(true));
+    paginationLeftArrow.replaceWith(paginationLeftArrow.cloneNode(true));
+
+    const newPaginationRightArrow = document.getElementById(`${pageName}PaginationRightArrow`);
+    const newPaginationLeftArrow = document.getElementById(`${pageName}PaginationLeftArrow`);
+
+    console.log(currentPage)
+
+    newPaginationRightArrow.addEventListener("click", async () => {
+        if (currentPage < totalPages) {
+            await fetchDataDependsOnTypeOfData(typeOfData, currentPage + 1, specifiedTag);
+        }
+    })
+
+    newPaginationLeftArrow.addEventListener("click", async () => {
+        if (currentPage > 1) {
+            await fetchDataDependsOnTypeOfData(typeOfData, currentPage - 1, specifiedTag);
+        }
+    })
+
+    if (totalPages === 0) {
+        totalPages = 1;
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+        const button = document.createElement('button');
+        button.className = i === currentPage ? "pagination-number active" : "pagination-number non-active";
+        button.textContent = `${i}`;
+
+        button.onclick = async () => {
+            await fetchDataDependsOnTypeOfData(typeOfData, i, specifiedTag);
+        }
+
+        paginationNumbersContainer.appendChild(button);
+    }
+}
+
+async function fetchDataDependsOnTypeOfData(typeOfData, pageNumber, specifiedTag = "") {
+    switch (typeOfData) {
+        case "userPosts": {
+            await fetchUserPosts(pageNumber);
+            localStorage.setItem("myPostsPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "dashboardForYouPosts": {
+            await fetchRandomPostsForUser(pageNumber);
+            localStorage.setItem("dashboardForYouPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "dashboardYourTagsPosts": {
+            await fetchPostsWithUserFollowedTags(pageNumber);
+            localStorage.setItem("dashboardYourTagsPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "recent": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber, specifiedTag);
+            localStorage.setItem(`discoverRecent${specifiedTag}PaginationNumber`, `${pageNumber}`);
+            break;
+        }
+        case "theBest": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber, specifiedTag);
+            localStorage.setItem(`discoverTheBest${specifiedTag}PaginationNumber`, `${pageNumber}`);
+            break;
+        }
+        case "popular": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber);
+            localStorage.setItem("discoverPopularPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "recentForYou": {
+            await fetchPostsForUserDiscoverSection(typeOfData, pageNumber);
+            localStorage.setItem("discoverRecentForYousPaginationNumber", `${pageNumber}`);
+            break;
+        }
+        case "startPageDiscover": {
+            await getPostsForNonLoggedInUser(specifiedTag, pageNumber);
+            localStorage.setItem(`startPageDiscover${specifiedTag}PaginationNumber`, `${pageNumber}`);
+            break;
+        }
+    }
 }

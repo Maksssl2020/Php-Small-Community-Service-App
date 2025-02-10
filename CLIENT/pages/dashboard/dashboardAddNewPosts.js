@@ -3,12 +3,13 @@ import {
     addNewLinkPost,
     addNewQuotePost,
     addNewTextPost,
-    addNewUserTag, fetchAllTags,
+    addNewUserTag, fetchAllTags, updatePostData,
 } from "./dashboardApiFunctions.js";
 import { postOptionsModal} from "./dashboard.js";
 import {autoResize, fetchSiteData, fetchUserData, getSignedInUserData} from "../../../indexApiFunctions.js";
 import {getUserAvatar, showToast} from "../../../indexUtils.js";
 import {createSiteCard} from "../../../index.js";
+import {arraysEqual} from "./dashboardUtils.js";
 
 const addTextPostButton = document.getElementById("addTextPostButton");
 const addImagePostButton = document.getElementById("addImagePostButton");
@@ -46,7 +47,7 @@ if (addTextPostButton) {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
         await setUserDataIntoAddPostModal();
-        generateAddTextPostModal();
+        await generateAddTextPostModal();
         await populateTagSelect([]);
 
         addNewPostButton.onclick = async (e) => {
@@ -60,7 +61,7 @@ if (addImagePostButton) {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
         await setUserDataIntoAddPostModal();
-        generateAddImagePostModal();
+        await generateAddImagePostModal();
         await populateTagSelect([]);
 
         addNewPostButton.onclick = async (e) => {
@@ -74,7 +75,7 @@ if (addQuotePostButton) {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
         await setUserDataIntoAddPostModal();
-        generateAddQuotePostModal();
+        await generateAddQuotePostModal();
         await populateTagSelect([]);
 
         addNewPostButton.onclick = (e) => {
@@ -88,7 +89,7 @@ if (addLinkPostButton) {
         postOptionsModal.style.display = "none";
         addNewPostModal.style.display = "block";
         await setUserDataIntoAddPostModal();
-        generateAddLinkPostModal();
+        await generateAddLinkPostModal();
         await populateTagSelect([]);
 
         addNewPostButton.onclick = (e) => {
@@ -130,6 +131,64 @@ if (tagsFilter) {
     })
 }
 
+export async function editPostData(postData, postType, postId) {
+    addNewPostModal.style.display = "block";
+    await setUserDataIntoAddPostModal();
+    await populateTagSelect([]);
+
+    if (postType === "text") {
+        await generateAddTextPostModal(postData, true);
+        addNewPostButton.onclick = async () => {
+            const formData = new FormData(addPostModalFormContainer);
+            await updatePostData(postId, {
+                postType: "text",
+                title: formData.get('postTitle'),
+                content: formData.get('postContent'),
+                tags: chosenTags ? chosenTags : null
+            });
+        }
+    } else if (postType === "image") {
+        await generateAddImagePostModal(postData, true);
+        addNewPostButton.onclick = async () => {
+            const formData = new FormData(addPostModalFormContainer);
+            const addedLinksList = document.getElementById("addedLinksList");
+            const imagesLinks = Array.from(addedLinksList.children).map(item => item.id);
+
+            await updatePostData(postId, {
+                postType: "image",
+                content: formData.get('postContent'),
+                imagesLinks: imagesLinks,
+                tags: chosenTags ? chosenTags : null
+            })
+        }
+    } else if (postType === "quote") {
+        await generateAddQuotePostModal(postData, true);
+        addNewPostButton.addEventListener("click", async () => {
+            const formData = new FormData(addPostModalFormContainer);
+
+            await updatePostData(postId, {
+                postType: "quote",
+                content: formData.get('postContent'),
+                tags: chosenTags ? chosenTags : null
+            })
+        })
+    } else if (postType === "link") {
+        await generateAddLinkPostModal(postData, true);
+        addNewPostButton.addEventListener("click", async () => {
+            const addedLinksList = document.getElementById("addedLinksList");
+            const links = Array.from(addedLinksList.children).map(item => item.id);
+            const formData = new FormData(addPostModalFormContainer);
+
+            await updatePostData(postId, {
+                postType: "link",
+                content: formData.get('postContent'),
+                postLinks: links,
+                tags: chosenTags ? chosenTags : null
+            })
+        })
+    }
+}
+
 async function setUserDataIntoAddPostModal() {
     const {userId} = await getSignedInUserData();
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId)
@@ -143,54 +202,161 @@ async function setUserDataIntoAddPostModal() {
 
 }
 
-function generateAddTextPostModal() {
+async function generateAddTextPostModal(postData = null, isEdit = false) {
+    let postTitle, postContent, postTags = [];
+
+    if (isEdit) {
+        const { postContent: content, postTitle: title, tags} = postData;
+        postTitle = title;
+        postContent = content;
+
+        if (tags) {
+            for (const tag of tags) {
+                postTags.push(tag.name);
+                await addTag(tag.name);
+            }
+        }
+    }
+
     const addTextPostForm = `
-        <input spellcheck="false" autocomplete="off" id="textPostTitle" name="postTitle" class="text-post-title-input" placeholder="Title"/>
-        <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input scrollbar" placeholder="Common, enter something :)"></textarea>
+        <input value="${isEdit ? postTitle : ""}" spellcheck="false" autocomplete="off" id="textPostTitle" name="postTitle" class="text-post-title-input" placeholder="Title"/>
+        <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input scrollbar" placeholder="Common, enter something :)">${isEdit ? postContent : ""}</textarea>
     `;
 
     addPostModalFormContainer.innerHTML += addTextPostForm;
 
+    const textPostTitleInput = document.getElementById("textPostTitle");
     const textPostContentInput = document.getElementById("textPostContent");
 
-    textPostContentInput.addEventListener("change", () => {
+    textPostContentInput.addEventListener("input", () => {
         validateTextPostForm();
     })
+
+    if (isEdit) {
+        const closeModalButton = document.getElementById("addNewPostModalCloseButton");
+        closeModalButton.addEventListener("click", async () => {
+            await resetFormData();
+        })
+
+        const observer = new MutationObserver(checkForChanges);
+        observer.observe(addedTagsContainer, { childList: true, subtree: true });
+
+        textPostTitleInput.addEventListener("input", checkForChanges)
+        textPostContentInput.addEventListener("input", checkForChanges)
+    }
+
+    function checkForChanges() {
+        const isTitleChanged = textPostTitleInput.value !== postTitle;
+        const isContentChanged = textPostContentInput.value !== postContent;
+        const isTagsChanged = !arraysEqual(postTags, chosenTags);
+
+        addNewPostButton.disabled = !(isTitleChanged || isContentChanged || isTagsChanged);
+    }
 }
 
-function generateAddImagePostModal() {
+
+async function generateAddImagePostModal(postData = null, isEdit = false) {
+    let currentPostImagesLinks = [];
+    let postContent, postImages = [], postTags = [];
+
+    if (isEdit) {
+        const {postContent: content, tags, images} = postData;
+        postContent = content;
+
+        if (tags) {
+            for (const tag of tags) {
+                postTags.push(tag.name);
+                await addTag(tag.name);
+            }
+        }
+
+        if (images) {
+            for (const image of images) {
+                currentPostImagesLinks.push(image.url)
+                postImages.push(image.url);
+            }
+        }
+    }
+
     const addImagePostForm = `
               <ul id="addedLinksList" class="added-links-list"></ul>
               <div class="add-photo-url-container">
                 <input spellcheck="false" autocomplete="off" id="photoLinkInput" type="url" placeholder="Enter photo URL and press ENTER :)"/>
                 <label>You could add max 5 links of photos!</label>
               </div>
-              <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+              <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)">${(isEdit && postContent !== null) ? postContent : ""}</textarea>
     `
 
     addPostModalFormContainer.innerHTML += addImagePostForm;
 
     const photoLinkInput = document.getElementById("photoLinkInput");
     const addedLinksList = document.getElementById("addedLinksList");
+    const textPostContentInput = document.getElementById("textPostContent");
+
+    if (postImages) {
+        postImages.forEach(image => {
+            addPhotoUrlToTheList(image, addedLinksList);
+        })
+    }
 
     photoLinkInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
+        event.preventDefault();
+
+        if (event.key === 'Enter' && event.target.value.trim().length > 5) {
             addPhotoUrlToTheList(event.target.value.trim(), addedLinksList);
             photoLinkInput.value = "";
+
+            if (isEdit) {
+                currentPostImagesLinks.push(event.target.value.trim());
+            }
         }
     })
 
-    const observer = new MutationObserver(() => {
-        validateImagePostForm();
-    })
-
+    const observer = new MutationObserver(validateImagePostForm)
     observer.observe(addedLinksList, {childList: true});
+
+    if (isEdit) {
+        const closeModalButton = document.getElementById("addNewPostModalCloseButton");
+
+        closeModalButton.addEventListener("click", async () => {
+            currentPostImagesLinks = [];
+            await resetFormData();
+        })
+
+        const observer = new MutationObserver(checkForChanges);
+        observer.observe(addedTagsContainer, { childList: true });
+        photoLinkInput.addEventListener("change", checkForChanges)
+        textPostContentInput.addEventListener("input", checkForChanges)
+    }
+
+    function checkForChanges() {
+        const isContentChanged = textPostContentInput.value !== postContent;
+        const isTagsChanged = !arraysEqual(postTags, chosenTags);
+        const isImagesChanged = !arraysEqual(postImages, currentPostImagesLinks)
+
+        addNewPostButton.disabled = !(isImagesChanged || isContentChanged || isTagsChanged);
+    }
 }
 
-function generateAddQuotePostModal() {
+async function generateAddQuotePostModal(postData = null, isEdit = false) {
+    let postQuote, postTags = [];
+
+    if (isEdit) {
+        const {postContent, tags} = postData;
+        postQuote = postContent;
+
+        if (tags) {
+            for (const tag of tags) {
+                postTags.push(tag.name);
+                await addTag(tag.name);
+            }
+        }
+    }
+
+    console.log(postData)
+
     const addQuotePostForm = `
-        <textarea spellcheck="false" autocomplete="off" id="quoteTextarea" name="postContent" class="post-quote-textarea" placeholder="Something that someone once told someone..."></textarea>
+        <textarea spellcheck="false" autocomplete="off" id="quoteTextarea" name="postContent" class="post-quote-textarea" placeholder="Something that someone once told someone...">${isEdit ? postQuote : ""}</textarea>
     `
 
     addPostModalFormContainer.innerHTML += addQuotePostForm;
@@ -202,22 +368,70 @@ function generateAddQuotePostModal() {
     quoteTextarea.addEventListener('change', () => {
         validateQuotePostForm();
     })
+
+    if (isEdit) {
+        const closeModalButton = document.getElementById("addNewPostModalCloseButton");
+        closeModalButton.addEventListener("click", async () => {
+            await resetFormData();
+        })
+
+        const observer = new MutationObserver(checkForChanges);
+        observer.observe(addedTagsContainer, {childList: true});
+        quoteTextarea.addEventListener("input", checkForChanges);
+    }
+
+    function checkForChanges() {
+        const isContentChanged = quoteTextarea.value !== postQuote;
+        const isTagsChanged = !arraysEqual(postTags, chosenTags);
+
+        addNewPostButton.disabled = !(isContentChanged || isTagsChanged);
+    }
 }
 
-function generateAddLinkPostModal() {
+async function generateAddLinkPostModal(postData = null, isEdit = false) {
+    let currentPostSitesLinks = [];
+    let content, postLinks = [], postTags = [];
+
+    if (isEdit) {
+        const {postContent, tags, postSitesLinks} = postData;
+
+        content = postContent;
+
+        if (tags) {
+            for (const tag of tags) {
+                postTags.push(tag.name);
+                await addTag(tag.name);
+            }
+        }
+
+        if (postSitesLinks) {
+            for (const siteLink of postSitesLinks) {
+                postLinks.push(siteLink);
+                currentPostSitesLinks.push(siteLink);
+            }
+        }
+    }
+
     const addLinkPostForm = `
               <ul id="addedLinksList" class="added-links-list"></ul>
               <div class="add-photo-url-container">
                 <input spellcheck="false" autocomplete="off" id="siteLinkInput" type="url" placeholder="Enter site URL and press ENTER :)"/>
                 <label>You could add max 5 links of sites!</label>
               </div>
-              <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)"></textarea>
+              <textarea spellcheck="false" autocomplete="off" id="textPostContent" name="postContent" class="text-post-content-input" placeholder="Common, enter something :)">${isEdit && content !== null ? content : ""}</textarea>
     `
 
     addPostModalFormContainer.innerHTML += addLinkPostForm;
 
     const linkInput = document.getElementById("siteLinkInput");
     const addedLinksList = document.getElementById("addedLinksList");
+    const textPostContentInput = document.getElementById("textPostContent");
+
+    if (currentPostSitesLinks) {
+        for (const siteLink of currentPostSitesLinks) {
+            await addSiteUrlToTheList(siteLink, addedLinksList)
+        }
+    }
 
     linkInput.addEventListener("keypress", async (event) => {
         let url = event.target.value.trim();
@@ -231,8 +445,28 @@ function generateAddLinkPostModal() {
     const observer = new MutationObserver(() => {
         validateLinkPostForm();
     })
-
     observer.observe(addedLinksList, {childList: true});
+
+    if (isEdit) {
+        const closeModalButton = document.getElementById("addNewPostModalCloseButton");
+        closeModalButton.addEventListener("click", async () => {
+            currentPostSitesLinks = [];
+            await resetFormData();
+        })
+
+        const observer = new MutationObserver(checkForChanges);
+        observer.observe(addedTagsContainer, {childList: true});
+        textPostContentInput.addEventListener("input", checkForChanges);
+        linkInput.addEventListener("change", checkForChanges);
+    }
+
+    function checkForChanges() {
+        const isContentChanged = textPostContentInput.value !== content;
+        const isTagsChanged = !arraysEqual(postTags, chosenTags);
+        const isLinksChanged = !arraysEqual(postLinks, currentPostSitesLinks)
+
+        addNewPostButton.disabled = !(isLinksChanged || isContentChanged || isTagsChanged);
+    }
 }
 
 async function addSiteUrlToTheList(url, addedLinksList) {
@@ -248,6 +482,7 @@ async function addSiteUrlToTheList(url, addedLinksList) {
 async function createSiteViewCard(url, data, container) {
     const listItem = await createSiteCard(url, data);
 
+
     const deleteIcon = document.createElement('i');
     deleteIcon.classList.add('bi');
     deleteIcon.classList.add('bi-x');
@@ -256,6 +491,7 @@ async function createSiteViewCard(url, data, container) {
         container.removeChild(listItem);
     })
 
+    listItem.appendChild(deleteIcon);
     container.appendChild(listItem);
 }
 
@@ -272,6 +508,7 @@ function addPhotoUrlToTheList(url, addedLinksList) {
     const deleteIcon = document.createElement("i");
     deleteIcon.classList.add("bi");
     deleteIcon.classList.add("bi-x");
+    deleteIcon.classList.add("post-item-delete-icon");
 
     deleteIcon.addEventListener("click", () => {
         addedLinksList.removeChild(urlListItem);
@@ -358,8 +595,8 @@ export async function addTag(tagName) {
 
 async function removeTag(tagName, tagElement) {
     addedTagsContainer.removeChild(tagElement);
+    chosenTags = chosenTags.filter((tag) => tag !== tagName);
     availableTags.push({name: tagName});
-    chosenTags = chosenTags.filter((tag) => tag.name !== tagName);
     await populateTagSelect(availableTags.slice(0, 8));
 }
 

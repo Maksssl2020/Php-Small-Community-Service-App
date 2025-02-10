@@ -14,23 +14,26 @@ readonly class PostController {
         $pageNumber = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
         if ($method == 'GET' && !empty($id)) {
-
             if (str_contains($action, 'get-discovered-posts')) {
-                $data = $this->explodeActionStringForRequestWithUserId($action);
+                $specifiedTag = $_GET['tag'] ?? null;
+                $isRecent = isset($_GET['recent']) ? (int)$_GET['recent'] : 0;
 
-                count($data) == 2 ?
-                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts-with-tag", $id, $data, $pageNumber) :
+                $data = [];
+                $data["tag"] = $specifiedTag;
+                $data["recent"] = $isRecent;
+
+                if (!empty($specifiedTag)) {
+                    $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts-with-tag", $id, $data, $pageNumber);
+                } else {
                     $this->processCollectionGetRequestWithIdAndAdditionalData("get-discovered-posts", $id, $data, $pageNumber);
+                }
             }
 
             $this->processResourceGetRequestWithId($action, $id, $pageNumber);
         } elseif ($method == "GET" && empty($id)) {
             if (str_contains($action, 'get-discovered-posts')) {
-                $data = $this->explodeActionStringForRequestWithoutUserId($action);
-
-                if (count($data) != 0) {
-                    $this->processCollectionGetRequestWithoutIdAndWithSpecifiedTag($data[0], $pageNumber);
-                }
+                $tag = $_GET["tag"] ?? "";
+                $this->processCollectionGetRequestWithoutIdAndWithSpecifiedTag($tag, $pageNumber);
             }
         } elseif ($method == 'POST' && !empty($id)) {
             $this->processResourcePostRequestWithId($action, $id);
@@ -38,6 +41,8 @@ readonly class PostController {
             $this->processResourcePostRequestWithoutId($action);
         } elseif ($method == 'DELETE' && !empty($id)) {
             $this->processResourceDeleteRequestWithId($action, $id);
+        } elseif ($method == "PATCH" && $action == "update-post-data" && !empty($id)) {
+            $this->processResourcePatchUpdate($action, $id);
         } else {
             http_response_code(405);
             header("Allow: POST, GET");
@@ -56,31 +61,37 @@ readonly class PostController {
         }
     }
 
-    private function explodeActionStringForRequestWithoutUserId(string $action): array {
-        $actionParts = explode('-', $action);
+    private function processResourcePatchUpdate(string $action ,string $id): void {
+        $data = (array)json_decode(file_get_contents("php://input"), true) ?? [];
+        $errors = $this->getValidationErrors($data, $action, $data["postType"]);
 
-        if (count($actionParts) == 4) {
-            return [$actionParts[count($actionParts) - 1]];
-        } else {
-            return [];
+        if (!empty($errors)) {
+            http_response_code(422);
+            echo json_encode(["success" => false, "errors" => $errors]);
+            return;
         }
+
+        $currentPost = $this->postRepository->getPostData($id)[0];
+        $rows = $this->postRepository->updatePostData($currentPost, $data, $id);
+
+        echo json_encode(["success" => true, "message" => "Post $id updated", "rows" => $rows]);
     }
 
     private function processCollectionGetRequestWithIdAndAdditionalData(string $action, string $id, array $data, int $pageNumber): void {
         switch ($action) {
             case "get-discovered-posts": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUser($id, $data[0] == "recent", $pageNumber)]);
+                echo json_encode(['success' => true, "id"=>$id,'data' => $this->postRepository->getDiscoverPostsForUser($id, $data["recent"] == 1, $pageNumber)]);
                 break;
             }
             case "get-discovered-posts-with-tag": {
-                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUserBasedOnChosenTag($id, $data[1], $data[0] == "recent", $pageNumber)]);
+                echo json_encode(['success' => true, 'data' => $this->postRepository->getDiscoverPostsForUserBasedOnChosenTag($id, $data["tag"], $data["recent"] == 1, $pageNumber)]);
                 break;
             }
         }
     }
 
     private function processCollectionGetRequestWithoutIdAndWithSpecifiedTag(string $specifiedTag, int $pageNumber): void {
-        echo json_encode(["success"=>true, "data" => $this->postRepository->getDiscoveredPostsBasedOnChosenTag($specifiedTag, $pageNumber)]);
+        echo json_encode(["success"=>true, "tag"=>$specifiedTag, "data" => $this->postRepository->getDiscoveredPostsBasedOnChosenTag($specifiedTag, $pageNumber)]);
     }
 
     public function processResourcePostRequestWithoutId(string $action): void {
@@ -154,7 +165,7 @@ readonly class PostController {
                 }
 
                 $addedPostId = $this->postRepository->addPost('link', $data);
-                $this->postRepository->addPostLinks($addedPostId, $data['links']);
+                $this->postRepository->addPostLinks($addedPostId, $data['postLinks']);
 
                 if (isset($data['tags']) && is_array($data['tags'])) {
                     $this->tagRepository->addPostTags($addedPostId, $data['tags']);
@@ -281,30 +292,34 @@ readonly class PostController {
                 echo json_encode(['success'=>true, 'data' => $this->postRepository->getRandomPostForUserRadar($id)]);
                 break;
             }
+            case "get-post-data": {
+                echo json_encode(['success'=>true, 'data' => $this->postRepository->getPostData($id)]);
+                break;
+            }
         }
     }
 
-    private function getValidationErrors(array $data, string $action): array
+    private function getValidationErrors(array $data, string $action, string $postType = ""): array
     {
         $errors = [];
 
-        if (($action == 'like-post' || 'is-post-liked-by-user' || 'create-text-post') && empty($data['userId'])) {
+        if (($action == 'like-post' || 'is-post-liked-by-user' || 'create-text-post' || 'create-link-post' || 'create-image-post' || 'create-quote-post') && empty($data['userId'])) {
             $errors[] = 'User ID is required!';
         }
 
-        if ($action == 'create-text-post' && empty($data['content'])) {
+        if (($action == 'create-text-post' || $postType == "text") && empty($data['content'])) {
             $errors[] = 'Content is required!';
         }
 
-        if ($action == 'create-image-post' &&empty($data['imagesLinks'])) {
+        if (($action == 'create-image-post'|| $postType == "image" ) &&empty($data['imagesLinks'])) {
             $errors[] = 'Post must contains at least one image link!';
         }
 
-        if ($action == 'create-quote-post' && empty($data['content'])) {
+        if (($action == 'create-quote-post' || $postType == "quote" ) &&  empty($data['content'])) {
             $errors[] = 'Post must contains at least one quote!';
         }
 
-        if ($action == 'create-link-post' && empty($data['links'])) {
+        if (($action == 'create-link-post' || $postType == "link" ) && empty($data['postLinks'])) {
             $errors[] = 'Post must contains at least one link!';
         }
 

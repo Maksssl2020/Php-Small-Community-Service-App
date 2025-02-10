@@ -58,6 +58,12 @@
                             <p>Account</p>
                         </a>
                     </li>
+                    <li id="logoutItem">
+                        <a>
+                            <i class="bi bi-box-arrow-left"></i>
+                            <p>Logout</p>
+                        </a>
+                    </li>
                 </ul>
 
                 <button id="createPostButton" class="create-post-button">
@@ -70,12 +76,12 @@
             <header id="dashboardHeader" class="dashboard-header"></header>
             <div class="dashboard-content-container scrollbar" id="dashboardContentContainer"></div>
             <footer class="dashboard-footer" id="dashboardFooter">
-                <button id="paginationLeftArrow" style="padding-right: 8px" class="pagination-arrow">
+                <button id="dashboardPaginationLeftArrow" style="padding-right: 8px" class="pagination-arrow">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                <div id="paginationNumbers" class="pagination-numbers">
+                <div id="dashboardPaginationNumbers" class="pagination-numbers">
                 </div>
-                <button id="paginationRightArrow" style="padding-left: 8px" class="pagination-arrow">
+                <button id="dashboardPaginationRightArrow" style="padding-left: 8px" class="pagination-arrow">
                     <i class="bi bi-chevron-right"></i>
                 </button>
             </footer>
@@ -145,7 +151,7 @@
         </div>
     </div>
 
-    <div id="addNewPostModal" class="modal-container">
+    <div id="addNewPostModal" class="modal-container scrollbar">
         <div class="modal-content">
             <header class="add-post-modal-header">
                 <img id="addNewPostModalUserAvatar" src="" alt="user_avatar"/>

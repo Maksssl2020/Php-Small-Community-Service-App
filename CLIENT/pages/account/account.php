@@ -56,6 +56,12 @@
                             <p>Account</p>
                         </a>
                     </li>
+                    <li id="logoutItem">
+                        <a>
+                            <i class="bi bi-box-arrow-left"></i>
+                            <p>Logout</p>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -39,7 +39,8 @@ class OgpController {
         foreach ($metas as $meta) {
             $property = $meta->getAttribute('property');
             $content = $meta->getAttribute('content');
-            $ogpData[$property] = $content;
+            $formatted = str_replace("og:", "", $property);
+            $ogpData[$formatted] = $content;
         }
 
         echo json_encode(["success"=>true, "data"=>$ogpData]);

@@ -17,7 +17,7 @@ export async function createDiscoverPost(postData, isLoggedIn = true, isRadarPos
     postDiv.classList.add("discover-post-card");
     postDiv.setAttribute('id', postId);
 
-    const postHeader = await createPostHeader(id, userId, avatarSrc, userNickname, createdAt, isLoggedIn);
+    const postHeader = await createPostHeader(id, postType, userId, avatarSrc, userNickname, createdAt, isLoggedIn);
     const postContentDiv = await createPostContentContainer(postType, postTitle, postContent, tags, images, postSitesLinks, isLoggedIn);
     const postFooter = await createPostFooter(id, userId, true, isLoggedIn);
 
@@ -26,7 +26,7 @@ export async function createDiscoverPost(postData, isLoggedIn = true, isRadarPos
     return postDiv;
 }
 
-export async function createPostHeader(postId, userId, userAvatar, userNickname, createdAt, isLoggedIn) {
+export async function createPostHeader(postId, postType, userId, userAvatar, userNickname, createdAt, isLoggedIn) {
     let signedInUserId;
 
     if (isLoggedIn) {
@@ -50,7 +50,7 @@ export async function createPostHeader(postId, userId, userAvatar, userNickname,
                 </button>
                 <div postId="${postId}" id="userPostSettingsDropdown-${postId}" class="post-settings-dropdown hidden">
                     <p>${formatDate(createdAt.date, true)}</p>
-                    <button class="dropdown-button" id="editPost-${postId}">Edit</button>
+                    <button postType="${postType}" postId="${postId}" class="dropdown-button" id="editPost">Edit</button>
                     <button postId="${postId}" id="deletePost" class="dropdown-button warning">Delete</button>
                 </div>
             </div>
@@ -87,7 +87,7 @@ export async function createPostContentContainer(postType, postTitle, postConten
     } else if (postType === 'link') {
         postContentDiv = `
             <div class="post-content">
-                ${createPostSiteLinks(postSitesLinks).outerHTML}
+                ${((await createPostSiteLinks(postSitesLinks)).outerHTML)}
                 <p id="autoresize" class="post-text" spellcheck="false" >${postContent ?? ''}</p>
                 <div class="post-tags">${createPostTags(postTags, isLoggedIn)}</div>
             </div>
@@ -117,7 +117,7 @@ export async function createPostSiteLinks(postSiteLinks) {
 
     for (const link of postSiteLinks) {
         let siteData = await fetchSiteData(link);
-        const card = await createSiteCard(link, siteData, linksContainer)
+        const card = await createSiteCard(link, siteData)
         linksContainer.append(card);
     }
 
@@ -155,6 +155,11 @@ export async function createPostFooter(postId, userId, isDiscoverPost = false, i
 }
 
 export async function createSiteCard(url, siteData) {
+    const {description, title, image} = siteData;
+    console.log(description);
+    console.log(title);
+    console.log(url);
+
     const listItem = document.createElement('li');
     listItem.classList.add('link-item-container');
 
@@ -167,9 +172,9 @@ export async function createSiteCard(url, siteData) {
 
     itemDiv.appendChild(itemLink);
 
-    if (siteData.image) {
+    if (image) {
         const img = document.createElement('img');
-        img.src = siteData.image;
+        img.src = image;
         img.alt = 'Preview Image';
         img.classList.add('site-preview-image');
 
@@ -179,15 +184,15 @@ export async function createSiteCard(url, siteData) {
     const siteInfoDiv = document.createElement('div');
     siteInfoDiv.classList.add('site-preview-info');
 
-    if (siteData.title) {
+    if (title) {
         const titleH3 = document.createElement('h3');
-        titleH3.textContent = siteData.title;
+        titleH3.textContent = title;
         siteInfoDiv.appendChild(titleH3);
     }
 
-    if (siteData.description) {
+    if (description) {
         const descriptionP = document.createElement('P');
-        descriptionP.textContent = siteData.description;
+        descriptionP.textContent = description;
         siteInfoDiv.appendChild(descriptionP);
     }
 

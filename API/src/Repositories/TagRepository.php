@@ -7,7 +7,7 @@ use PDO;
 
 class TagRepository extends BaseRepository {
     public function getAllMainTags(): array {
-        $query = "SELECT * FROM `flickit-db`.tags WHERE isMain = true";
+        $query = "SELECT * FROM `flickit-db`.tags WHERE isMain = true ORDER BY RAND()";
         $statement = $this->connection->prepare($query);
         $statement->execute();
 

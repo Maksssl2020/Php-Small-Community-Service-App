@@ -9,7 +9,7 @@ import {
     signUpNicknameInput,
     signUpPasswordInput
 } from "./start.js";
-import {showToast} from "../../../indexUtils.js";
+import {showToast, updatePagination} from "../../../indexUtils.js";
 
 export async function fetchMainTagsForStartPage() {
     return await fetch('http://localhost/php-small-social-service-app/tags/get-main-tags', {
@@ -33,8 +33,9 @@ export async function fetchMainTagsForStartPage() {
     })
 }
 
-export async function getPostsForNonLoggedInUser(specifiedTag) {
-    return await fetch(`http://localhost/php-small-social-service-app/posts/get-discovered-posts-${specifiedTag}`, {
+export async function getPostsForNonLoggedInUser(specifiedTag, pageNumber) {
+    const params = new URLSearchParams({tag: specifiedTag, page: pageNumber });
+    return await fetch(`http://localhost/php-small-social-service-app/posts/get-discovered-posts?${params.toString()}`, {
         method: 'GET',
         headers: {
             "Content-Type": "application/json"
@@ -42,17 +43,22 @@ export async function getPostsForNonLoggedInUser(specifiedTag) {
     })
     .then(res => res.json())
     .then(data => {
+        console.log(data);
+
         if (data.success) {
             const {posts, totalPages} = data.data;
+            console.log(posts, totalPages);
+            console.log(pageNumber)
+            updatePagination(totalPages, pageNumber, "start", "startPageDiscover", specifiedTag)
             return posts;
         }
 
         return [];
     })
-        .catch(err => {
-            console.log(err);
-            return [];
-        })
+    .catch(err => {
+        console.log(err);
+        return [];
+    })
 }
 
 export async function signIn() {
@@ -117,28 +123,4 @@ export async function signUp() {
         console.log(error);
         showToast('Something went wrong. Please try again later.', 'error');
     });
-}
-
-export async function logout() {
-    fetch("http://localhost/php-small-social-service-app/authentication/logout", {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            localStorage.clear();
-            showToast(data.message, 'success');
-            window.location = "../start/start.php";
-        } else {
-            showToast('Something went wrong. Please try again.', 'error')
-        }
-    })
-    .catch(errors => {
-        console.log(errors)
-        showToast('Something went wrong. Please try again.', 'error')
-    })
 }

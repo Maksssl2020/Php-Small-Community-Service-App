@@ -1,5 +1,5 @@
 import {updateUserData, uploadUserAvatar} from "./accountApiFunctions.js";
-import {fetchUserData, getSignedInUserData} from "../../../indexApiFunctions.js";
+import {fetchUserData, getSignedInUserData, logout} from "../../../indexApiFunctions.js";
 import {
     enableUserEmailChangeOnClick,
     enableUserNicknameChangeOnClick,
@@ -38,6 +38,8 @@ export const newPasswordInput = document.getElementById("newPasswordInput");
 export const confirmNewPasswordInput = document.getElementById("confirmNewPasswordInput");
 export const changeUserPasswordButton  = document.getElementById('changeUserPasswordButton');
 export const cancelChangePasswordButton = document.getElementById('cancelChangePasswordButton');
+const logoutSelector = document.getElementById("logoutItem");
+
 
 export let initialUserData = {};
 
@@ -55,6 +57,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '../dashboard.php';
     }
 })
+
+if (logoutSelector) {
+    logoutSelector.addEventListener("click", logout);
+}
 
 function setInitialUserData(userData) {
     initialUserData = {...userData};

@@ -1,4 +1,4 @@
-import {logout, signIn, signUp} from "./startApiFunctions.js";
+import {signIn, signUp} from "./startApiFunctions.js";
 import {showDiscoverPostAndLikesStatisticsContainer} from "../../../indexEventListeners.js";
 import {
     fillPageWithMainTagCards,
@@ -7,7 +7,7 @@ import {
     validateSignUpForm
 } from "./startUtils.js";
 import {validateFormInput} from "../../../indexUtils.js";
-import {forgotPassword} from "../../../indexApiFunctions.js";
+import {forgotPassword, logout} from "../../../indexApiFunctions.js";
 
 export const signUpModal = document.getElementById('signUpModal');
 export const signInModal = document.getElementById('signInModal');
@@ -23,21 +23,29 @@ const forgotPasswordModal = document.getElementById('forgotPasswordModal');
 const returnToSignInModalButton = document.getElementById('returnToSignInModal');
 const resetPasswordEmailInput = document.getElementById('resetPasswordEmailInput');
 export const forgotPasswordSubmitButton  = document.getElementById('forgotPasswordSubmitButton');
+const startFooter = document.getElementById('startFooter');
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tag = urlParams.get("tag");
 
     if (tag !== undefined && tag !== null && tag !== "") {
+        if (startFooter.classList.contains('hidden')) {
+            startFooter.classList.replace('hidden', "visible");
+        }
         await handleSectionChange(tag);
     } else {
+        if (startFooter.classList.contains('visible')) {
+            startFooter.classList.replace('visible', "hidden");
+        }
         headerTitle.textContent = "Browse Topics";
-        console.log("TE")
         await fillPageWithMainTagCards();
     }
 })
 
-mainTagsContainer.addEventListener('click', showDiscoverPostAndLikesStatisticsContainer);
+if (mainTagsContainer) {
+    mainTagsContainer.addEventListener('click', showDiscoverPostAndLikesStatisticsContainer);
+}
 
 async function handleSectionChange(specifiedTag) {
     headerTitle.textContent = specifiedTag;
@@ -89,19 +97,26 @@ export const signInNicknameInput = document.getElementById('signInNicknameInput'
 export const signInPasswordInput = document.getElementById('signInPasswordInput');
 export const signInSubmitButton = document.getElementById('signInSubmitButton');
 
-signInForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    await signIn();
-})
+if (signInForm) {
+    signInForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await signIn();
+    })
+}
 
-signInNicknameInput.addEventListener('change', () => {
-    validateFormInput(signInNicknameInput, signInNicknameInput.value.trim().length > 0);
-    validateSignInForm();
-});
-signInPasswordInput.addEventListener('change', () => {
-    validateFormInput(signInPasswordInput, signInPasswordInput.value.trim().length >= 8);
-    validateSignInForm();
-});
+if (signInNicknameInput) {
+    signInNicknameInput.addEventListener('change', () => {
+        validateFormInput(signInNicknameInput, signInNicknameInput.value.trim().length > 0);
+        validateSignInForm();
+    });
+}
+
+if (signInPasswordInput) {
+    signInPasswordInput.addEventListener('change', () => {
+        validateFormInput(signInPasswordInput, signInPasswordInput.value.trim().length >= 8);
+        validateSignInForm();
+    });
+}
 
 if (forgotPasswordLabel) {
     forgotPasswordLabel.onclick = () => {
@@ -139,24 +154,34 @@ export const signUpPasswordInput = document.getElementById('signUpPasswordInput'
 export const signUpRepeatPasswordInput = document.getElementById('signUpRepeatPasswordInput');
 export const signUpSubmitButton = document.getElementById('signUpSubmitButton');
 
-signUpForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    await signUp();
-});
+if (signUpForm) {
+    signUpForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await signUp();
+    });
+}
 
-signUpNicknameInput.addEventListener('blur', () => {
-    validateFormInput(signUpNicknameInput, signUpNicknameInput.value.trim().length > 0);
-    validateSignUpForm();
-});
-signUpEmailInput.addEventListener('blur', () => {
-    validateFormInput(signUpEmailInput, signUpEmailInput.value.trim().length >= 4);
-    validateSignUpForm();
-});
-signUpPasswordInput.addEventListener('blur', () => {
-    validateFormInput(signUpPasswordInput, signUpPasswordInput.value.trim().length >= 8);
-    validateSignUpForm(signUpRepeatPasswordInput);
-});
-signUpRepeatPasswordInput.addEventListener('blur', () => {
-    validateFormInput(signUpRepeatPasswordInput, signUpRepeatPasswordInput.value === signUpPasswordInput.value);
-    validateSignUpForm();
-});
+if (signUpNicknameInput) {
+    signUpNicknameInput.addEventListener('blur', () => {
+        validateFormInput(signUpNicknameInput, signUpNicknameInput.value.trim().length > 0);
+        validateSignUpForm();
+    });
+}
+if (signUpEmailInput) {
+    signUpEmailInput.addEventListener('blur', () => {
+        validateFormInput(signUpEmailInput, signUpEmailInput.value.trim().length >= 4);
+        validateSignUpForm();
+    });
+}
+if (signUpPasswordInput) {
+    signUpPasswordInput.addEventListener('blur', () => {
+        validateFormInput(signUpPasswordInput, signUpPasswordInput.value.trim().length >= 8);
+        validateSignUpForm(signUpRepeatPasswordInput);
+    });
+}
+if (signUpRepeatPasswordInput) {
+    signUpRepeatPasswordInput.addEventListener('blur', () => {
+        validateFormInput(signUpRepeatPasswordInput, signUpRepeatPasswordInput.value === signUpPasswordInput.value);
+        validateSignUpForm();
+    });
+}
