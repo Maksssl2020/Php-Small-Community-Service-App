@@ -94,6 +94,7 @@
     font-size: 44px;
     color: var(--custom-white-color-100);
     grid-column: 3;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         cursor: pointer;
@@ -124,9 +125,11 @@
         font-size: 20px;
         justify-content: right;
         color: var(--custom-gray-color-800);
+        transition: all ease-in-out 0.3s;
 
         &:hover  {
             cursor: pointer;
+            color: var(--custom-purple-color-400);
         }
     }
 }
@@ -216,6 +219,7 @@
     border: 2px solid var(--custom-gray-color-1000);
     border-radius: 10px;
     box-sizing: border-box;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         cursor: pointer;
@@ -281,6 +285,7 @@
     text-transform: uppercase;
     border-radius: 10px;
     font-size: 22px;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         cursor: pointer;
@@ -348,6 +353,7 @@
     input {
         background: transparent !important;
         border: 1px solid var(--custom-gray-color-800) !important;
+        transition: all ease-in-out 0.3s;
     }
 
     input:focus {
@@ -362,6 +368,7 @@
     gap: 1rem;
     justify-content: center;
     margin-top: 2rem;
+    transition: all ease-in-out 0.3s;
 
     button {
         width: auto;

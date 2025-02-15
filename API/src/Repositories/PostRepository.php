@@ -133,7 +133,13 @@ class PostRepository extends BaseRepository {
         $startIndex = $this->calculateStartIndexForPagination($pageNumber, $isDashboard);
         $rowsPerPage = $isDashboard ? $this->dashboardRowsPerPage : $this->discoverRowsPerPage;
 
-        $query = "SELECT * FROM `flickit-db`.posts WHERE userId != :userId LIMIT $startIndex, $rowsPerPage";
+        $query = "
+            SELECT * 
+            FROM `flickit-db`.posts 
+            WHERE userId != :userId
+            ORDER BY createdAt DESC 
+            LIMIT $startIndex, $rowsPerPage
+        ";
         $statement = $this->connection->prepare($query);
         $statement->bindParam(":userId", $userId);
         $statement->execute();
@@ -352,13 +358,14 @@ class PostRepository extends BaseRepository {
             SELECT * 
             FROM `flickit-db`.posts 
             WHERE id IN ($inQuery)
+            ORDER BY createdAt DESC
             LIMIT $startIndex, $rowsPerPage
         ";
 
         $statement = $this->connection->prepare($fetchPostsQuery);
         $statement->execute($postsIds);
         $posts = $statement->fetchAll(PDO::FETCH_ASSOC);
-        $totalPosts = $this->countDashboardPostsForUser($userId);
+        $totalPosts = count($postsIds);
         $totalPages = ceil($totalPosts / $rowsPerPage);
 
         return empty($posts) ? [

@@ -107,7 +107,7 @@ error_log($isSignedIn);
 
                 <div class="input-container">
                     <label for="signInPasswordInput">Enter your password to sign in:</label>
-                    <input type="password" name="password" id="signInPasswordInput" placeholder="e-mail address">
+                    <input type="password" name="password" id="signInPasswordInput" placeholder="password">
 
                     <label id="forgotPasswordLabel" class="forgot-password">Forgot password?</label>
                 </div>

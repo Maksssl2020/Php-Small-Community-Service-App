@@ -67,6 +67,7 @@
     border: none;
     cursor: pointer;
     border-bottom: 1px solid transparent;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         background-color: var(--custom-gray-color-300);
@@ -100,6 +101,7 @@
     margin-top: auto;
     cursor: pointer;
     font-size: 24px;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         background-color: var(--custom-purple-color-200);
@@ -265,6 +267,7 @@
     justify-content: center;
     align-items: center;
     z-index: 2;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         background-color: var(--custom-red-color-300);
@@ -332,43 +335,6 @@
     font-family: "Montserrat", serif;
     padding: 20px 0;
     box-sizing: border-box;
-}
-
-.site-preview {
-    width: 100%;
-    height: auto;
-    border-radius: 15px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    border: 2px solid var(--custom-gray-color-700);
-
-    img {
-        width: 100%;
-        height: auto;
-        object-fit: cover;
-        border-top-right-radius: 15px;
-        border-top-left-radius: 15px;
-        border-bottom: 2px solid var(--custom-gray-color-700);
-    }
-
-    a {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        background: transparent;
-    }
-
-    .post-item-delete-icon {
-        top: 15px;
-        right: 15px;
-    }
-}
-
-.site-preview-info {
-    padding: 10px;
-    box-sizing: border-box;
-    font-family: "Montserrat", serif;
 }
 
 .add-tag-container {
@@ -461,6 +427,7 @@
     color: var(--custom-white-color-100);
     font-weight: bold;
     border-radius: 5px;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         cursor: pointer;
@@ -496,6 +463,7 @@
 
     i {
         font-size: 25px;
+        transition: all ease-in-out 0.3s;
     }
 
     i:hover {
@@ -524,6 +492,7 @@
     color: var(--custom-gray-color-500);
     background-color: var(--custom-gray-color-800);
     cursor: pointer;
+    transition: all ease-in-out 0.3s;
 
     &:disabled {
         color: var(--custom-gray-color-700) !important;
@@ -850,6 +819,7 @@
     box-sizing: border-box;
     font-size: 16px;
     cursor: pointer;
+    transition: all ease-in-out 0.3s;
 
     &.follow {
         border: none;
@@ -1027,6 +997,7 @@
     box-sizing: border-box;
     border: none;
     border-radius: 2px;
+    transition: all ease-in-out 0.3s;
 
     button {
         width: 25%;
@@ -1158,6 +1129,7 @@
     padding: 10px;
     box-sizing: border-box;
     cursor: pointer;
+    transition: all ease-in-out 0.3s;
 
     &:hover {
         background-color: var(--custom-gray-color-300)
@@ -1214,6 +1186,7 @@
         font-size: 16px;
         font-weight: bold;
         cursor: pointer;
+        transition: all ease-in-out 0.3s;
     }
 
     button.follow {

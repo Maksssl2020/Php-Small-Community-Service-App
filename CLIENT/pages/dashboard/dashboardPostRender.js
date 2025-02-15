@@ -418,11 +418,11 @@ export async function updatePostAfterLikeOrUnlike(postId) {
     const isLikedByUser = await isPostLikedByUser(postId);
     const postElementInMainContainer = document.getElementById(`post-${postId}`);
     const postElementInRadarContainer = document.getElementById(`radar-post-${postId}`);
-    const statisticsSection = postElementInMainContainer.querySelector(".post-comments-likes-container");
+    let statisticsSection;
 
     if (postElementInMainContainer) {
         updateLikesAmountInContainer(postElementInMainContainer, updatedLikes, isLikedByUser);
-
+        statisticsSection = postElementInMainContainer.querySelector(".post-comments-likes-container");
     }
 
     if (postElementInRadarContainer) {

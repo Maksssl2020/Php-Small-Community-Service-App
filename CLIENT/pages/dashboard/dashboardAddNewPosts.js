@@ -136,6 +136,8 @@ export async function editPostData(postData, postType, postId) {
     await setUserDataIntoAddPostModal();
     await populateTagSelect([]);
 
+    addNewPostButton.onclick = null;
+
     if (postType === "text") {
         await generateAddTextPostModal(postData, true);
         addNewPostButton.onclick = async () => {
@@ -163,7 +165,7 @@ export async function editPostData(postData, postType, postId) {
         }
     } else if (postType === "quote") {
         await generateAddQuotePostModal(postData, true);
-        addNewPostButton.addEventListener("click", async () => {
+        addNewPostButton.onclick = async () => {
             const formData = new FormData(addPostModalFormContainer);
 
             await updatePostData(postId, {
@@ -171,10 +173,10 @@ export async function editPostData(postData, postType, postId) {
                 content: formData.get('postContent'),
                 tags: chosenTags ? chosenTags : null
             })
-        })
+        }
     } else if (postType === "link") {
         await generateAddLinkPostModal(postData, true);
-        addNewPostButton.addEventListener("click", async () => {
+        addNewPostButton.onclick = async () => {
             const addedLinksList = document.getElementById("addedLinksList");
             const links = Array.from(addedLinksList.children).map(item => item.id);
             const formData = new FormData(addPostModalFormContainer);
@@ -182,10 +184,10 @@ export async function editPostData(postData, postType, postId) {
             await updatePostData(postId, {
                 postType: "link",
                 content: formData.get('postContent'),
-                postLinks: links,
+                links: links,
                 tags: chosenTags ? chosenTags : null
             })
-        })
+        }
     }
 }
 
@@ -199,7 +201,6 @@ async function setUserDataIntoAddPostModal() {
 
     userNicknameP.textContent = `${userNickname}`;
     userAvatarImg.src = avatarSrc;
-
 }
 
 async function generateAddTextPostModal(postData = null, isEdit = false) {
@@ -539,10 +540,6 @@ export async function populateTagSelect(tags = [], isFiltered = false) {
     } else {
         tagsToPopulate = tags;
     }
-
-
-    console.log(tagsToPopulate);
-    console.log(tags);
 
     selectOptions.innerHTML = "";
 

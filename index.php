@@ -24,6 +24,7 @@ if ($ngrokResponse) {
 
 $allowedOrigins = [
     "http://localhost:63342",
+    "http://localhost:63343",
     $publicUrl
 ];
 
@@ -65,7 +66,6 @@ header("Content-Type: application/json;");
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $parts = explode('/', $_SERVER['REQUEST_URI']);
-
 
 $resource = $parts[2] ?? null;
 $action = $parts[3] ?? null;

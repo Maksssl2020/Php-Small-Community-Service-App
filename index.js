@@ -62,9 +62,13 @@ export async function createPostContentContainer(postType, postTitle, postConten
     let postContentDiv = '';
 
     if (postType === 'text') {
+        const postTitlePlaceholder = (postTitle !== undefined && postTitle !== null)
+            ? `<h3 class="post-title">${postTitle}</h3>`
+            : "";
+
         postContentDiv = `
             <div class="post-content">
-                <h3 class="post-title">${postTitle}</h3>
+                ${postTitlePlaceholder}
                 <p id="autoresize" class="post-text" spellcheck="false">${postContent}</p>
                 <div class="post-tags">${createPostTags(postTags, isLoggedIn)}</div>
             </div>`;

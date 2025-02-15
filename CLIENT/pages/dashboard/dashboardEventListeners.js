@@ -17,7 +17,7 @@ import {getPostIdFromIdAttribute} from "./dashboardUtils.js";
 import {getCommentsAndFillSection, getLikesAndFillSection} from "../../../indexEventListeners.js";
 import {showToast} from "../../../indexUtils.js";
 import {getSignedInUserData} from "../../../indexApiFunctions.js";
-import {addNewPostModal, addPostModalFormContainer, editPostData} from "./dashboardAddNewPosts.js";
+import {addNewPostModal, addPostModalFormContainer, editPostData, resetFormData} from "./dashboardAddNewPosts.js";
 
 export async function showDashboardPostAndLikesStatisticsContainer(event) {
     const target = event.target;
@@ -118,6 +118,8 @@ export async function followUnfollowTagInSuggestion(event) {
 export async function likeOrUnlikePostEventListener(event)  {
     const likeIcon = event.target;
 
+    console.log(event.target)
+
     if (likeIcon.id === "likeOrUnlikePost" || likeIcon.classList.contains('liked')) {
         const {userId} = await getSignedInUserData();
         const postId = likeIcon.getAttribute("postId");
@@ -168,7 +170,6 @@ export function showDeletePostWarningModal(event) {
 
 export async function openEditPostModalEventListener(event) {
     const editPostButton = event.target;
-    console.log(event)
 
     if (editPostButton.id === "editPost") {
         const postId = editPostButton.getAttribute("postId");
@@ -356,7 +357,7 @@ export async function openFollowedTagsModalEventListener() {
     }
 }
 
-window.onclick = (event) => {
+window.onclick = async (event) => {
     if (postOptionsModal && event.target === postOptionsModal) {
         postOptionsModal.style.display = 'none';
     }
@@ -364,6 +365,7 @@ window.onclick = (event) => {
     if (event.target === addNewPostModal) {
         addNewPostModal.style.display = 'none';
         addPostModalFormContainer.innerHTML = '';
+        await resetFormData();
     }
 
     if (event.target === followedTagsModal) {

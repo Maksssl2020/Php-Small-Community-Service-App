@@ -165,7 +165,7 @@ readonly class PostController {
                 }
 
                 $addedPostId = $this->postRepository->addPost('link', $data);
-                $this->postRepository->addPostLinks($addedPostId, $data['postLinks']);
+                $this->postRepository->addPostLinks($addedPostId, $data['links']);
 
                 if (isset($data['tags']) && is_array($data['tags'])) {
                     $this->tagRepository->addPostTags($addedPostId, $data['tags']);
@@ -319,7 +319,7 @@ readonly class PostController {
             $errors[] = 'Post must contains at least one quote!';
         }
 
-        if (($action == 'create-link-post' || $postType == "link" ) && empty($data['postLinks'])) {
+        if (($action == 'create-link-post' || $postType == "link" ) && empty($data['links'])) {
             $errors[] = 'Post must contains at least one link!';
         }
 

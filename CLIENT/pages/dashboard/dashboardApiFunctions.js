@@ -741,7 +741,6 @@ export async function updatePostData(postId, postData) {
     const {userId} = await getSignedInUserData();
     postData.userId = userId;
 
-
     fetch(`http://localhost/php-small-social-service-app/posts/update-post-data/${postId}`, {
         method: 'PATCH',
         headers: {
@@ -754,8 +753,12 @@ export async function updatePostData(postId, postData) {
         .then(res => res.json())
         .then(async data => {
             if (data.success) {
-                await resetFormData();
-                addNewPostModal.style.display = "none";
+                setTimeout(async () => {
+                    await resetFormData();
+                    addPostModalFormContainer.innerHTML = '';
+                    addNewPostModal.style.display = "none";
+                }, 100)
+
                 showToast("Post has been updated!", "success");
                 await fetchUserPosts(localStorage.getItem("myPostsPaginationNumber") ?? 1)
             } else {
