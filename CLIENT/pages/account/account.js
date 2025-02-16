@@ -93,8 +93,16 @@ avatarFileDropArea.addEventListener('dragleave', () => {
 
 avatarFileDropArea.addEventListener('drop', showAvatarPreviewFromFileOnDrop)
 avatarFileInput.addEventListener('change', showAvatarPreviewFromFileOnChange)
-changeUserNicknameIcon.onclick = () => enableUserNicknameChangeOnClick;
-changeUserEmailIcon.onclick = () => enableUserEmailChangeOnClick;
+// changeUserNicknameIcon.onclick = () => enableUserNicknameChangeOnClick;
+// changeUserEmailIcon.onclick = () => enableUserEmailChangeOnClick;
+
+if (changeUserNicknameIcon) {
+    changeUserNicknameIcon.addEventListener('click', enableUserNicknameChangeOnClick)
+}
+
+if (changeUserEmailIcon) {
+    changeUserEmailIcon.addEventListener('click', enableUserEmailChangeOnClick);
+}
 
 changeUserPasswordIcon.onclick = () => {
     changePasswordModal.style.display = 'block';

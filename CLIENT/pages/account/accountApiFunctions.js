@@ -92,6 +92,7 @@ export async function updateUserData() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                window.location.reload();
                 showToast("Data has been updated!", 'success');
             } else {
                 data.errors.forEach(error => {

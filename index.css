@@ -922,13 +922,34 @@ h1 {
     border: 3px solid transparent;
 }
 
-.pagination-number:nth-child(1) {
+.pagination-ellipsis-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    background: transparent;
+    box-sizing: border-box;
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: bold;
+    border: 3px solid var(--custom-purple-color-400);
+    color: var(--custom-purple-color-400);
+
+    &:hover {
+        background: var(--custom-purple-color-400);
+        color: white;
+        border-color: white;
+    }
+}
+
+.pagination-button-1 {
     &.active {
         background: #FFB6C1;
         color: white;
         border-color: #FFB6C1;
     }
-
 
     &.non-active {
         color: #FFB6C1;
@@ -937,11 +958,13 @@ h1 {
     }
 
     &:hover {
-        .active;
+        background: #FFB6C1;
+        color: white;
+        border-color: #FFB6C1;
     }
 }
 
-.pagination-number:nth-child(2) {
+.pagination-button-2 {
     &.active {
         background: #87CEFA;
         color: white;
@@ -961,7 +984,7 @@ h1 {
     }
 }
 
-.pagination-number:nth-child(3) {
+.pagination-button-3 {
     &.active {
         background: #98FB98;
         color: white;
@@ -981,8 +1004,8 @@ h1 {
     }
 }
 
-.pagination-number:nth-child(4) {
-  &.active {
+.pagination-button-4 {
+    &.active {
         background: #FFD700;
         color: white;
         border-color: #FFD700;
@@ -1011,7 +1034,7 @@ h1 {
     gap: 4px;
 }
 
-.pagination-number, .pagination-arrow {
+.pagination-number, .pagination-ellipsis-button, .pagination-arrow {
     transition: all 0.3s ease-in-out;
 }
 .pagination-number:hover {

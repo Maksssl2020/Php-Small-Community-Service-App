@@ -51,6 +51,8 @@ export function showAvatarPreviewFromFileOnChange(event) {
 }
 
 export function enableUserNicknameChangeOnClick() {
+    console.log("TEES")
+
     userNicknameInput.removeAttribute('readonly');
     userNicknameInput.focus();
 

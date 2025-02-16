@@ -62,7 +62,12 @@ readonly class UserController
 
                 $rows = $this->userRepository->updateUser($user, $data);
 
-                echo json_encode(["success" => true, 'type'=>$data['type'],"message" => "User $id updated", "rows" => $rows]);
+                if (isset($data["type"])) {
+                    echo json_encode(["success" => true,"type"=>$data["type"], "message" => "User $id updated", "rows" => $rows]);
+                    break;
+                }
+
+                echo json_encode(["success" => true,"message" => "User $id updated", "rows" => $rows]);
                 break;
             }
             case "DELETE": {

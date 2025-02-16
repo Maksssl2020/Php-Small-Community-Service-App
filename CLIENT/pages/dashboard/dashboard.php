@@ -237,7 +237,7 @@
                 <div class="comment-input">
                     <input id="discoverPostCommentInput"/>
                     <button disabled id="discoverPostAddCommentButton" class="add-comment-button">
-                        <i class="bi bi-send"></i>
+                        <i id="discoverPostAddCommentIcon" class="bi bi-send"></i>
                     </button>
                 </div>
             </footer>

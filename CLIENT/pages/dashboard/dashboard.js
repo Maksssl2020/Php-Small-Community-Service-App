@@ -32,7 +32,7 @@ import {
     showDashboardPostAndLikesStatisticsContainer,
     showDeleteCommentWarningModal,
     showDeletePostWarningModal,
-    showPostManagementOptions,
+    showPostManagementOptions, turnOnPostAddCommentButton,
     unfollowTagEventListener
 } from "./dashboardEventListeners.js";
 import {autoResize, logout} from "../../../indexApiFunctions.js";
@@ -412,15 +412,27 @@ function addFollowUnfollowListeners() {
 
 if (statisticsModal) {
     statisticsModal.addEventListener('click', fetchCommentsOrLikesDataInDiscoverPostEventListener);
-    statisticsModal.addEventListener("change", addPostCommentEventListener);
+    statisticsModal.addEventListener('change', turnOnPostAddCommentButton);
     statisticsModal.addEventListener("click", showCommentManagementOptions);
     statisticsModal.addEventListener("click", showDeleteCommentWarningModal)
+    const discoverPostAddCommentButton = document.getElementById('discoverPostAddCommentButton');
+
+    if (discoverPostAddCommentButton) {
+        discoverPostAddCommentButton.addEventListener('click', addPostCommentEventListener);
+    }
 }
 
 if (dashboardContentContainer) {
     dashboardContentContainer.addEventListener('click', showDashboardPostAndLikesStatisticsContainer)
-    dashboardContentContainer.addEventListener("click", showDiscoverPostAndLikesStatisticsContainer);
-    dashboardContentContainer.addEventListener("change", addPostCommentEventListener);
+    dashboardContentContainer.addEventListener('click', showDiscoverPostAndLikesStatisticsContainer);
+    dashboardContentContainer.addEventListener('change', turnOnPostAddCommentButton);
+    dashboardContentContainer.addEventListener('change', () => {
+        const addCommentButton = document.querySelector("#addCommentButton");
+
+        if (addCommentButton) {
+            addCommentButton.addEventListener("click", addPostCommentEventListener);
+        }
+    });
     dashboardContentContainer.addEventListener('click', likeOrUnlikePostEventListener);
     dashboardContentContainer.addEventListener('click', expandPostStatisticsSection);
     dashboardContentContainer.addEventListener('click', fillStatisticsWithCommentsOrLikesEventListener);
@@ -429,6 +441,8 @@ if (dashboardContentContainer) {
     dashboardContentContainer.addEventListener("click", openEditPostModalEventListener);
     dashboardContentContainer.addEventListener("click", showDeleteCommentWarningModal);
     dashboardContentContainer.addEventListener("click", showCommentManagementOptions);
+
+
 }
 
 if (rightColumn) {

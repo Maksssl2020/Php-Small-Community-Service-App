@@ -75,13 +75,22 @@ class TagRepository extends BaseRepository {
         $tagId = $this->getTagIdByTagName($tagName);
 
         $query = "
-        SELECT t.id AS tagId, t.name, COALESCE(COUNT(p.id), 0) AS latestCreatedPosts, COALESCE(COUNT(uft.tagId), 0) AS tagFollowers
-        FROM `flickit-db`.tags t
-        LEFT JOIN `flickit-db`.post_tags pt ON t.id = pt.tagId
-        LEFT JOIN `flickit-db`.posts p ON pt.postId = p.id AND p.createdAt >= DATE_SUB(NOW(), INTERVAL 1 DAY)
-        LEFT JOIN `flickit-db`.user_followed_tags uft ON t.id = uft.tagId
-        WHERE t.id = :tagId
-        GROUP BY t.id, t.name;
+                SELECT
+                    t.id AS tagId,
+                    t.name,
+                    COALESCE((
+                                 SELECT COUNT(p.id)
+                                 FROM `flickit-db`.posts p
+                                          JOIN `flickit-db`.post_tags pt ON p.id = pt.postId
+                                 WHERE pt.tagId = t.id AND p.createdAt >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+                             ), 0) AS latestCreatedPosts,
+                    COALESCE((
+                                 SELECT COUNT(uft.id)
+                                 FROM `flickit-db`.user_followed_tags uft
+                                 WHERE uft.tagId = t.id
+                             ), 0) AS tagFollowers
+                FROM `flickit-db`.tags t
+                WHERE t.id = :tagId;
         ";
 
         $statement = $this->connection->prepare($query);

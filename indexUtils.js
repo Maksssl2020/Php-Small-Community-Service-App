@@ -122,16 +122,66 @@ export function updatePagination(totalPages, currentPage, pageName, typeOfData, 
         totalPages = 1;
     }
 
-    for (let i = 1; i <= totalPages; i++) {
+    const createPaginationButton = (pageNumber, buttonNumber, isActive = false) => {
         const button = document.createElement('button');
-        button.className = i === currentPage ? "pagination-number active" : "pagination-number non-active";
-        button.textContent = `${i}`;
+        button.className = `pagination-number pagination-button-${buttonNumber} ${isActive ? 'active' : 'non-active'}`;
+        button.textContent = `${pageNumber}`;
 
         button.onclick = async () => {
-            await fetchDataDependsOnTypeOfData(typeOfData, i, specifiedTag);
+            await fetchDataDependsOnTypeOfData(typeOfData, pageNumber, specifiedTag);
         }
 
-        paginationNumbersContainer.appendChild(button);
+        return button;
+    }
+
+    const createEllipsisButton = (targetPage) => {
+        const button = document.createElement('button');
+        button.className = "pagination-ellipsis-button";
+        button.textContent = "...";
+
+        button.onclick = async () => {
+            await fetchDataDependsOnTypeOfData(typeOfData, targetPage, specifiedTag);
+        }
+
+        return button;
+    }
+
+    let buttonNumber = 1;
+
+    if (totalPages <= 4) {
+        for (let i = 1; i <= totalPages; i++) {
+            const button = createPaginationButton(i, buttonNumber, i === currentPage);
+            paginationNumbersContainer.appendChild(button);
+            buttonNumber++;
+        }
+    } else {
+        if (currentPage <= 3) {
+            for (let i = 1; i <= 4; i++) {
+                const button = createPaginationButton(i, buttonNumber, i === currentPage);
+                paginationNumbersContainer.appendChild(button);
+                buttonNumber++;
+            }
+
+            paginationNumbersContainer.appendChild(createEllipsisButton(totalPages));
+        } else if (currentPage > totalPages - 3) {
+            paginationNumbersContainer.appendChild(createEllipsisButton(1))
+
+            for (let i = totalPages - 3; i <= totalPages; i++) {
+                const button = createPaginationButton(i, buttonNumber, i === currentPage);
+                paginationNumbersContainer.appendChild(button);
+                buttonNumber++;
+            }
+        } else {
+            paginationNumbersContainer.appendChild(createEllipsisButton(1))
+
+            for (let i = currentPage - 1; i <= currentPage + 2; i++) {
+                const button = createPaginationButton(i, buttonNumber, i === currentPage);
+                paginationNumbersContainer.appendChild(button);
+                buttonNumber++;
+            }
+
+            paginationNumbersContainer.appendChild(createEllipsisButton(totalPages))
+        }
     }
 }
 

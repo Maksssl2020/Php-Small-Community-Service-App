@@ -58,10 +58,11 @@ class UserRepository extends BaseRepository {
     }
 
     public function updateUser(User $current, array $new): int {
-        $query = "UPDATE `flickit-db`.`users` 
-                  SET nickname = :nickname, email = :email, role = :role, avatarUrl = :avatarUrl, avatarImage = :avatarImage
-                  WHERE id = :id 
-                    ";
+        $query = "
+            UPDATE `flickit-db`.`users` 
+            SET nickname = :nickname, email = :email, role = :role, avatarUrl = :avatarUrl, avatarImage = :avatarImage
+            WHERE id = :id 
+        ";
 
         $stmt = $this->connection->prepare($query);
         $stmt->bindValue(':nickname', $new['nickname'] ?? $current->getUserNickname());
@@ -78,11 +79,19 @@ class UserRepository extends BaseRepository {
             $decodedImage = base64_decode($avatarImage);
             $stmt->bindValue(':avatarImage', $decodedImage, PDO::PARAM_LOB);
             $stmt->bindValue(':avatarUrl', null, PDO::PARAM_NULL);
+        } elseif ($current->getAvatarImage() !== null) {
+            $stmt->bindValue(':avatarImage', $current->getAvatarImage(), PDO::PARAM_LOB);
+        } else {
+            $stmt->bindValue(':avatarImage', null, PDO::PARAM_NULL);
         }
 
         if (isset($new['avatarUrl'])) {
             $stmt->bindValue(':avatarUrl', $new['avatarUrl']);
             $stmt->bindValue(':avatarImage', null, PDO::PARAM_NULL);
+        } elseif ($current->getAvatarUrl() !== null) {
+            $stmt->bindValue(':avatarUrl', $current->getAvatarUrl());
+        } else {
+            $stmt->bindValue(':avatarUrl', null, PDO::PARAM_NULL);
         }
 
         $stmt->execute();

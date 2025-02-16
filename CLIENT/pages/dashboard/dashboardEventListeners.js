@@ -118,8 +118,6 @@ export async function followUnfollowTagInSuggestion(event) {
 export async function likeOrUnlikePostEventListener(event)  {
     const likeIcon = event.target;
 
-    console.log(event.target)
-
     if (likeIcon.id === "likeOrUnlikePost" || likeIcon.classList.contains('liked')) {
         const {userId} = await getSignedInUserData();
         const postId = likeIcon.getAttribute("postId");
@@ -304,12 +302,11 @@ export async function fillStatisticsWithCommentsOrLikesEventListener(event) {
     }
 }
 
-export async function addPostCommentEventListener(event) {
-    const {userId} = await getSignedInUserData();
+export function turnOnPostAddCommentButton(event) {
+    console.log(event.target.id);
 
     if (event.target.id === "postCommentInput" || event.target.id === "discoverPostCommentInput") {
         const content = event.target.value;
-        const postId = event.target.getAttribute("postId");
         const isDiscoverPost = event.target.id === "discoverPostCommentInput";
         let addCommentButton;
 
@@ -321,19 +318,6 @@ export async function addPostCommentEventListener(event) {
                 .querySelector("#addCommentButton");
         }
 
-        addCommentButton.addEventListener("click", async () => {
-            const id = await addComment(postId, content)
-            await updatePostAfterAddCommentOrRemoveComment(postId, isDiscoverPost);
-
-            if (id !== -1 && id > 0) {
-                await addCommentCardToPost(id, postId, userId, content, new Date().toLocaleDateString(), isDiscoverPost)
-            }
-
-            event.target.value = "";
-            addCommentButton.disabled = true;
-            addCommentButton.classList.remove("available");
-        });
-
         if (content.length > 0) {
             addCommentButton.classList.add("available");
             addCommentButton.disabled = false;
@@ -341,6 +325,45 @@ export async function addPostCommentEventListener(event) {
             addCommentButton.classList.remove("available");
             addCommentButton.disabled = true;
         }
+    }
+}
+
+export async function addPostCommentEventListener() {
+    const {userId} = await getSignedInUserData();
+
+    if (this.id === "discoverPostAddCommentButton" && this.disabled === false) {
+        const commentInput = document.getElementById("discoverPostCommentInput");
+        const content = commentInput.value;
+        const postId = commentInput.getAttribute("postId");
+
+        const id = await addComment(postId, content)
+        await updatePostAfterAddCommentOrRemoveComment(postId, true);
+
+        if (id !== -1 && id > 0) {
+            await addCommentCardToPost(id, postId, userId, content, new Date().toLocaleDateString(), true)
+        }
+
+        commentInput.value = "";
+        this.disabled = true;
+        this.classList.remove("available");
+    }
+
+
+    if (this.id === "addCommentButton" && this.disabled === false) {
+        const commentInput = document.getElementById("postCommentInput");
+        const content = commentInput.value;
+        const postId = commentInput.getAttribute("postId");
+
+        const id = await addComment(postId, content)
+        await updatePostAfterAddCommentOrRemoveComment(postId, false);
+
+        if (id !== -1 && id > 0) {
+            await addCommentCardToPost(id, postId, userId, content, new Date().toLocaleDateString(), false)
+        }
+
+        commentInput.value = "";
+        this.disabled = true;
+        this.classList.remove("available");
     }
 }
 
