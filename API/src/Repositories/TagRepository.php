@@ -171,12 +171,12 @@ class TagRepository extends BaseRepository {
     }
 
     public function addNewTagByAdmin(array $data, string $tagType): void {
-        $query = "INSERT INTO `flickit-db`.tags (name, imageUrl, isMain, tagType) VALUES (:name, :imageUrl, :$tagType, :isMain)";
+        $query = "INSERT INTO `flickit-db`.tags (name, imageUrl, isMain, tagType) VALUES (:name, :imageUrl, :isMain, :tagType)";
         $statement = $this->connection->prepare($query);
-        $statement->bindParam(':name', $data['name']);
-        $statement->bindParam(':imageUrl', $data['imageUrl']);
+        $statement->bindParam(':name', $data['tagName']);
+        $statement->bindParam(':imageUrl', $data['tagCoverUrl']);
+        $statement->bindParam(':isMain', $data['isMainTag']);
         $statement->bindParam(':tagType', $tagType);
-        $statement->bindParam(':isMain', $data['isMain']);
         $statement->execute();
     }
 
@@ -234,5 +234,14 @@ class TagRepository extends BaseRepository {
 
         $tagId = $statement->fetchColumn();
         return $tagId !== false ? (int)$tagId : null;
+    }
+
+    public function isTagNameNotUnique(string $tagName): bool {
+        $query = "SELECT COUNT(*) FROM `flickit-db`.tags WHERE LOWER(name) = lower(:tagName) LIMIT 1";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':tagName', $tagName);
+        $statement->execute();
+
+        return $statement->fetchColumn() > 0;
     }
 }

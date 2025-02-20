@@ -92,7 +92,7 @@ readonly class TagController {
                 $tagType = $data['isMainTag'] ? 'main': 'default';
 
                 $this->tagRepository->addNewTagByAdmin($data, $tagType);
-                echo json_encode(["success" => true]);
+                echo json_encode(["success" => true, "message"=>"New tag has been added!"]);
                 break;
             }
             case 'add-new-tag-by-user': {
@@ -151,7 +151,7 @@ readonly class TagController {
     private function getValidationErrors(array $data, string $action, ?string $userId): array  {
         $errors = [];
 
-        if ('add-new-tag-by-admin' == $action && empty($data['isMainTag'])) {
+        if ($action == 'add-new-tag-by-admin' && !isset($data['isMainTag'])) {
             $errors[] = "You must specify that tag is main or not!";
         }
 
@@ -161,6 +161,10 @@ readonly class TagController {
 
         if (($action == 'add-new-tag-by-user' || $action == 'add-new-tag-by-admin') && empty($data['tagName'])) {
             $errors[] = "Tag name cannot be empty!";
+        }
+
+        if (($action == 'add-new-tag-by-user' || $action == 'add-new-tag-by-admin') && $this->tagRepository->isTagNameNotUnique($data['tagName'])) {
+            $errors[] = "Tag with that name already exists!";
         }
 
         if (($action == 'follow-tag' || $action == 'unfollow-tag') && empty($data['tagName'])) {

@@ -426,11 +426,19 @@ if (dashboardContentContainer) {
     dashboardContentContainer.addEventListener('click', showDashboardPostAndLikesStatisticsContainer)
     dashboardContentContainer.addEventListener('click', showDiscoverPostAndLikesStatisticsContainer);
     dashboardContentContainer.addEventListener('change', turnOnPostAddCommentButton);
-    dashboardContentContainer.addEventListener('change', () => {
-        const addCommentButton = document.querySelector("#addCommentButton");
+    dashboardContentContainer.addEventListener('change', (e) => {
+        const commentInput = e.target;
+        console.log(commentInput)
 
-        if (addCommentButton) {
-            addCommentButton.addEventListener("click", addPostCommentEventListener);
+        if (commentInput.id.includes("postCommentInput")) {
+            const postId = commentInput.getAttribute('postId');
+            const addCommentButton = document.getElementById(`addCommentButton-${postId}`);
+
+            console.log(addCommentButton)
+
+            if (addCommentButton) {
+                addCommentButton.addEventListener("click", addPostCommentEventListener);
+            }
         }
     });
     dashboardContentContainer.addEventListener('click', likeOrUnlikePostEventListener);
@@ -441,8 +449,6 @@ if (dashboardContentContainer) {
     dashboardContentContainer.addEventListener("click", openEditPostModalEventListener);
     dashboardContentContainer.addEventListener("click", showDeleteCommentWarningModal);
     dashboardContentContainer.addEventListener("click", showCommentManagementOptions);
-
-
 }
 
 if (rightColumn) {

@@ -1,4 +1,7 @@
-async function fetchMainTags() {
+import {showToast} from "../../../indexUtils.js";
+import {addTagForm, isMainTagCheckbox, previewImage, subTag} from "./tagsForm.js";
+
+export async function fetchMainTags() {
     fetch('http://localhost/php-small-social-service-app/tags/get-main-tags', {
         method: 'GET',
         headers: {
@@ -20,14 +23,16 @@ async function fetchMainTags() {
         }).catch(err => console.log(err));
 }
 
-async function addNewTag() {
+export async function addNewTag() {
     let formData = new FormData(addTagForm);
+    const isMainTag = isMainTagCheckbox.checked;
+    console.log(isMainTag);
 
     fetch('http://localhost/php-small-social-service-app/tags/add-new-tag-by-admin', {
         method: 'POST',
         body: JSON.stringify({
             tagName: formData.get('tagName'),
-            isMainTag: isMainTagCheckbox.checked,
+            isMainTag: isMainTag,
             tagCoverUrl: formData.get('tagCoverUrl'),
         }),
         headers: {
@@ -40,7 +45,6 @@ async function addNewTag() {
                 showToast(data.message, 'success');
                 addTagForm.reset();
                 previewImage.style.visibility = 'hidden';
-                subtagSelect.style.visibility = 'hidden';
                 previewImage.src = '';
             } else {
                 data.errors.forEach((error) => showToast(error));

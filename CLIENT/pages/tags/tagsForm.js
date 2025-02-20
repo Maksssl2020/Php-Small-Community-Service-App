@@ -1,28 +1,24 @@
-const addTagForm = document.getElementById('addTagForm');
-const tagNameInput = document.getElementById('tagName');
-const tagCoverUrlInput = document.getElementById('tagCoverUrl');
-const previewImage = document.getElementById('previewImage');
-const addNewTagSubmitButton = document.getElementById('addNewTagSubmitButton');
-const cancelButton = document.getElementById('cancel');
-const isMainTagCheckbox = document.getElementById('isMainTag');
-const subtagSelect = document.getElementById('subtagSelect');
-const subTag = document.getElementById('subTag');
+import {addNewTag, fetchMainTags} from "./tagsFormApiFunctions.js";
+
+export const addTagForm = document.getElementById('addTagForm');
+export const tagNameInput = document.getElementById('tagName');
+export const tagCoverUrlInput = document.getElementById('tagCoverUrl');
+export const previewImage = document.getElementById('previewImage');
+export const addNewTagSubmitButton = document.getElementById('addNewTagSubmitButton');
+export const cancelButton = document.getElementById('cancel');
+export const isMainTagCheckbox = document.getElementById('isMainTag');
+export const subTag = document.getElementById('subTag');
 
 cancelButton.addEventListener('click', () => {
     window.location.href = "../start/start.php";
 })
 
-tagNameInput.addEventListener('blur', () => {
-    validateTagForm();
+isMainTagCheckbox.addEventListener('change', () => {
+    validateTagForm()
 })
 
-isMainTagCheckbox.addEventListener('change', async (event) => {
-    if (event.target.checked) {
-        subtagSelect.style.visibility = 'hidden';
-    } else {
-        subtagSelect.style.visibility = 'visible';
-        await fetchMainTags();
-    }
+tagNameInput.addEventListener('blur', () => {
+    validateTagForm();
 })
 
 tagCoverUrlInput.addEventListener('change', (event) => {
@@ -37,10 +33,17 @@ tagCoverUrlInput.addEventListener('change', (event) => {
 })
 
 function validateTagForm() {
-    const isTagNameValid = tagNameInput.value.trim().length > 0;
-    const isTagFileValid = tagCoverUrlInput.value.length > 0;
+    const isMain = isMainTagCheckbox.checked;
 
-    addNewTagSubmitButton.disabled = !(isTagNameValid && isTagFileValid);
+    if (isMain) {
+        const isTagNameValid = tagNameInput.value.trim().length > 0;
+        const isTagFileValid = tagCoverUrlInput.value.length > 0;
+
+        addNewTagSubmitButton.disabled = !(isTagNameValid && isTagFileValid);
+    } else {
+        const isTagNameValid = tagNameInput.value.trim().length > 0;
+        addNewTagSubmitButton.disabled = !(isTagNameValid);
+    }
 }
 
 addTagForm.addEventListener('submit', async (event) => {

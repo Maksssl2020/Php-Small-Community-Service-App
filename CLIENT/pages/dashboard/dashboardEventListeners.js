@@ -215,9 +215,17 @@ export async function confirmPostDeleteEventListener() {
         await deleteComment(commentId);
 
         const commentToDelete = document.getElementById(`comment-${commentId}`);
+        const postId = commentToDelete.getAttribute("postId");
+        const isDiscoverPost = commentToDelete.getAttribute("postType") === "discover";
+
+        setTimeout(async () => {
+            await updatePostAfterAddCommentOrRemoveComment(postId, isDiscoverPost);
+        }, 1000)
+
         if (commentToDelete) {
             commentToDelete.remove();
         }
+
         cancelDeleteEventListener();
     }
 }
@@ -303,19 +311,19 @@ export async function fillStatisticsWithCommentsOrLikesEventListener(event) {
 }
 
 export function turnOnPostAddCommentButton(event) {
+    const postCommentInput = event.target;
     console.log(event.target.id);
 
-    if (event.target.id === "postCommentInput" || event.target.id === "discoverPostCommentInput") {
-        const content = event.target.value;
-        const isDiscoverPost = event.target.id === "discoverPostCommentInput";
+    if (postCommentInput.id.includes("postCommentInput") || postCommentInput.id === "discoverPostCommentInput") {
+        const content = postCommentInput.value;
+        const isDiscoverPost = postCommentInput.id === "discoverPostCommentInput";
         let addCommentButton;
 
         if (isDiscoverPost) {
             addCommentButton = document.getElementById("discoverPostAddCommentButton");
         } else {
-            addCommentButton = event.target
-                .closest(".add-comment-container")
-                .querySelector("#addCommentButton");
+            const postId = postCommentInput.getAttribute("postId");
+            addCommentButton = document.getElementById(`addCommentButton-${postId}`)
         }
 
         if (content.length > 0) {
@@ -349,10 +357,10 @@ export async function addPostCommentEventListener() {
     }
 
 
-    if (this.id === "addCommentButton" && this.disabled === false) {
-        const commentInput = document.getElementById("postCommentInput");
+    if (this.id.includes("addCommentButton") && this.disabled === false) {
+        const postId = this.getAttribute("postId");
+        const commentInput = document.getElementById(`postCommentInput-${postId}`);
         const content = commentInput.value;
-        const postId = commentInput.getAttribute("postId");
 
         const id = await addComment(postId, content)
         await updatePostAfterAddCommentOrRemoveComment(postId, false);

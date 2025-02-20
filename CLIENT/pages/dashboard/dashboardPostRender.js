@@ -283,8 +283,8 @@ async function createDashboardPostStatisticsContainer(postId) {
             <div id="addCommentContainer-${postId}" class="add-comment-container">
                 <img src="${avatarSrc}" alt="user"/>
                 <div class="comment-input">
-                    <input spellcheck="false" autocomplete="false" postId="${postId}" id="postCommentInput" placeholder="Respond as @${userNickname}"/>
-                    <button disabled id="addCommentButton" class="add-comment-button">
+                    <input spellcheck="false" autocomplete="false" postId="${postId}" id="postCommentInput-${postId}" placeholder="Respond as @${userNickname}"/>
+                    <button disabled postId="${postId}" id="addCommentButton-${postId}" class="add-comment-button">
                         <i class="bi bi-send"></i>
                     </button>
                 </div>
@@ -322,7 +322,7 @@ export async function fillCommentsSection(postId, comments, isDiscoverPost = fal
         commentsContainer.innerHTML = "";
 
         for (const comment of comments) {
-            const commentCard = await createPostCommentCard(comment);
+            const commentCard = await createPostCommentCard(comment, isDiscoverPost);
             commentsContainer.innerHTML += commentCard;
         }
     }
@@ -358,13 +358,14 @@ export async function fillLikesSection(postId, likes, isDiscoverPost = false) {
     }
 }
 
-async function createPostCommentCard(commentData) {
+async function createPostCommentCard(commentData, isDiscoverPost) {
     const {id, postId, userId, content, createdAt} = commentData;
     const postAuthorId = await getPostAuthorId(postId);
     const {userNickname, avatarUrl, avatarImage} = await fetchUserData(userId);
     let avatarSrc = getUserAvatar(avatarUrl, avatarImage);
     let isUserCommentAuthor = false;
     let isUserPostAuthor = false;
+    const postType = isDiscoverPost ? "discover" : "dashboard";
 
     if (await getSignedInUserData()) {
         const {userId: signedInUserId} =await getSignedInUserData()
@@ -375,7 +376,7 @@ async function createPostCommentCard(commentData) {
     const settingsContainerClass = isUserCommentAuthor || isUserPostAuthor ? "visible" : "hidden";
 
     return `
-    <div id="comment-${id}" class="comment-card">
+    <div postType="${postType}" postId="${postId}" id="comment-${id}" class="comment-card">
         <div class="comment-user-image">
             <img src="${avatarSrc}" alt="${userNickname}"/>
         </div>
@@ -452,6 +453,8 @@ export async function updatePostAfterAddCommentOrRemoveComment(postId, isDiscove
     const updatedCommentsCount  = await countPostComments(postId);
     let commentsStatisticInfo;
 
+    console.log(updatedCommentsCount)
+
     if (isDiscoverPost) {
         commentsStatisticInfo = document.getElementById(`discoverPostCommentsStatistic`);
     } else {
@@ -468,8 +471,10 @@ export async function updatePostAfterAddCommentOrRemoveComment(postId, isDiscove
 
 export async function addCommentCardToPost(commentId, postId, userId, content, createdAt, isDiscoverPost = false) {
     let postContainer;
-    const commentData = {commentId, postId, userId, content, createdAt}
-    const commentCard = await createPostCommentCard(commentData);
+    const commentData = {id: commentId, postId, userId, content, createdAt}
+    const commentCard = await createPostCommentCard(commentData, isDiscoverPost);
+
+    console.log(commentData)
 
     if (isDiscoverPost) {
         postContainer = document.getElementById("discoverPostStatisticsContent");

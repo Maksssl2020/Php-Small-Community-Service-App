@@ -31,11 +31,6 @@
                          <label for="isMainTag">Is a main tag:</label>
                          <input checked type="checkbox" name="isMainTag" id="isMainTag" placeholder="Enter a tag name">
                      </div>
-
-                     <div id="subtagSelect" style="visibility: hidden" class="select-container">
-                         <label for="subTag">Is a sub-tag for:</label>
-                         <select name="subTag" id="subTag"></select>
-                     </div>
                  </div>
                  <div class="input-container">
                      <label for="tagCoverUrl">Add Tag Cover URL:</label>
@@ -48,14 +43,14 @@
 
                  <div class="buttons-container">
                      <button id="cancel" type="button" class="submit-button">Cancel</button>
-                     <button disabled id="addNewTagSubmitButton" type="submit" class="submit-button">Add Photo</button>
+                     <button disabled id="addNewTagSubmitButton" type="submit" class="submit-button">Add Tag</button>
                  </div>
              </form>
          </div>
      </div>
 
-    <script src="tagsForm.js"></script>
-    <script src="tagsFormApiFunctions.js"></script>
-    <script src="../../../index.js"></script>
+    <script type="module" src="../../../index.js"></script>
+    <script type="module" src="tagsForm.js"></script>
+    <script type="module" src="tagsFormApiFunctions.js"></script>
 </body>
 </html>
